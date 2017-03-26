@@ -1,15 +1,36 @@
 SET TIME ZONE 'UTC';
 
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO public;
+
 CREATE TABLE affiliation_year (
     year NUMERIC(4) PRIMARY KEY CHECK (year >= 1980 AND year <= 2079),
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );
 
+INSERT INTO affiliation_year (year)
+VALUES
+    (2011),
+    (2012),
+    (2013),
+    (2014),
+    (2015),
+    (2016),
+    (2017),
+    (2018),
+    (2019),
+    (2020),
+    (2021),
+    (2022),
+    (2023),
+    (2024),
+    (2025);
+
 CREATE TABLE affiliation (
     affiliation_id SERIAL PRIMARY KEY,
-    physical_address_id INTEGER,
-    mailing_address_id INTEGER,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );
@@ -21,6 +42,61 @@ CREATE TABLE state (
     updated_at timestamp with time zone DEFAULT NOW()
 );
 
+INSERT INTO state (state_abbr, state_name)
+VALUES
+    ('AL', 'Alabama'),
+    ('AK', 'Alaska'),
+    ('AZ', 'Arizona'),
+    ('AR', 'Arkansas'),
+    ('CA', 'California'),
+    ('CO', 'Colorado'),
+    ('CT', 'Connecticut'),
+    ('DE', 'Delaware'),
+    ('DC', 'District of Columbia'),
+    ('FL', 'Florida'),
+    ('GA', 'Georgia'),
+    ('HI', 'Hawaii'),
+    ('ID', 'Idaho'),
+    ('IL', 'Illinois'),
+    ('IN', 'Indiana'),
+    ('IA', 'Iowa'),
+    ('KS', 'Kansas'),
+    ('KY', 'Kentucky'),
+    ('LA', 'Louisiana'),
+    ('ME', 'Maine'),
+    ('MD', 'Maryland'),
+    ('MA', 'Massachusetts'),
+    ('MI', 'Michigan'),
+    ('MN', 'Minnesota'),
+    ('MS', 'Mississippi'),
+    ('MO', 'Missouri'),
+    ('MT', 'Montana'),
+    ('NE', 'Nebraska'),
+    ('NV', 'Nevada'),
+    ('NH', 'New Hampshire'),
+    ('NJ', 'New Jersey'),
+    ('NM', 'New Mexico'),
+    ('NY', 'New York'),
+    ('NC', 'North Carolina'),
+    ('ND', 'North Dakota'),
+    ('OH', 'Ohio'),
+    ('OK', 'Oklahoma'),
+    ('OR', 'Oregon'),
+    ('PA', 'Pennsylvania'),
+    ('RI', 'Rhode Island'),
+    ('SC', 'South Carolina'),
+    ('SD', 'South Dakota'),
+    ('TN', 'Tennessee'),
+    ('TX', 'Texas'),
+    ('UT', 'Utah'),
+    ('VT', 'Vermont'),
+    ('VA', 'Virginia'),
+    ('WA', 'Washington'),
+    ('WV', 'West Virginia'),
+    ('WI', 'Wisconsin'),
+    ('WY', 'Wyoming');
+
+
 CREATE TABLE city_state_zip (
     csz_id SERIAL PRIMARY KEY,
     zip DECIMAL(5) NOT NULL,
@@ -31,16 +107,25 @@ CREATE TABLE city_state_zip (
     UNIQUE(zip, city, state_abbr)
 );
 
-CREATE TABLE address (
-    address_id SERIAL PRIMARY KEY,
+CREATE TABLE residential_address (
+    affiliation_id INTEGER NOT NULL PRIMARY KEY REFERENCES affiliation (affiliation_id) ON DELETE CASCADE ON UPDATE CASCADE,
     street_line_1 VARCHAR(128) NOT NULL CHECK (street_line_1 <> ''),
     street_line_2 VARCHAR(128) CHECK (street_line_2 IS NULL OR street_line_2 <> ''),
     csz_id INTEGER NOT NULL REFERENCES city_state_zip (csz_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    plus_four NUMERIC(4),
+    plus_four NUMERIC(4) CHECK (plus_four IS NULL OR LENGTH(plus_four) = 4),
     definitely_in_library_special_voting_district boolean NOT NULL DEFAULT false,
     created_at timestamp with time zone DEFAULT NOW(),
-    updated_at timestamp with time zone DEFAULT NOW(),
-    UNIQUE(street_line_1, street_line_2, csz_id)
+    updated_at timestamp with time zone DEFAULT NOW()
+);
+
+CREATE TABLE postal_address (
+    affiliation_id INTEGER NOT NULL PRIMARY KEY REFERENCES affiliation (affiliation_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    street_line_1 VARCHAR(128) NOT NULL CHECK (street_line_1 <> ''),
+    street_line_2 VARCHAR(128) CHECK (street_line_2 IS NULL OR street_line_2 <> ''),
+    csz_id INTEGER NOT NULL REFERENCES city_state_zip (csz_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    plus_four NUMERIC(4) CHECK (plus_four IS NULL OR LENGTH(plus_four) = 4),
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW()
 );
 
 CREATE TYPE donation_type_enum AS ENUM ('membership_fee', 'donation');
@@ -70,7 +155,7 @@ CREATE TABLE affiliation_year_registered_voter (
     person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (person_id, year)
+    PRIMARY KEY (affiliation_year, person_id)
 );
 
 CREATE TABLE person_phone (
@@ -100,12 +185,12 @@ CREATE TABLE participation_role (
 );
 
 CREATE TABLE person_has_participated (
-    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
     affiliation_year NUMERIC(4) NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
+    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
     participation_role_id INTEGER NOT NULL REFERENCES participation_role (participation_role_id) ON DELETE CASCADE ON UPDATE CASCADE,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (person_id, year, participation_role_id)
+    PRIMARY KEY (affiliation_year, person_id, participation_role_id)
 );
 
 CREATE TABLE person_interested_in_participating (
