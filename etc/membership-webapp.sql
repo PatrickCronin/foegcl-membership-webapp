@@ -5,13 +5,13 @@ CREATE SCHEMA public;
 GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO public;
 
-CREATE TABLE affiliation_year (
+CREATE TABLE membership_year (
     year NUMERIC(4) PRIMARY KEY CHECK (year >= 1980 AND year <= 2079),
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );
 
-INSERT INTO affiliation_year (year)
+INSERT INTO membership_year (year)
 VALUES
     (2011),
     (2012),
@@ -29,8 +29,11 @@ VALUES
     (2024),
     (2025);
 
-CREATE TABLE affiliation (
-    affiliation_id SERIAL PRIMARY KEY,
+CREATE TABLE person (
+    person_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(64) NOT NULL,
+    last_name VARCHAR(64) NOT NULL,
+    opted_out boolean NOT NULL DEFAULT false,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );
@@ -96,7 +99,6 @@ VALUES
     ('WI', 'Wisconsin'),
     ('WY', 'Wyoming');
 
-
 CREATE TABLE city_state_zip (
     csz_id SERIAL PRIMARY KEY,
     zip DECIMAL(5) NOT NULL,
@@ -107,19 +109,8 @@ CREATE TABLE city_state_zip (
     UNIQUE(zip, city, state_abbr)
 );
 
-CREATE TABLE residential_address (
-    affiliation_id INTEGER NOT NULL PRIMARY KEY REFERENCES affiliation (affiliation_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    street_line_1 VARCHAR(128) NOT NULL CHECK (street_line_1 <> ''),
-    street_line_2 VARCHAR(128) CHECK (street_line_2 IS NULL OR street_line_2 <> ''),
-    csz_id INTEGER NOT NULL REFERENCES city_state_zip (csz_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    plus_four NUMERIC(4) CHECK (plus_four IS NULL OR LENGTH(plus_four) = 4),
-    definitely_in_library_special_voting_district boolean NOT NULL DEFAULT false,
-    created_at timestamp with time zone DEFAULT NOW(),
-    updated_at timestamp with time zone DEFAULT NOW()
-);
-
-CREATE TABLE postal_address (
-    affiliation_id INTEGER NOT NULL PRIMARY KEY REFERENCES affiliation (affiliation_id) ON DELETE CASCADE ON UPDATE CASCADE,
+CREATE TABLE mailing_address (
+    person_id INTEGER NOT NULL PRIMARY KEY REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
     street_line_1 VARCHAR(128) NOT NULL CHECK (street_line_1 <> ''),
     street_line_2 VARCHAR(128) CHECK (street_line_2 IS NULL OR street_line_2 <> ''),
     csz_id INTEGER NOT NULL REFERENCES city_state_zip (csz_id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -128,38 +119,19 @@ CREATE TABLE postal_address (
     updated_at timestamp with time zone DEFAULT NOW()
 );
 
-CREATE TYPE donation_type_enum AS ENUM ('membership_fee', 'donation');
-
-CREATE TABLE donation (
-    donation_id SERIAL PRIMARY KEY,
-    affiliation_id INTEGER NOT NULL REFERENCES affiliation (affiliation_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    affiliation_year NUMERIC(4) NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
-    donation_type donation_type_enum NOT NULL,
-    amount MONEY NOT NULL CHECK (amount > 0::money),
+CREATE TABLE physical_address (
+    person_id INTEGER NOT NULL PRIMARY KEY REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    street_line_1 VARCHAR(128) NOT NULL CHECK (street_line_1 <> ''),
+    street_line_2 VARCHAR(128) CHECK (street_line_2 IS NULL OR street_line_2 <> ''),
+    csz_id INTEGER NOT NULL REFERENCES city_state_zip (csz_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    plus_four NUMERIC(4) CHECK (plus_four IS NULL OR LENGTH(plus_four) = 4),
+    in_special_library_voting_district boolean NULL DEFAULT NULL,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
-);
-
-CREATE TABLE person (
-    person_id SERIAL PRIMARY KEY,
-    affiliation_id INTEGER REFERENCES affiliation (affiliation_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    first_name VARCHAR(64) NOT NULL,
-    last_name VARCHAR(64) NOT NULL,
-    opted_out boolean NOT NULL DEFAULT false,
-    created_at timestamp with time zone DEFAULT NOW(),
-    updated_at timestamp with time zone DEFAULT NOW()
-);
-
-CREATE TABLE affiliation_year_registered_voter (
-    affiliation_year NUMERIC(4) NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
-    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    created_at timestamp with time zone DEFAULT NOW(),
-    updated_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (affiliation_year, person_id)
 );
 
 CREATE TABLE person_phone (
-    person_id INTEGER NOT NULL REFERENCES person (person_id),
+    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
     phone_number VARCHAR(32) NOT NULL CHECK (phone_number <> ''),
     is_preferred boolean NOT NULL DEFAULT false,
     created_at timestamp with time zone DEFAULT NOW(),
@@ -185,12 +157,12 @@ CREATE TABLE participation_role (
 );
 
 CREATE TABLE person_has_participated (
-    affiliation_year NUMERIC(4) NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
+    membership_year NUMERIC(4) NOT NULL REFERENCES membership_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
     person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
     participation_role_id INTEGER NOT NULL REFERENCES participation_role (participation_role_id) ON DELETE CASCADE ON UPDATE CASCADE,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (affiliation_year, person_id, participation_role_id)
+    PRIMARY KEY (membership_year, person_id, participation_role_id)
 );
 
 CREATE TABLE person_interested_in_participating (
@@ -199,6 +171,40 @@ CREATE TABLE person_interested_in_participating (
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW(),
     PRIMARY KEY (person_id, participation_role_id)
+);
+
+CREATE TABLE membership (
+    membership_id SERIAL PRIMARY KEY,
+    membership_year NUMERIC(4) NOT NULL REFERENCES membership_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW()
+);
+
+CREATE TABLE membership_person (
+    membership_id INTEGER NOT NULL REFERENCES membership (membership_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW(),
+    PRIMARY KEY (membership_id, person_id)
+)
+
+CREATE TYPE donation_type AS ENUM ('individual_membership', 'household_membership', 'donation');
+
+CREATE TABLE donation (
+    donation_id SERIAL PRIMARY KEY,
+    membership_id INTEGER NOT NULL REFERENCES membership (membership_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    donation_type donation_type NOT NULL,
+    amount MONEY NOT NULL CHECK (amount > 0::money),
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW()
+);
+
+CREATE TABLE membership_year_registered_voter (
+    membership_year NUMERIC(4) NOT NULL REFERENCES membership_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
+    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW(),
+    PRIMARY KEY (membership_year, person_id)
 );
 
 CREATE TABLE app_user (

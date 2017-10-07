@@ -3,7 +3,7 @@ package FOEGCL::Membership::ETL;
 use Moose;
 
 has _annual_membership_amounts => (
-    is => 'ro',,
+    is => 'ro',
     isa => HashRef,
     builder => '_build_annual_membership_amounts',
 );
