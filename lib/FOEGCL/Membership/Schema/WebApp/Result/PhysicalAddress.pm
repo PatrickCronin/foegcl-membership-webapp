@@ -37,7 +37,7 @@ __PACKAGE__->table("physical_address");
 
 =head1 ACCESSORS
 
-=head2 affiliation_id
+=head2 person_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -68,11 +68,10 @@ __PACKAGE__->table("physical_address");
   is_nullable: 1
   size: 4
 
-=head2 definitely_in_library_special_voting_district
+=head2 in_library_special_voting_district
 
   data_type: 'boolean'
-  default_value: false
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 created_at
 
@@ -91,7 +90,7 @@ __PACKAGE__->table("physical_address");
 =cut
 
 __PACKAGE__->add_columns(
-  "affiliation_id",
+  "person_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "street_line_1",
   { data_type => "varchar", is_nullable => 0, size => 128 },
@@ -101,8 +100,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "plus_four",
   { data_type => "char", default_value => \"null", is_nullable => 1, size => 4 },
-  "definitely_in_library_special_voting_district",
-  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "in_library_special_voting_district",
+  { data_type => "boolean", is_nullable => 1 },
   "created_at",
   {
     data_type     => "timestamp with time zone",
@@ -123,30 +122,15 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</affiliation_id>
+=item * L</person_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("affiliation_id");
+__PACKAGE__->set_primary_key("person_id");
 
 =head1 RELATIONS
-
-=head2 affiliation
-
-Type: belongs_to
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Affiliation>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "affiliation",
-  "FOEGCL::Membership::Schema::WebApp::Result::Affiliation",
-  { affiliation_id => "affiliation_id" },
-  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
-);
 
 =head2 csz
 
@@ -163,9 +147,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 person
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-04-23 12:33:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UKIUhybfrn5bV2EGe31NUw
+Type: belongs_to
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Person>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "person",
+  "FOEGCL::Membership::Schema::WebApp::Result::Person",
+  { person_id => "person_id" },
+  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iOPxceMXDQS+P6ArAAJokA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

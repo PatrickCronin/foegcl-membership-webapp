@@ -1,12 +1,12 @@
 use utf8;
-package FOEGCL::Membership::Schema::WebApp::Result::AppPrivilege;
+package FOEGCL::Membership::Schema::WebApp::Result::PersonMembership;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-FOEGCL::Membership::Schema::WebApp::Result::AppPrivilege
+FOEGCL::Membership::Schema::WebApp::Result::PersonMembership
 
 =cut
 
@@ -29,26 +29,25 @@ use base 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "InflateColumn::Serializer");
 
-=head1 TABLE: C<app_privilege>
+=head1 TABLE: C<person_membership>
 
 =cut
 
-__PACKAGE__->table("app_privilege");
+__PACKAGE__->table("person_membership");
 
 =head1 ACCESSORS
 
-=head2 privilege_id
+=head2 person_id
 
   data_type: 'integer'
-  is_auto_increment: 1
+  is_foreign_key: 1
   is_nullable: 0
-  sequence: 'app_privilege_privilege_id_seq'
 
-=head2 privilege_name
+=head2 membership_id
 
-  data_type: 'varchar'
+  data_type: 'integer'
+  is_foreign_key: 1
   is_nullable: 0
-  size: 64
 
 =head2 created_at
 
@@ -67,15 +66,10 @@ __PACKAGE__->table("app_privilege");
 =cut
 
 __PACKAGE__->add_columns(
-  "privilege_id",
-  {
-    data_type         => "integer",
-    is_auto_increment => 1,
-    is_nullable       => 0,
-    sequence          => "app_privilege_privilege_id_seq",
-  },
-  "privilege_name",
-  { data_type => "varchar", is_nullable => 0, size => 64 },
+  "person_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "membership_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "created_at",
   {
     data_type     => "timestamp with time zone",
@@ -96,48 +90,49 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</privilege_id>
+=item * L</person_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("privilege_id");
-
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<app_privilege_name_is_unique>
-
-=over 4
-
-=item * L</privilege_name>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("app_privilege_name_is_unique", ["privilege_name"]);
+__PACKAGE__->set_primary_key("person_id");
 
 =head1 RELATIONS
 
-=head2 app_role_has_privileges
+=head2 membership
 
-Type: has_many
+Type: belongs_to
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AppRoleHasPrivilege>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Membership>
 
 =cut
 
-__PACKAGE__->has_many(
-  "app_role_has_privileges",
-  "FOEGCL::Membership::Schema::WebApp::Result::AppRoleHasPrivilege",
-  { "foreign.privilege_id" => "self.privilege_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+__PACKAGE__->belongs_to(
+  "membership",
+  "FOEGCL::Membership::Schema::WebApp::Result::Membership",
+  { membership_id => "membership_id" },
+  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+=head2 person
+
+Type: belongs_to
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Person>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "person",
+  "FOEGCL::Membership::Schema::WebApp::Result::Person",
+  { person_id => "person_id" },
+  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
 # Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BtRWLq8FGiPxTVvdlbg0nA
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0AyOz84iOAJNjXa/DBFVLw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -137,7 +137,7 @@ __PACKAGE__->set_primary_key("user_id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<app_user_username_key>
+=head2 C<username_is_unique>
 
 =over 4
 
@@ -147,7 +147,7 @@ __PACKAGE__->set_primary_key("user_id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint("app_user_username_key", ["username"]);
+__PACKAGE__->add_unique_constraint("username_is_unique", ["username"]);
 
 =head1 RELATIONS
 
@@ -167,8 +167,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-04-23 12:33:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eVoHM3gT8Ln44s6zyhgokA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WujrVRitmxRpBusLz4Z16A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

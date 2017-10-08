@@ -122,7 +122,7 @@ __PACKAGE__->set_primary_key("participation_role_id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<role_name_is_unique>
+=head2 C<participation_role_name_is_unique>
 
 =over 4
 
@@ -132,7 +132,7 @@ __PACKAGE__->set_primary_key("participation_role_id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint("role_name_is_unique", ["role_name"]);
+__PACKAGE__->add_unique_constraint("participation_role_name_is_unique", ["role_name"]);
 
 =head1 RELATIONS
 
@@ -202,8 +202,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-04-23 12:33:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aR4+BuwnvQ5OE49jG0wWHA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ac0kEoNE25voBrrR+gy9Rw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

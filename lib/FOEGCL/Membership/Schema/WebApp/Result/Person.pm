@@ -44,12 +44,6 @@ __PACKAGE__->table("person");
   is_nullable: 0
   sequence: 'person_person_id_seq'
 
-=head2 affiliation_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 first_name
 
   data_type: 'varchar'
@@ -92,8 +86,6 @@ __PACKAGE__->add_columns(
     is_nullable       => 0,
     sequence          => "person_person_id_seq",
   },
-  "affiliation_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "first_name",
   { data_type => "varchar", is_nullable => 0, size => 64 },
   "last_name",
@@ -130,32 +122,32 @@ __PACKAGE__->set_primary_key("person_id");
 
 =head1 RELATIONS
 
-=head2 affiliation
+=head2 mailing_address
 
-Type: belongs_to
+Type: might_have
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Affiliation>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MailingAddress>
 
 =cut
 
-__PACKAGE__->belongs_to(
-  "affiliation",
-  "FOEGCL::Membership::Schema::WebApp::Result::Affiliation",
-  { affiliation_id => "affiliation_id" },
-  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
+__PACKAGE__->might_have(
+  "mailing_address",
+  "FOEGCL::Membership::Schema::WebApp::Result::MailingAddress",
+  { "foreign.person_id" => "self.person_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 affiliation_year_registered_voters
+=head2 membership_year_registered_voters
 
 Type: has_many
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearRegisteredVoter>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYearRegisteredVoter>
 
 =cut
 
 __PACKAGE__->has_many(
-  "affiliation_year_registered_voters",
-  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearRegisteredVoter",
+  "membership_year_registered_voters",
+  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYearRegisteredVoter",
   { "foreign.person_id" => "self.person_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -205,6 +197,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 person_membership
+
+Type: might_have
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::PersonMembership>
+
+=cut
+
+__PACKAGE__->might_have(
+  "person_membership",
+  "FOEGCL::Membership::Schema::WebApp::Result::PersonMembership",
+  { "foreign.person_id" => "self.person_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 person_phones
 
 Type: has_many
@@ -220,9 +227,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 physical_address
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-04-23 12:33:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4KyQIr0Dy0ozX71UWdgW0Q
+Type: might_have
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::PhysicalAddress>
+
+=cut
+
+__PACKAGE__->might_have(
+  "physical_address",
+  "FOEGCL::Membership::Schema::WebApp::Result::PhysicalAddress",
+  { "foreign.person_id" => "self.person_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8vOEDoO0b3rVdp+YvzAaxQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

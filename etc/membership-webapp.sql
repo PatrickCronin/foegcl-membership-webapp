@@ -7,37 +7,44 @@ GRANT ALL ON SCHEMA public TO public;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
-CREATE TABLE affiliation_year (
-    year NUMERIC(4) PRIMARY KEY
-        CONSTRAINT year_is_reasonable CHECK (year >= 1980 AND year <= 2079),
+CREATE TABLE person (
+    person_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(64) NOT NULL
+        CONSTRAINT first_name_is_trimmed_and_not_empty CHECK(first_name <> '' AND first_name = trim(both from first_name)),
+    last_name VARCHAR(64) NOT NULL
+        CONSTRAINT last_name_is_trimmed_and_not_empty CHECK(last_name <> '' AND last_name = trim(both from last_name)),
+    opted_out boolean NOT NULL DEFAULT false,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );
 
-INSERT INTO affiliation_year (year)
-VALUES
-    (2011),
-    (2012),
-    (2013),
-    (2014),
-    (2015),
-    (2016),
-    (2017),
-    (2018),
-    (2019),
-    (2020),
-    (2021),
-    (2022),
-    (2023),
-    (2024),
-    (2025);
-    
-CREATE TABLE affiliation (
-    affiliation_id SERIAL PRIMARY KEY,
-    legacy_friend_id INTEGER NOT NULL,
+CREATE INDEX person__first_name__gin_trgm_idx  ON person USING gin (first_name gin_trgm_ops);
+CREATE INDEX person__last_name__gin_trgm_idx  ON person USING gin (last_name gin_trgm_ops);
+CREATE INDEX person__opted_out ON person (opted_out);
+
+CREATE TABLE person_phone (
+    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    phone_number VARCHAR(32) NOT NULL CHECK (phone_number <> '')
+        CONSTRAINT phone_number_is_one_or_more_digits CHECK (phone_number <> '' and phone_number ~ '^\d+$'),
+    is_preferred boolean NOT NULL DEFAULT false,
     created_at timestamp with time zone DEFAULT NOW(),
-    updated_at timestamp with time zone DEFAULT NOW()
+    updated_at timestamp with time zone DEFAULT NOW(),
+    PRIMARY KEY (person_id, phone_number)
 );
+
+CREATE INDEX person_phone__phone_number__gin_trgm_idx ON person_phone USING gin (phone_number gin_trgm_ops);
+
+CREATE TABLE person_email (
+    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    email_address VARCHAR(128) NOT NULL
+        CONSTRAINT email_address_is_trimmed_and_not_empty CHECK (email_address <> '' AND email_address = trim(both from email_address)),
+    is_preferred boolean NOT NULL DEFAULT false,
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW(),
+    PRIMARY KEY (person_id, email_address)
+);
+
+CREATE INDEX person_email__email_address__gin_trgm_idx ON person_email USING gin (email_address gin_trgm_ops);
 
 CREATE TABLE state (
     state_abbr CHAR(2) PRIMARY KEY,
@@ -102,7 +109,6 @@ VALUES
     ('WI', 'Wisconsin'),
     ('WY', 'Wyoming');
 
-
 CREATE TABLE city_state_zip (
     csz_id SERIAL PRIMARY KEY,
     zip CHAR(5) NOT NULL
@@ -118,32 +124,15 @@ CREATE TABLE city_state_zip (
 CREATE INDEX city_state_zip__city__gin_trgm_idx ON city_state_zip USING gin (city gin_trgm_ops);
 CREATE INDEX city_state_zip__zip ON city_state_zip (zip);
 
-CREATE TABLE physical_address (
-    affiliation_id INTEGER PRIMARY KEY REFERENCES affiliation (affiliation_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    street_line_1 VARCHAR(128) NOT NULL
-        CONSTRAINT street_line_1_is_trimmed_and_not_empty CHECK (street_line_1 <> '' AND street_line_1 = trim(both from street_line_1)),
-    street_line_2 VARCHAR(128)
-        CONSTRAINT street_line_2_is_null_or_trimmed_and_not_empty CHECK (street_line_2 IS NULL OR (street_line_2 <> '' AND street_line_2 = trim(both from street_line_2))),
-    csz_id INTEGER NOT NULL REFERENCES city_state_zip (csz_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    plus_four CHAR(4) DEFAULT NULL
-        CONSTRAINT plus_four_is_null_or_five_digits CHECK (plus_four IS NULL OR plus_four ~ '^[0-9]{4}$'),
-    definitely_in_library_special_voting_district boolean NOT NULL DEFAULT false,
-    created_at timestamp with time zone DEFAULT NOW(),
-    updated_at timestamp with time zone DEFAULT NOW()
-);
-
-CREATE INDEX physical_address__street_line_1__gin_trgm_idx ON physical_address USING gin (street_line_1 gin_trgm_ops);
-CREATE INDEX physical_address__street_line_2__gin_trgm_idx ON physical_address USING gin (street_line_2 gin_trgm_ops);
-
 CREATE TABLE mailing_address (
-    affiliation_id INTEGER PRIMARY KEY REFERENCES affiliation (affiliation_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    person_id INTEGER NOT NULL PRIMARY KEY REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
     street_line_1 VARCHAR(128) NOT NULL
-        CONSTRAINT street_line_1_is_trimmed_and_not_empty CHECK (street_line_1 <> '' AND street_line_1 = trim(both from street_line_1)),
+        CONSTRAINT mailing_address_street_line_1_is_trimmed_and_not_empty CHECK (street_line_1 <> '' AND street_line_1 = trim(both from street_line_1)),
     street_line_2 VARCHAR(128)
-        CONSTRAINT street_line_2_is_null_or_trimmed_and_not_empty CHECK (street_line_2 IS NULL OR (street_line_2 <> '' AND street_line_2 = trim(both from street_line_2))),
+        CONSTRAINT mailing_address_street_line_2_is_null_or_trimmed_and_not_empty CHECK (street_line_2 IS NULL OR (street_line_2 <> '' AND street_line_2 = trim(both from street_line_2))),
     csz_id INTEGER NOT NULL REFERENCES city_state_zip (csz_id) ON DELETE CASCADE ON UPDATE CASCADE,
     plus_four CHAR(4) DEFAULT NULL
-        CONSTRAINT plus_four_is_null_or_five_digits CHECK (plus_four IS NULL OR plus_four ~ '^[0-9]{4}$'),
+        CONSTRAINT mailing_address_plus_four_is_null_or_five_digits CHECK (plus_four IS NULL OR plus_four ~ '^[0-9]{4}$'),
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );
@@ -151,170 +140,58 @@ CREATE TABLE mailing_address (
 CREATE INDEX mailing_address__street_line_1__gin_trgm_idx ON mailing_address USING gin (street_line_1 gin_trgm_ops);
 CREATE INDEX mailing_address__street_line_2__gin_trgm_idx ON mailing_address USING gin (street_line_2 gin_trgm_ops);
 
-CREATE TABLE donation_type (
-    donation_type VARCHAR(32) PRIMARY KEY,
-    is_for_membership boolean NOT NULL DEFAULT false
-);
-
-CREATE INDEX donation_type__is_for_membership ON donation_type (is_for_membership);
-
-INSERT INTO donation_type (donation_type, is_for_membership)
-VALUES
-    ('individual_membership', true),
-    ('household_membership', true),
-    ('general_contribution', false);
-
-CREATE TABLE donation (
-    donation_id SERIAL PRIMARY KEY,
-    affiliation_id INTEGER NOT NULL REFERENCES affiliation (affiliation_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    affiliation_year NUMERIC(4) NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
-    donation_type VARCHAR(32) NOT NULL DEFAULT 'general_contribution' REFERENCES donation_type (donation_type) ON DELETE CASCADE ON UPDATE CASCADE,
-    amount NUMERIC(11,2) NOT NULL
-        CONSTRAINT amount_is_greater_than_zero CHECK (amount > 0),
-    notes VARCHAR(128)
-        CONSTRAINT notes_is_null_or_trimmed_and_not_empty CHECK (notes IS NULL OR (notes <> '' AND notes = trim(both from notes))),
+CREATE TABLE physical_address (
+    person_id INTEGER NOT NULL PRIMARY KEY REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    street_line_1 VARCHAR(128) NOT NULL
+        CONSTRAINT physical_address_street_line_1_is_trimmed_and_not_empty CHECK (street_line_1 <> '' AND street_line_1 = trim(both from street_line_1)),
+    street_line_2 VARCHAR(128)
+        CONSTRAINT physical_address_street_line_2_is_null_or_trimmed_and_not_empty CHECK (street_line_2 IS NULL OR (street_line_2 <> '' AND street_line_2 = trim(both from street_line_2))),
+    csz_id INTEGER NOT NULL REFERENCES city_state_zip (csz_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    plus_four CHAR(4) DEFAULT NULL
+        CONSTRAINT physical_address_plus_four_is_null_or_five_digits CHECK (plus_four IS NULL OR plus_four ~ '^[0-9]{4}$'),
+    in_library_special_voting_district boolean NULL DEFAULT NULL,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );
 
-CREATE INDEX donation__affiliation_id ON donation (affiliation_id);
-CREATE INDEX donation__affiliation_year ON donation (affiliation_year);
+CREATE INDEX physical_address__street_line_1__gin_trgm_idx ON physical_address USING gin (street_line_1 gin_trgm_ops);
+CREATE INDEX physical_address__street_line_2__gin_trgm_idx ON physical_address USING gin (street_line_2 gin_trgm_ops);
 
-CREATE OR REPLACE FUNCTION limit_one_membership_per_affiliation_per_year
-    (affiliation_id INTEGER, affiliation_year NUMERIC(4))
-    RETURNS boolean AS
+CREATE OR REPLACE FUNCTION ensure_physical_addresses_match_in_membership()
+    RETURNS TRIGGER AS
 $$
-SELECT
-    CASE WHEN COUNT(donation_id) < 2 THEN true
-        ELSE false
-    END
-FROM donation
-INNER JOIN donation_type USING (donation_type)
-WHERE affiliation_id = $1
-AND affiliation_year = $2
-AND is_for_membership = true
-$$ LANGUAGE 'sql';
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM person_membership
+        WHERE person_id = NEW.person_id
+    ) THEN
+        RAISE EXCEPTION 'Cannot add, change or delete a physical address for a person in a membership';
+    END IF;
 
-ALTER TABLE donation
-ADD CONSTRAINT only_one_membership_per_affiliation_per_year
-CHECK(limit_one_membership_per_affiliation_per_year(affiliation_id, affiliation_year));
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE TABLE person (
-    person_id SERIAL PRIMARY KEY,
-    affiliation_id INTEGER NOT NULL REFERENCES affiliation (affiliation_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    first_name VARCHAR(64) NOT NULL
-        CONSTRAINT first_name_is_trimmed_and_not_empty CHECK(first_name <> '' AND first_name = trim(both from first_name)),
-    last_name VARCHAR(64) NOT NULL
-        CONSTRAINT last_name_is_trimmed_and_not_empty CHECK(last_name <> '' AND last_name = trim(both from last_name)),
-    opted_out boolean NOT NULL DEFAULT false,
-    created_at timestamp with time zone DEFAULT NOW(),
-    updated_at timestamp with time zone DEFAULT NOW()
-);
+COMMENT ON FUNCTION ensure_physical_addresses_match_in_membership() IS 'If a person is in a membership, their physical address should be changed with XXX';
 
-CREATE INDEX person__affiliation_id ON person (affiliation_id);
-CREATE INDEX person__first_name__gin_trgm_idx  ON person USING gin (first_name gin_trgm_ops);
-CREATE INDEX person__last_name__gin_trgm_idx  ON person USING gin (last_name gin_trgm_ops);
-CREATE INDEX person__opted_out ON person (opted_out);
-
-CREATE TABLE affiliation_year_registered_voter (
-    affiliation_year NUMERIC(4) NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
-    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    created_at timestamp with time zone DEFAULT NOW(),
-    updated_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (affiliation_year, person_id)
-);
-
-CREATE INDEX affiliation_year_registered_voter__person_id ON affiliation_year_registered_voter (person_id);
-
-CREATE TABLE affiliation_year_membership_level (
-    affiliation_year NUMERIC(4) NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
-    membership_donation_type VARCHAR(32) NOT NULL REFERENCES donation_type (donation_type) ON DELETE CASCADE ON UPDATE CASCADE,
-    amount NUMERIC(11,2) NOT NULL
-        CONSTRAINT amount_is_greater_than_zero CHECK (amount > 0),
-    PRIMARY KEY (affiliation_year, membership_donation_type)
-);
-
-INSERT INTO affiliation_year_membership_level
-(affiliation_year, membership_donation_type, amount)
-VALUES
-    (2011, 'individual_membership', 10),
-    (2011, 'household_membership', 20),
-    (2012, 'individual_membership', 10),
-    (2012, 'household_membership', 20),
-    (2013, 'individual_membership', 10),
-    (2013, 'household_membership', 20),
-    (2014, 'individual_membership', 10),
-    (2014, 'household_membership', 20),
-    (2015, 'individual_membership', 10),
-    (2015, 'household_membership', 20),
-    (2016, 'individual_membership', 10),
-    (2016, 'household_membership', 20),
-    (2017, 'individual_membership', 15),
-    (2017, 'household_membership', 25),
-    (2018, 'individual_membership', 15),
-    (2018, 'household_membership', 25),
-    (2019, 'individual_membership', 15),
-    (2019, 'household_membership', 25),
-    (2020, 'individual_membership', 15),
-    (2020, 'household_membership', 25),
-    (2021, 'individual_membership', 15),
-    (2021, 'household_membership', 25),
-    (2022, 'individual_membership', 15),
-    (2022, 'household_membership', 25),
-    (2023, 'individual_membership', 15),
-    (2023, 'household_membership', 25),
-    (2024, 'individual_membership', 15),
-    (2024, 'household_membership', 25),
-    (2025, 'individual_membership', 15),
-    (2025, 'household_membership', 25);
-
-CREATE TABLE person_phone (
-    person_id INTEGER NOT NULL REFERENCES person (person_id),
-    phone_number VARCHAR(32) NOT NULL
-        CONSTRAINT phone_number_is_trimmed_and_not_empty CHECK (phone_number <> '' and phone_number = trim(both from phone_number)),
-    is_preferred boolean NOT NULL DEFAULT false,
-    created_at timestamp with time zone DEFAULT NOW(),
-    updated_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (person_id, phone_number)
-);
-
-CREATE INDEX person_phone__phone_number__gin_trgm_idx ON person_phone USING gin (phone_number gin_trgm_ops);
-
-CREATE TABLE person_email (
-    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    email_address VARCHAR(128) NOT NULL
-        CONSTRAINT email_address_is_trimmed_and_not_empty CHECK (email_address <> '' AND email_address = trim(both from email_address)),
-    is_preferred boolean NOT NULL DEFAULT false,
-    created_at timestamp with time zone DEFAULT NOW(),
-    updated_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (person_id, email_address)
-);
-
-CREATE INDEX person_email__email_address__gin_trgm_idx ON person_email USING gin (email_address gin_trgm_ops);
+CREATE TRIGGER physical_address__ensure_membership_matches
+BEFORE INSERT OR UPDATE OR DELETE ON physical_address
+FOR EACH ROW
+EXECUTE PROCEDURE ensure_physical_addresses_match_in_membership();
 
 CREATE TABLE participation_role (
     participation_role_id SERIAL PRIMARY KEY,
     parent_role_id INTEGER REFERENCES participation_role (participation_role_id) ON DELETE CASCADE ON UPDATE CASCADE,
     role_name VARCHAR(128) NOT NULL
-        CONSTRAINT role_name_is_trimmed_and_not_empty CHECK (role_name <> '' AND role_name = trim(both from role_name))
-        CONSTRAINT role_name_is_unique UNIQUE,
+        CONSTRAINT participation_role_name_is_trimmed_and_not_empty CHECK (role_name <> '' AND role_name = trim(both from role_name))
+        CONSTRAINT participation_role_name_is_unique UNIQUE,
     is_hidden boolean NOT NULL DEFAULT false,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );
 
 CREATE INDEX participation_role__parent_role_id ON participation_role (parent_role_id);
-
-CREATE TABLE person_has_participated (
-    affiliation_year NUMERIC(4) NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
-    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    participation_role_id INTEGER NOT NULL REFERENCES participation_role (participation_role_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    created_at timestamp with time zone DEFAULT NOW(),
-    updated_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (affiliation_year, person_id, participation_role_id)
-);
-
-CREATE INDEX person_has_participated__person_id ON person_has_participated (person_id);
 
 CREATE TABLE person_interested_in_participating (
     person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -324,12 +201,245 @@ CREATE TABLE person_interested_in_participating (
     PRIMARY KEY (person_id, participation_role_id)
 );
 
+CREATE INDEX person_interested_in_participating__participation_role_id ON person_interested_in_participating (participation_role_id);
+
+CREATE TABLE membership_year (
+    year NUMERIC(4) PRIMARY KEY
+        CONSTRAINT year_is_reasonable CHECK (year >= 1980 AND year <= 2079),
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW()
+);
+
+INSERT INTO membership_year (year)
+VALUES
+    (2011),
+    (2012),
+    (2013),
+    (2014),
+    (2015),
+    (2016),
+    (2017);
+
+CREATE TABLE person_has_participated (
+    membership_year NUMERIC(4) NOT NULL REFERENCES membership_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
+    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    participation_role_id INTEGER NOT NULL REFERENCES participation_role (participation_role_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW(),
+    PRIMARY KEY (membership_year, person_id, participation_role_id)
+);
+
+CREATE INDEX person_has_participated__person_id ON person_has_participated (person_id);
+CREATE INDEX pesron_has_participated__participation_role_id ON person_has_participated (person_id);
+
+CREATE TABLE membership (
+    membership_id SERIAL PRIMARY KEY,
+    membership_year NUMERIC(4) NOT NULL REFERENCES membership_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW()
+);
+
+CREATE INDEX membership__membership_year ON membership (membership_year);
+
+CREATE TABLE person_membership (
+    person_id INTEGER NOT NULL PRIMARY KEY REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    membership_id INTEGER NOT NULL REFERENCES membership (membership_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW()
+);
+
+CREATE INDEX person_membership__membership_id ON person_membership (membership_id);
+
+CREATE OR REPLACE FUNCTION validate_new_person_membership()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+    IF TG_OP = 'UPDATE' THEN
+        RAISE EXCEPTION 'Updates are not allowed on the person_membership table.';
+    END IF;
+
+    IF NEW.membership_id IS NULL THEN
+        RAISE EXCEPTION 'membership_id cannot be null';
+    END IF;
+    IF NEW.person_id IS NULL THEN
+        RAISE EXCEPTION 'person_id cannot be null';
+    END IF;
+
+    -- Check membership people limit
+    IF (
+        SELECT COUNT(*)
+        FROM person_membership
+        WHERE membership_id = NEW.membership_id
+    ) >= (
+        SELECT membership_max_people
+        FROM membership_donation_type
+        INNER JOIN membership USING (membership_id, membership_year)
+        WHERE membership_id = NEW.membership_id
+    ) THEN 
+        RAISE EXCEPTION 'Cannot add any more people to this membership. It already has the maximum number of people for its membership type.';
+    END IF;
+
+    -- Check membership people's physical addresses are the same
+    IF (
+        WITH membership_physical_addresses AS (
+            SELECT DISTINCT street_address_1, street_address_2, csz_id
+            FROM physical_address
+            INNER JOIN person_membership USING (person_id)
+            WHERE membership_id = NEW.membership_id
+        ),
+        new_person_address AS (
+            SELECT street_address_1, street_address_2, csz_id
+            FROM physical_address
+            WHERE person_id = NEW.person_id
+        )
+        SELECT COUNT(*)
+        FROM (
+            (
+                SELECT * FROM membership_physical_addresses
+                EXCEPT
+                SELECT * FROM new_person_address
+            )
+            UNION
+            (
+                SELECT * FROM new_person_address
+                EXCEPT
+                SELECT * FROM membership_physical_addresses
+            )
+        ) AS mismatched_addresses
+    ) > 0 THEN
+        RAISE EXCEPTION 'People sharing a membership must have the same physical address';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER person_membership__validate_new_membership_person
+BEFORE INSERT OR UPDATE ON person_membership
+FOR EACH ROW
+EXECUTE PROCEDURE validate_new_person_membership();
+
+CREATE TYPE donation_type AS ENUM ('individual_membership', 'household_membership', 'general_donation');
+
+CREATE TABLE membership_donation_type (
+    membership_year NUMERIC(4) NOT NULL REFERENCES membership_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
+    donation_type donation_type NOT NULL,
+    membership_max_people SMALLINT NOT NULL
+        CONSTRAINT max_people_is_greater_than_zero CHECK (membership_max_people > 0),
+    membership_amount NUMERIC(11,2) NOT NULL
+        CONSTRAINT amount_is_greater_than_zero CHECK (membership_amount > 0),
+    PRIMARY KEY (membership_year, donation_type)
+);
+
+CREATE TABLE donation (
+    donation_id SERIAL PRIMARY KEY,
+    membership_id INTEGER NOT NULL REFERENCES membership (membership_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    donation_type donation_type NOT NULL DEFAULT 'general_donation',
+    amount NUMERIC(11,2) NOT NULL
+        CONSTRAINT amount_is_greater_than_zero CHECK (amount > 0),
+    notes VARCHAR(128)
+        CONSTRAINT notes_is_null_or_trimmed_and_not_empty CHECK (notes IS NULL OR (notes <> '' AND notes = trim(both from notes))),
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW()
+);
+
+CREATE INDEX donation__membership_id ON donation (membership_id);
+
+CREATE OR REPLACE FUNCTION validate_new_donation()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+    IF TG_OP = 'UPDATE' THEN
+        RAISE EXCEPTION 'Updates are not allowed on the donation table.';
+    END IF;
+
+    IF NEW.membership_id IS NULL THEN
+        RAISE EXCEPTION 'membership_id cannot be null';
+    END IF;
+    IF NEW.membership_year IS NULL THEN
+        RAISE EXCEPTION 'membership_year cannot be null';
+    END IF;
+    IF NEW.donation_type IS NULL THEN
+        RAISE EXCEPTION 'donation_type cannot be null';
+    END IF;
+    IF NEW.amount IS NULL THEN
+        RAISE EXCEPTION 'amount cannot be null';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM donation
+        INNER JOIN membership USING (membership_id)
+        INNER JOIN membership_donation_type USING (membership_year, donation_type)
+        WHERE membership_id = NEW.membership_id
+        AND membership_year = NEW.membership_year
+    ) AND EXISTS (
+        SELECT 1
+        FROM membership_donation_type
+        WHERE membership_year = NEW.membership_year
+        AND donation_type = NEW.donation_type
+    ) THEN
+        RAISE EXCEPTION 'Cannot add a membership-type donation because the membership already has an existing membership-type donation.';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM membership_donation_type
+        INNER JOIN membership USING (membership_year, donation_type)
+        WHERE membership_id = NEW.membership_id
+        AND donation_type = NEW.donation_type
+        AND membership_amount <> NEW.amount
+    ) THEN
+        RAISE EXCEPTION 'Membership-related donations must be the correct membership amount.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER donation__validate_new_donation
+BEFORE INSERT OR UPDATE ON donation
+FOR EACH ROW
+EXECUTE PROCEDURE validate_new_donation();
+
+INSERT INTO membership_donation_type
+(membership_year, donation_type, membership_max_people, membership_amount)
+VALUES
+    (2011, 'individual_membership', 1, 10),
+    (2011, 'household_membership', 2, 20),
+    (2012, 'individual_membership', 1, 10),
+    (2012, 'household_membership', 2, 20),
+    (2013, 'individual_membership', 1, 10),
+    (2013, 'household_membership', 2, 20),
+    (2014, 'individual_membership', 1, 10),
+    (2014, 'household_membership', 2, 20),
+    (2015, 'individual_membership', 1, 10),
+    (2015, 'household_membership', 2, 20),
+    (2016, 'individual_membership', 1, 10),
+    (2016, 'household_membership', 2, 20),
+    (2017, 'individual_membership', 1, 15),
+    (2017, 'household_membership', 2, 25);
+
+CREATE TABLE membership_year_registered_voter (
+    membership_year NUMERIC(4) NOT NULL REFERENCES membership_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
+    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW(),
+    PRIMARY KEY (membership_year, person_id)
+);
+
+CREATE INDEX membership_year_registered_voter__person_id ON membership_year_registered_voter (person_id);
+
 CREATE TABLE app_user (
     user_id SERIAL PRIMARY KEY,
-    username VARCHAR(32) NOT NULL CHECK (username <> '') UNIQUE,
+    username VARCHAR(32) NOT NULL
+        CONSTRAINT username_is_unique UNIQUE
+        CONSTRAINT username_is_trimmed_and_not_empty CHECK (username <> '' AND username = trim(both from username)),
     password_hash bytea NOT NULL CHECK(length(password_hash) = 64),
-    first_name VARCHAR(32) NOT NULL CHECK (first_name <> ''),
-    last_name VARCHAR(32) NOT NULL CHECK (last_name <> ''),
+    first_name VARCHAR(32) NOT NULL
+        CONSTRAINT first_name_is_trimmed_and_not_empty CHECK (first_name <> '' AND first_name = trim(both from first_name)),
+    last_name VARCHAR(32) NOT NULL
+        CONSTRAINT last_name_is_trimmed_and_not_empty CHECK (last_name <> '' AND last_name = trim(both from last_name)),
     login_enabled boolean DEFAULT true,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
@@ -337,7 +447,9 @@ CREATE TABLE app_user (
 
 CREATE TABLE app_role (
     role_id SERIAL PRIMARY KEY,
-    role_name VARCHAR(64) NOT NULL CHECK (role_name <> '') UNIQUE,
+    role_name VARCHAR(64) NOT NULL
+        CONSTRAINT app_role_name_is_unique UNIQUE
+        CONSTRAINT app_role_name_is_trimmed_and_not_empty CHECK (role_name <> '' AND role_name = trim(both from role_name)),
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );
@@ -354,7 +466,9 @@ CREATE INDEX app_user_has_role__role_id ON app_user_has_role (role_id);
 
 CREATE TABLE app_privilege (
     privilege_id SERIAL PRIMARY KEY,
-    privilege_name VARCHAR(64) NOT NULL CHECK (privilege_name <> '') UNIQUE,
+    privilege_name VARCHAR(64) NOT NULL
+        CONSTRAINT app_privilege_name_is_unique UNIQUE
+        CONSTRAINT app_privilege_name_is_trimmed_and_not_empty CHECK (privilege_name <> '' AND privilege_name = trim(both from privilege_name)),
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );

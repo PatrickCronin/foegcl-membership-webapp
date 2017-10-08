@@ -1,12 +1,12 @@
 use utf8;
-package FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear;
+package FOEGCL::Membership::Schema::WebApp::Result::MembershipYear;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear
+FOEGCL::Membership::Schema::WebApp::Result::MembershipYear
 
 =cut
 
@@ -29,11 +29,11 @@ use base 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "InflateColumn::Serializer");
 
-=head1 TABLE: C<affiliation_year>
+=head1 TABLE: C<membership_year>
 
 =cut
 
-__PACKAGE__->table("affiliation_year");
+__PACKAGE__->table("membership_year");
 
 =head1 ACCESSORS
 
@@ -92,48 +92,48 @@ __PACKAGE__->set_primary_key("year");
 
 =head1 RELATIONS
 
-=head2 affiliation_year_membership_levels
+=head2 membership_donation_types
 
 Type: has_many
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearMembershipLevel>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipDonationType>
 
 =cut
 
 __PACKAGE__->has_many(
-  "affiliation_year_membership_levels",
-  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearMembershipLevel",
-  { "foreign.affiliation_year" => "self.year" },
+  "membership_donation_types",
+  "FOEGCL::Membership::Schema::WebApp::Result::MembershipDonationType",
+  { "foreign.membership_year" => "self.year" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 affiliation_year_registered_voters
+=head2 membership_year_registered_voters
 
 Type: has_many
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearRegisteredVoter>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYearRegisteredVoter>
 
 =cut
 
 __PACKAGE__->has_many(
-  "affiliation_year_registered_voters",
-  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearRegisteredVoter",
-  { "foreign.affiliation_year" => "self.year" },
+  "membership_year_registered_voters",
+  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYearRegisteredVoter",
+  { "foreign.membership_year" => "self.year" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 donations
+=head2 memberships
 
 Type: has_many
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Donation>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Membership>
 
 =cut
 
 __PACKAGE__->has_many(
-  "donations",
-  "FOEGCL::Membership::Schema::WebApp::Result::Donation",
-  { "foreign.affiliation_year" => "self.year" },
+  "memberships",
+  "FOEGCL::Membership::Schema::WebApp::Result::Membership",
+  { "foreign.membership_year" => "self.year" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -148,13 +148,13 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::PersonHasParticipa
 __PACKAGE__->has_many(
   "people_has_participated",
   "FOEGCL::Membership::Schema::WebApp::Result::PersonHasParticipated",
-  { "foreign.affiliation_year" => "self.year" },
+  { "foreign.membership_year" => "self.year" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-04-23 12:33:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sCeTkCvLUslvfG827hIa+Q
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QWlUhcrgFpDb/eKodDtBbg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

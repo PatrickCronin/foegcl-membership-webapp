@@ -122,12 +122,12 @@ __PACKAGE__->belongs_to(
   "person",
   "FOEGCL::Membership::Schema::WebApp::Result::Person",
   { person_id => "person_id" },
-  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
+  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-04-23 12:33:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kPYgYnk0YOGe8t7YldA4nw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5Zqu7n4CnKRS+lc+yhXRaw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

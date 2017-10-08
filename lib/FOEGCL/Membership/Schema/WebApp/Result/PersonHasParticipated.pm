@@ -37,7 +37,7 @@ __PACKAGE__->table("person_has_participated");
 
 =head1 ACCESSORS
 
-=head2 affiliation_year
+=head2 membership_year
 
   data_type: 'numeric'
   is_foreign_key: 1
@@ -73,7 +73,7 @@ __PACKAGE__->table("person_has_participated");
 =cut
 
 __PACKAGE__->add_columns(
-  "affiliation_year",
+  "membership_year",
   {
     data_type => "numeric",
     is_foreign_key => 1,
@@ -104,7 +104,7 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</affiliation_year>
+=item * L</membership_year>
 
 =item * L</person_id>
 
@@ -114,22 +114,22 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key("affiliation_year", "person_id", "participation_role_id");
+__PACKAGE__->set_primary_key("membership_year", "person_id", "participation_role_id");
 
 =head1 RELATIONS
 
-=head2 affiliation_year
+=head2 membership_year
 
 Type: belongs_to
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYear>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "affiliation_year",
-  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear",
-  { year => "affiliation_year" },
+  "membership_year",
+  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYear",
+  { year => "membership_year" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -164,8 +164,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-04-23 12:33:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZKgQeHJ0QHncVxCQoOr/mg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JXlOE3RTX66B9Jki+6YuCw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

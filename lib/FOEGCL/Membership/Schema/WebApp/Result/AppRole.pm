@@ -106,7 +106,7 @@ __PACKAGE__->set_primary_key("role_id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<app_role_role_name_key>
+=head2 C<app_role_name_is_unique>
 
 =over 4
 
@@ -116,7 +116,7 @@ __PACKAGE__->set_primary_key("role_id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint("app_role_role_name_key", ["role_name"]);
+__PACKAGE__->add_unique_constraint("app_role_name_is_unique", ["role_name"]);
 
 =head1 RELATIONS
 
@@ -151,8 +151,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-04-23 12:33:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:O1iVRSbm55zB6fCiPBHS1w
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LMXKZvMfbh5QG+fGMOSiSg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

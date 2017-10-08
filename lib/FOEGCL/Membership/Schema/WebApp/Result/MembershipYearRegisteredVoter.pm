@@ -1,12 +1,12 @@
 use utf8;
-package FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearRegisteredVoter;
+package FOEGCL::Membership::Schema::WebApp::Result::MembershipYearRegisteredVoter;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearRegisteredVoter
+FOEGCL::Membership::Schema::WebApp::Result::MembershipYearRegisteredVoter
 
 =cut
 
@@ -29,15 +29,15 @@ use base 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "InflateColumn::Serializer");
 
-=head1 TABLE: C<affiliation_year_registered_voter>
+=head1 TABLE: C<membership_year_registered_voter>
 
 =cut
 
-__PACKAGE__->table("affiliation_year_registered_voter");
+__PACKAGE__->table("membership_year_registered_voter");
 
 =head1 ACCESSORS
 
-=head2 affiliation_year
+=head2 membership_year
 
   data_type: 'numeric'
   is_foreign_key: 1
@@ -67,7 +67,7 @@ __PACKAGE__->table("affiliation_year_registered_voter");
 =cut
 
 __PACKAGE__->add_columns(
-  "affiliation_year",
+  "membership_year",
   {
     data_type => "numeric",
     is_foreign_key => 1,
@@ -96,7 +96,7 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</affiliation_year>
+=item * L</membership_year>
 
 =item * L</person_id>
 
@@ -104,22 +104,22 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key("affiliation_year", "person_id");
+__PACKAGE__->set_primary_key("membership_year", "person_id");
 
 =head1 RELATIONS
 
-=head2 affiliation_year
+=head2 membership_year
 
 Type: belongs_to
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYear>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "affiliation_year",
-  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear",
-  { year => "affiliation_year" },
+  "membership_year",
+  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYear",
+  { year => "membership_year" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -139,8 +139,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-04-23 12:33:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zyckN2BUZEOlwmIbv6/ULA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gEc2hoV6xOSriKdWTWNSqw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
