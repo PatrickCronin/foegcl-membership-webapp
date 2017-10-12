@@ -5,12 +5,15 @@ use Test::Class::Moose;
 use DBI qw(:sql_types);
 use Test::Differences qw(eq_or_diff);
 
-with 'FOEGCL::Membership::Role::HasLegacySchema',
-    'FOEGCL::Membership::Role::HasSchema';
+with (
+    'FOEGCL::Membership::Role::HasLegacySchema',
+    'FOEGCL::Membership::Role::HasSchema',
+    'FOEGCL::Membership::Role::TestsDB',
+);
 
 sub test_startup {
-    my $test = shift;
-    $test->test_skip('TEST_ETL environment variable not set')
+    my $self = shift;
+    $self->test_skip('TEST_ETL environment variable not set')
         if ! $ENV{TEST_ETL};
 }
 
@@ -148,13 +151,13 @@ sub test_friend_emails {
     # First, test the set of emails for each Friend ID is the same.
     eq_or_diff(
         [
-            $self->_legacy_schema->resultset('Friend')->search(
+            $self->_legacy_schema->resultset('Friend')->search_rs(
                 { email_address => { '!=' => undef } },
                 {
                     columns => [ 'friend_id', 'email_address' ],
                     join => 'ContactInfo'
                 }
-            )->
+            )->all
         ],
         [
         
