@@ -1,0 +1,21 @@
+[PerlCritic]
+argv = --profile $ROOT/.perlcriticrc --program-extensions .pl
+select = **/*.{pl,pm}
+ignore = lib/FOEGCL/Membership/Schema/**/*.pm
+
+[PerlTidy]
+diff_on_tidy_error = 1
+select = **/*.{pl,pm,t}
+
+[PodSpell]
+select = lib/**/*.{pm,pod}
+ispell_argv = -p $ROOT/.stopwords
+ignore = lib/MM/Schema/**/*.{pm,pod}
+
+[SortLines]
+diff_on_tidy_error = 1
+select = .gitignore
+
+[SortLines::Naturally]
+diff_on_tidy_error = 1
+select = .stopwords
