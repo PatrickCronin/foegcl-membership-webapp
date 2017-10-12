@@ -1,4 +1,5 @@
 package FOEGCL::Membership::ETL::Friend::Participation;
+# ABSTRACT: Extract, transform and load a Friend's participation interests and history
 
 use Moose;
 

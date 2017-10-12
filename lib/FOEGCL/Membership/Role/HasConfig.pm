@@ -1,4 +1,5 @@
 package FOEGCL::Membership::Role::HasConfig;
+# ABSTRACT: Enable easy access to the config object for Moose objects
 
 use Moose::Role;
 

@@ -1,4 +1,5 @@
 package FOEGCL::Membership::Role::TestsDB;
+# ABSTRACT: Collection of actions that make testing with the DB easier
 
 use Moose::Role;
 

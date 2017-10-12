@@ -1,5 +1,5 @@
 package FOEGCL::Membership::ETL::Friend::People;
-# ABSTRACT: Create person record(s) in WebApp
+# ABSTRACT: Extract, transform and load a Friend's people
 
 use Moose;
 

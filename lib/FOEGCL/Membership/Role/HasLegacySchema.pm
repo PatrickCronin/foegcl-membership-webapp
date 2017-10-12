@@ -1,4 +1,5 @@
 package FOEGCL::Membership::Role::HasLegacySchema;
+# ABSTRACT: Provides the legacy schema to Moose objects
 
 use Moose::Role;
 

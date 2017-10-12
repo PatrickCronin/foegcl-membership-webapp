@@ -1,4 +1,5 @@
 package FOEGCL::Membership::ETL::Friend::Addresses;
+# ABSTRACT: Extract, transform and load a Friend's address(es)
 
 use Moose;
 

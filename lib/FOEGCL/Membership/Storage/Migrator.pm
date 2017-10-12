@@ -1,4 +1,5 @@
 package FOEGCL::Membership::Storage::Migrator;
+# ABSTRACT: Create and/or update full copies of the database from the schema file
 
 use Moose;
 extends 'Database::Migrator::Pg';

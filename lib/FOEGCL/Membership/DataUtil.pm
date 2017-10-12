@@ -1,4 +1,5 @@
 package FOEGCL::Membership::DataUtil;
+# ABSTRACT: Reusable utilty methods
 
 use Sub::Exporter -setup => {
     exports => [ qw( is_pobox trim ) ]

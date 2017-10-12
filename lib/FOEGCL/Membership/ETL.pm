@@ -1,4 +1,5 @@
 package FOEGCL::Membership::ETL;
+# ABSTRACT: Extract, transform and load data from the Legacy DB to the WebApp DB
 
 use Moose;
 

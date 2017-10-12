@@ -1,4 +1,5 @@
 package FOEGCL::Membership::ETL::Friend::MembershipsAndDonations;
+# ABSTRACT: Extract, transform and load a Friend's annual memberships and donations
 
 use Moose;
 

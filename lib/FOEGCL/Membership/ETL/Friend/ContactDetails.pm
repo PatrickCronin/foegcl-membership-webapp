@@ -1,4 +1,5 @@
 package FOEGCL::Membership::ETL::Friend::ContactDetails;
+# ABSTRACT: Extract, transform and load a Friend's email and phone records
 
 use Moose;
 
