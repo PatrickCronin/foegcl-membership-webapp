@@ -137,32 +137,47 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 membership_year_registered_voters
+=head2 membership_year_voter_registrations
 
 Type: has_many
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYearRegisteredVoter>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYearVoterRegistration>
 
 =cut
 
 __PACKAGE__->has_many(
-  "membership_year_registered_voters",
-  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYearRegisteredVoter",
+  "membership_year_voter_registrations",
+  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYearVoterRegistration",
   { "foreign.person_id" => "self.person_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 people_has_participated
+=head2 participation_interests
 
 Type: has_many
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::PersonHasParticipated>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::ParticipationInterest>
 
 =cut
 
 __PACKAGE__->has_many(
-  "people_has_participated",
-  "FOEGCL::Membership::Schema::WebApp::Result::PersonHasParticipated",
+  "participation_interests",
+  "FOEGCL::Membership::Schema::WebApp::Result::ParticipationInterest",
+  { "foreign.person_id" => "self.person_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 participation_records
+
+Type: has_many
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::ParticipationRecord>
+
+=cut
+
+__PACKAGE__->has_many(
+  "participation_records",
+  "FOEGCL::Membership::Schema::WebApp::Result::ParticipationRecord",
   { "foreign.person_id" => "self.person_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -178,21 +193,6 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::PersonEmail>
 __PACKAGE__->has_many(
   "person_emails",
   "FOEGCL::Membership::Schema::WebApp::Result::PersonEmail",
-  { "foreign.person_id" => "self.person_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 person_interesteds_in_participating
-
-Type: has_many
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::PersonInterestedInParticipating>
-
-=cut
-
-__PACKAGE__->has_many(
-  "person_interesteds_in_participating",
-  "FOEGCL::Membership::Schema::WebApp::Result::PersonInterestedInParticipating",
   { "foreign.person_id" => "self.person_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -243,8 +243,8 @@ __PACKAGE__->might_have(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8vOEDoO0b3rVdp+YvzAaxQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-08 20:11:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5QK3HVzihPhT1JoDALm/Mw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

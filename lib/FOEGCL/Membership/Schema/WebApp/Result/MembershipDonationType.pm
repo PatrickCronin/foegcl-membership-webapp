@@ -39,15 +39,14 @@ __PACKAGE__->table("membership_donation_type");
 
 =head2 membership_year
 
-  data_type: 'numeric'
+  data_type: 'smallint'
   is_foreign_key: 1
   is_nullable: 0
-  size: [4,0]
 
 =head2 donation_type
 
   data_type: 'enum'
-  extra: {custom_type_name => "donation_type",list => ["individual_membership","household_membership","general_donation"]}
+  extra: {custom_type_name => "donation_type",list => ["individual_membership","household_membership","honorary_membership","general_donation"]}
   is_nullable: 0
 
 =head2 membership_max_people
@@ -65,12 +64,7 @@ __PACKAGE__->table("membership_donation_type");
 
 __PACKAGE__->add_columns(
   "membership_year",
-  {
-    data_type => "numeric",
-    is_foreign_key => 1,
-    is_nullable => 0,
-    size => [4, 0],
-  },
+  { data_type => "smallint", is_foreign_key => 1, is_nullable => 0 },
   "donation_type",
   {
     data_type => "enum",
@@ -79,6 +73,7 @@ __PACKAGE__->add_columns(
       list => [
         "individual_membership",
         "household_membership",
+        "honorary_membership",
         "general_donation",
       ],
     },
@@ -117,13 +112,13 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYear>
 __PACKAGE__->belongs_to(
   "membership_year",
   "FOEGCL::Membership::Schema::WebApp::Result::MembershipYear",
-  { year => "membership_year" },
+  { membership_year => "membership_year" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1WCNb36dzL50U489yED1xQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-08 20:11:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hl8rSQtxQ424mcLM1lrmQA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

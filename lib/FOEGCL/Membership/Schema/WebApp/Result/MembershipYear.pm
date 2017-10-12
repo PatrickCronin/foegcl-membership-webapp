@@ -37,11 +37,10 @@ __PACKAGE__->table("membership_year");
 
 =head1 ACCESSORS
 
-=head2 year
+=head2 membership_year
 
-  data_type: 'numeric'
+  data_type: 'smallint'
   is_nullable: 0
-  size: [4,0]
 
 =head2 created_at
 
@@ -60,8 +59,8 @@ __PACKAGE__->table("membership_year");
 =cut
 
 __PACKAGE__->add_columns(
-  "year",
-  { data_type => "numeric", is_nullable => 0, size => [4, 0] },
+  "membership_year",
+  { data_type => "smallint", is_nullable => 0 },
   "created_at",
   {
     data_type     => "timestamp with time zone",
@@ -82,13 +81,13 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</year>
+=item * L</membership_year>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("year");
+__PACKAGE__->set_primary_key("membership_year");
 
 =head1 RELATIONS
 
@@ -103,22 +102,22 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipDonation
 __PACKAGE__->has_many(
   "membership_donation_types",
   "FOEGCL::Membership::Schema::WebApp::Result::MembershipDonationType",
-  { "foreign.membership_year" => "self.year" },
+  { "foreign.membership_year" => "self.membership_year" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 membership_year_registered_voters
+=head2 membership_year_voter_registrations
 
 Type: has_many
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYearRegisteredVoter>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYearVoterRegistration>
 
 =cut
 
 __PACKAGE__->has_many(
-  "membership_year_registered_voters",
-  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYearRegisteredVoter",
-  { "foreign.membership_year" => "self.year" },
+  "membership_year_voter_registrations",
+  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYearVoterRegistration",
+  { "foreign.membership_year" => "self.membership_year" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -133,28 +132,28 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Membership>
 __PACKAGE__->has_many(
   "memberships",
   "FOEGCL::Membership::Schema::WebApp::Result::Membership",
-  { "foreign.membership_year" => "self.year" },
+  { "foreign.membership_year" => "self.membership_year" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 people_has_participated
+=head2 participation_records
 
 Type: has_many
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::PersonHasParticipated>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::ParticipationRecord>
 
 =cut
 
 __PACKAGE__->has_many(
-  "people_has_participated",
-  "FOEGCL::Membership::Schema::WebApp::Result::PersonHasParticipated",
-  { "foreign.membership_year" => "self.year" },
+  "participation_records",
+  "FOEGCL::Membership::Schema::WebApp::Result::ParticipationRecord",
+  { "foreign.membership_year" => "self.membership_year" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QWlUhcrgFpDb/eKodDtBbg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-08 20:11:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XWQhjlmXdiqEPoNrnsfhUQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

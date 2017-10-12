@@ -156,6 +156,36 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 participation_interests
+
+Type: has_many
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::ParticipationInterest>
+
+=cut
+
+__PACKAGE__->has_many(
+  "participation_interests",
+  "FOEGCL::Membership::Schema::WebApp::Result::ParticipationInterest",
+  { "foreign.participation_role_id" => "self.participation_role_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 participation_records
+
+Type: has_many
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::ParticipationRecord>
+
+=cut
+
+__PACKAGE__->has_many(
+  "participation_records",
+  "FOEGCL::Membership::Schema::WebApp::Result::ParticipationRecord",
+  { "foreign.participation_role_id" => "self.participation_role_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 participation_roles
 
 Type: has_many
@@ -171,39 +201,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 people_has_participated
 
-Type: has_many
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::PersonHasParticipated>
-
-=cut
-
-__PACKAGE__->has_many(
-  "people_has_participated",
-  "FOEGCL::Membership::Schema::WebApp::Result::PersonHasParticipated",
-  { "foreign.participation_role_id" => "self.participation_role_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 person_interesteds_in_participating
-
-Type: has_many
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::PersonInterestedInParticipating>
-
-=cut
-
-__PACKAGE__->has_many(
-  "person_interesteds_in_participating",
-  "FOEGCL::Membership::Schema::WebApp::Result::PersonInterestedInParticipating",
-  { "foreign.participation_role_id" => "self.participation_role_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-07 23:32:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ac0kEoNE25voBrrR+gy9Rw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-08 20:11:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8GRvOLkmqpZ4NtSNC/aM2Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

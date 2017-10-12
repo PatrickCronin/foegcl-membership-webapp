@@ -1,12 +1,12 @@
 use utf8;
-package FOEGCL::Membership::Schema::WebApp::Result::Donation;
+package FOEGCL::Membership::Schema::WebApp::Result::ParticipationInterest;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-FOEGCL::Membership::Schema::WebApp::Result::Donation
+FOEGCL::Membership::Schema::WebApp::Result::ParticipationInterest
 
 =cut
 
@@ -29,45 +29,25 @@ use base 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "InflateColumn::Serializer");
 
-=head1 TABLE: C<donation>
+=head1 TABLE: C<participation_interest>
 
 =cut
 
-__PACKAGE__->table("donation");
+__PACKAGE__->table("participation_interest");
 
 =head1 ACCESSORS
 
-=head2 donation_id
-
-  data_type: 'integer'
-  is_auto_increment: 1
-  is_nullable: 0
-  sequence: 'donation_donation_id_seq'
-
-=head2 membership_id
+=head2 person_id
 
   data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 donation_type
+=head2 participation_role_id
 
-  data_type: 'enum'
-  default_value: 'general_donation'
-  extra: {custom_type_name => "donation_type",list => ["individual_membership","household_membership","honorary_membership","general_donation"]}
+  data_type: 'integer'
+  is_foreign_key: 1
   is_nullable: 0
-
-=head2 amount
-
-  data_type: 'numeric'
-  is_nullable: 0
-  size: [11,2]
-
-=head2 notes
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 128
 
 =head2 created_at
 
@@ -86,34 +66,10 @@ __PACKAGE__->table("donation");
 =cut
 
 __PACKAGE__->add_columns(
-  "donation_id",
-  {
-    data_type         => "integer",
-    is_auto_increment => 1,
-    is_nullable       => 0,
-    sequence          => "donation_donation_id_seq",
-  },
-  "membership_id",
+  "person_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "donation_type",
-  {
-    data_type => "enum",
-    default_value => "general_donation",
-    extra => {
-      custom_type_name => "donation_type",
-      list => [
-        "individual_membership",
-        "household_membership",
-        "honorary_membership",
-        "general_donation",
-      ],
-    },
-    is_nullable => 0,
-  },
-  "amount",
-  { data_type => "numeric", is_nullable => 0, size => [11, 2] },
-  "notes",
-  { data_type => "varchar", is_nullable => 1, size => 128 },
+  "participation_role_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "created_at",
   {
     data_type     => "timestamp with time zone",
@@ -134,34 +90,51 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</donation_id>
+=item * L</person_id>
+
+=item * L</participation_role_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("donation_id");
+__PACKAGE__->set_primary_key("person_id", "participation_role_id");
 
 =head1 RELATIONS
 
-=head2 membership
+=head2 participation_role
 
 Type: belongs_to
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Membership>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::ParticipationRole>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "membership",
-  "FOEGCL::Membership::Schema::WebApp::Result::Membership",
-  { membership_id => "membership_id" },
+  "participation_role",
+  "FOEGCL::Membership::Schema::WebApp::Result::ParticipationRole",
+  { participation_role_id => "participation_role_id" },
+  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+=head2 person
+
+Type: belongs_to
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Person>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "person",
+  "FOEGCL::Membership::Schema::WebApp::Result::Person",
+  { person_id => "person_id" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
 # Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-08 20:11:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UDpbvDG3aPRy3WPNtHvxaw
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mNQHdjhCX1jP1Ce8w1LHDA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
