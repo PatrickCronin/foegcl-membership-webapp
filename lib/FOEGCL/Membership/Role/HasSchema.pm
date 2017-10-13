@@ -3,21 +3,31 @@ package FOEGCL::Membership::Role::HasSchema;
 
 use Moose::Role;
 
-use Const::Fast qw(const);
 use FOEGCL::Membership::Schema::WebApp ();
 
-const my $DSN => 'dbi:Pg:dbname=**REDACTED**;host=**REDACTED**';
-const my $USERNAME => '**REDACTED**';
-const my $PASSWORD => '**REDACTED**';
-
 has _schema => (
-	is => 'ro',
-	isa => 'FOEGCL::Membership::Schema::WebApp',
-	builder => '_build_schema',	
+    is => 'ro',
+    isa => 'FOEGCL::Membership::Schema::WebApp',
+    lazy => 1,
+    builder => '_build_schema',
 );
 
-sub _build_schema {	
-	return FOEGCL::Membership::Schema::WebApp->connect($DSN, $USERNAME, $PASSWORD);
+with 'FOEGCL::Membership::Role::HasConfig';
+
+sub _build_schema {
+    my $self = shift;
+
+    my $dsn = sprintf(
+        'dbi:Pg:dbname=%s;host=%s',
+        $self->_config->webapp_database->{database_name},
+        $self->_config->webapp_database->{host}
+    );
+
+    return FOEGCL::Membership::Schema::WebApp->connect(
+        $dsn,
+        $self->_config->webapp_database->{username},
+        $self->_config->webapp_database->{password}
+    );
 }
 
 1;
