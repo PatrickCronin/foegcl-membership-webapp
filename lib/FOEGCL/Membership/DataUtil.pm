@@ -1,24 +1,16 @@
 package FOEGCL::Membership::DataUtil;
+
 # ABSTRACT: Reusable utilty methods
 
-use Sub::Exporter -setup => {
-    exports => [ qw( is_pobox trim ) ]
-};
+use FOEGCL::Membership::perlbase;
 
-sub trim {
-    my @values = @_;
-    
-    my @trimmed_values = map { 
-        defined $_ ? s/\A \s+ | \s+ \z//rgx : undef
-    } @values;
-    
-    return @trimmed_values if wantarray;
-    return $trimmed_values[0];
+use Sub::Exporter -setup => { exports => [qw( is_pobox trim )] };
+
+sub trim (@values) {
+    return map { defined $_ ? s/\A \s+ | \s+ \z//rgx : undef } @values;
 }
 
-sub is_pobox {
-    my $line = shift;
-    
+sub is_pobox ($line) {
     my $maybe_whitespace = qr/\s*/;
     return $line =~ m/
         \A

@@ -1,22 +1,21 @@
 package FOEGCL::Membership::Role::HasSchema;
+
 # ABSTRACT: Provides the WebApp schema to Moose objects
 
-use Moose::Role;
+use FOEGCL::Membership::Moose::Role;
 
 use FOEGCL::Membership::Schema::WebApp ();
 
 has _schema => (
-    is => 'ro',
-    isa => 'FOEGCL::Membership::Schema::WebApp',
-    lazy => 1,
+    is      => 'ro',
+    isa     => 'FOEGCL::Membership::Schema::WebApp',
+    lazy    => 1,
     builder => '_build_schema',
 );
 
 with 'FOEGCL::Membership::Role::HasConfig';
 
-sub _build_schema {
-    my $self = shift;
-
+sub _build_schema ( $self, @ ) {
     my $dsn = sprintf(
         'dbi:Pg:dbname=%s;host=%s',
         $self->_config->webapp_database->{database_name},

@@ -197,16 +197,16 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 person_membership
+=head2 person_memberships
 
-Type: might_have
+Type: has_many
 
 Related object: L<FOEGCL::Membership::Schema::WebApp::Result::PersonMembership>
 
 =cut
 
-__PACKAGE__->might_have(
-  "person_membership",
+__PACKAGE__->has_many(
+  "person_memberships",
   "FOEGCL::Membership::Schema::WebApp::Result::PersonMembership",
   { "foreign.person_id" => "self.person_id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -243,9 +243,8 @@ __PACKAGE__->might_have(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-08 20:11:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5QK3HVzihPhT1JoDALm/Mw
-
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-13 23:30:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lRfFFV6mKdHMiWlZgO5Tfg
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

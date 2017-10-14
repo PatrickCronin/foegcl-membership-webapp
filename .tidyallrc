@@ -1,16 +1,17 @@
 [PerlCritic]
 argv = --profile $ROOT/.perlcriticrc --program-extensions .pl
 select = **/*.{pl,pm}
-ignore = lib/FOEGCL/Membership/Schema/**/*.pm
+ignore = lib/FOEGCL/Membership/Schema/***
+ignore = FOEGCL-Membership-*/***
 
 [PerlTidy]
 diff_on_tidy_error = 1
 select = **/*.{pl,pm,t}
 
 [PodSpell]
-select = lib/**/*.{pm,pod}
-ignore = lib/MM/Schema/**/*.{pm,pod}
+select = **/*.{pm,pod}
 ispell_argv = -p $ROOT/.project_dictionary
+ignore = lib/FOEGCL/Membership/Schema/**/*.pm
 
 [SortLines]
 diff_on_tidy_error = 1
