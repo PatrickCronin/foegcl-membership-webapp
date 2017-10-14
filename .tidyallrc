@@ -9,8 +9,8 @@ select = **/*.{pl,pm,t}
 
 [PodSpell]
 select = lib/**/*.{pm,pod}
-ispell_argv = -p $ROOT/.stopwords
 ignore = lib/MM/Schema/**/*.{pm,pod}
+ispell_argv = -p $ROOT/.project_dictionary
 
 [SortLines]
 diff_on_tidy_error = 1
@@ -18,4 +18,4 @@ select = .gitignore
 
 [SortLines::Naturally]
 diff_on_tidy_error = 1
-select = .stopwords
+select = .project_dictionary
