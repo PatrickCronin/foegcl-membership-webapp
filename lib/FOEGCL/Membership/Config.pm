@@ -2,7 +2,7 @@ package FOEGCL::Membership::Config;
 
 # ABSTRACT: A system configuration singleton class
 
-use MooseX::Singleton;
+use FOEGCL::Membership::Moose;
 
 use Config::INI::Reader ();
 use MooseX::Types::Path::Tiny qw( Path );
@@ -60,6 +60,7 @@ sub _build_migrator ( $self, @ ) {
 sub _build_webapp_database ( $self, @ ) {
     return $self->_config->{'WebApp Database Production'}
       if !$ENV{HARNESS_ACTIVE};
+with 'FOEGCL::Membership::Role::Singleton';
 
     my $test_database_config = {
         map {
@@ -79,6 +80,6 @@ sub _build_config ( $self, @ ) {
     return Config::INI::Reader->read_file( $self->config_file );
 }
 
-__PACKAGE__->meta->make_immutable;
+__PACKAGE__->meta->make_immutable( inline_constructor => 0 );
 
 1;
