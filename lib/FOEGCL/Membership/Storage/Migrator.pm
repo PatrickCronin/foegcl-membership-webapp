@@ -12,11 +12,6 @@ use FOEGCL::Membership::Config::WebAppDatabase ();
 # object attributes
 use FOEGCL::Membership::Config ();
 
-const my %ATTR => (
-    migrator        => [qw( migration_table migrations_dir schema_file )],
-);
-
-my $config = FOEGCL::Membership::Config->instance;
 # Create the attribute defaults for the WebApp database connect_info
 my $connect_info =
   FOEGCL::Membership::Config::WebAppDatabase->instance->connect_info;
@@ -24,10 +19,10 @@ for my $attr (qw( database host username password port )) {
     has "+$attr" => ( default => $connect_info->$attr );
 }
 
-for my $section ( keys %ATTR ) {
-    for my $key ( $ATTR{$section}->@* ) {
-        has "+$key" => ( default => $config->$section->{$key} );
-    }
+# Create the attribute defaults for the migration
+my $migrator_config = FOEGCL::Membership::Config->instance->config->{Migrator};
+for my $attr (qw( migration_table migrations_dir schema_file )) {
+    has "+$attr" => ( default => $migrator_config->{$attr} );
 }
 
 sub drop_database ($self) {

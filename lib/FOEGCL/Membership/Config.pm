@@ -22,13 +22,6 @@ has legacy_database => (
     builder => '_build_legacy_database',
 );
 
-has migrator => (
-    is      => 'ro',
-    isa     => 'HashRef',
-    lazy    => 1,
-    builder => '_build_migrator',
-);
-
 has _config => (
     is      => 'ro',
     isa     => 'HashRef',
@@ -44,10 +37,6 @@ sub _build_config_file ( $self, @ ) {
 
 sub _build_legacy_database ( $self, @ ) {
     return $self->_config->{'Legacy Database'};
-}
-
-sub _build_migrator ( $self, @ ) {
-    return $self->_config->{'Migrator'};
 }
 
 with 'FOEGCL::Membership::Role::Singleton';
