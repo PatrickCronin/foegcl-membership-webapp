@@ -5,6 +5,7 @@ package FOEGCL::Membership::Role::HasSchema;
 use FOEGCL::Membership::Moose::Role;
 
 use FOEGCL::Membership::Schema::WebApp ();
+use FOEGCL::Membership::Config::WebAppDatabase ();
 
 has _schema => (
     is      => 'ro',
@@ -13,20 +14,9 @@ has _schema => (
     builder => '_build_schema',
 );
 
-with 'FOEGCL::Membership::Role::HasConfig';
-
 sub _build_schema ( $self, @ ) {
-    my $dsn = sprintf(
-        'dbi:Pg:dbname=%s;host=%s',
-        $self->_config->webapp_database->{database_name},
-        $self->_config->webapp_database->{host}
-    );
-
     return FOEGCL::Membership::Schema::WebApp->connect(
-        $dsn,
-        $self->_config->webapp_database->{username},
-        $self->_config->webapp_database->{password}
-    );
+        FOEGCL::Membership::Config::WebAppDatabase->instance->connect_info );
 }
 
 1;

@@ -29,13 +29,6 @@ has migrator => (
     builder => '_build_migrator',
 );
 
-has webapp_database => (
-    is      => 'ro',
-    isa     => 'HashRef',
-    lazy    => 1,
-    builder => '_build_webapp_database',
-);
-
 has _config => (
     is      => 'ro',
     isa     => 'HashRef',
@@ -57,23 +50,8 @@ sub _build_migrator ( $self, @ ) {
     return $self->_config->{'Migrator'};
 }
 
-sub _build_webapp_database ( $self, @ ) {
-    return $self->_config->{'WebApp Database Production'}
-      if !$ENV{HARNESS_ACTIVE};
 with 'FOEGCL::Membership::Role::Singleton';
 
-    my $test_database_config = {
-        map {
-                $_ => $_ eq 'database'
-              ? $self->_config->{'WebApp Database Testing'}->{$_} . q{_}
-              . time() . q{_}
-              . $$
-              : $self->_config->{'WebApp Database Testing'}->{$_}
-          }
-          keys $self->_config->{'WebApp Database Testing'}->%*
-    };
-
-    return $test_database_config;
 }
 
 sub _build_config ( $self, @ ) {
