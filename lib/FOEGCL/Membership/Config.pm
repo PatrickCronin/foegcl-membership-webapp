@@ -1,6 +1,6 @@
 package FOEGCL::Membership::Config;
 
-# ABSTRACT: A system configuration singleton class
+# ABSTRACT: A system configuration singleton
 
 use FOEGCL::Membership::Moose;
 
