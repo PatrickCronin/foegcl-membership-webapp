@@ -1,12 +1,14 @@
 [PerlCritic]
 argv = --profile $ROOT/.perlcriticrc --program-extensions .pl
 select = **/*.{pl,pm}
-ignore = lib/FOEGCL/Membership/Schema/***
-ignore = FOEGCL-Membership-*/***
+ignore = lib/FOEGCL/Membership/Schema/**/*.pm
+ignore = FOEGCL-Membership-*/**/*.{t,pl,pm}
 
 [PerlTidy]
 diff_on_tidy_error = 1
 select = **/*.{pl,pm,t}
+ignore = lib/FOEGCL/Membership/Schema/**/*.pm
+ignore = FOEGCL-Membership-*/**/*.{t,pl,pm}
 
 [PodSpell]
 select = **/*.{pm,pod}
