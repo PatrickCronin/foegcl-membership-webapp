@@ -20,7 +20,7 @@ sub import {
     MooseX::SemiAffordanceAccessor->import( { into => $for_role } );
 
     my $caller_level = 1;
-    mmperl->import::into($caller_level);
+    FOEGCL::Membership::perlbase->import::into($caller_level);
     namespace::autoclean->import::into($caller_level);
 }
 

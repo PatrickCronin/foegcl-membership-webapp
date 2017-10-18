@@ -11,6 +11,8 @@ use MooseX::SemiAffordanceAccessor ();
 use MooseX::StrictConstructor      ();
 use namespace::autoclean           ();
 
+use FOEGCL::Membership::perlbase;
+
 my ($import) = Moose::Exporter->setup_import_methods(
     install => [ 'unimport', 'init_meta' ],
     also    => ['Moose'],
@@ -32,7 +34,7 @@ sub import_extras ( $class, $for_class, $level ) {
 
     # note that we need to use a level here rather than a classname
     # so that importing autodie works
-    mmperl->import::into($level);
+    FOEGCL::Membership::perlbase->import::into($level);
     namespace::autoclean->import::into($level);
 
     return;

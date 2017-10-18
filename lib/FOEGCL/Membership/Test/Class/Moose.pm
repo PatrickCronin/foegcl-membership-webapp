@@ -21,7 +21,7 @@ sub import {
     MooseX::SemiAffordanceAccessor->import( { into => $for_class } );
     MooseX::StrictConstructor->import( { into => $for_class } );
 
-    mmperl->import::into($caller_level);
+    FOEGCL::Membership::perlbase->import::into($caller_level);
     namespace::autoclean->import::into($caller_level);
 }
 
