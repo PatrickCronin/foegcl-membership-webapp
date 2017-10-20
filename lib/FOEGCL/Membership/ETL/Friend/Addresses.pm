@@ -4,7 +4,6 @@ package FOEGCL::Membership::ETL::Friend::Addresses;
 
 use FOEGCL::Membership::Moose;
 
-use warnings FATAL => 'all';
 use FOEGCL::Membership::DataUtil qw( is_pobox trim );
 use FOEGCL::Membership::Types qw( ArrayRef );
 
