@@ -18,7 +18,7 @@ sub run {
         Test::Class::Moose::Runner->new->runtests;
     }
     catch {
-        $result = @_;
+        $result = $_;
     }
     finally {
         $migrator->drop_database;
