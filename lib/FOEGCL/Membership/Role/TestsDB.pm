@@ -4,7 +4,7 @@ package FOEGCL::Membership::Role::TestsDB;
 
 use FOEGCL::Membership::Moose::Role;
 
-with 'FOEGCL::Membership::HasWebAppSchema';
+with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
 around 'test_setup' => sub {
     $self->_schema->storage->txn_begin;
