@@ -4,8 +4,8 @@ package FOEGCL::Membership::Role::HasSchema;
 
 use FOEGCL::Membership::Moose::Role;
 
-use FOEGCL::Membership::Schema::WebApp ();
 use FOEGCL::Membership::Config::WebAppDatabase ();
+use FOEGCL::Membership::Schema::WebApp         ();
 
 has _schema => (
     is      => 'ro',
