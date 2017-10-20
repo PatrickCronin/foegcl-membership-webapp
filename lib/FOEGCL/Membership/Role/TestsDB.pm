@@ -4,16 +4,14 @@ package FOEGCL::Membership::Role::TestsDB;
 
 use FOEGCL::Membership::Moose::Role;
 
-# XXX: Parameterize this role with a transaction_each attribute (class|method)
+with 'FOEGCL::Membership::HasWebAppSchema';
 
-around 'test_startup' => sub {
-
-    # XXX: Start transaction
+around 'test_setup' => sub {
+    $self->_schema->storage->txn_begin;
 };
 
-around 'test_shutdown' => sub {
-
-    # XXX: Rollback transaction
+around 'test_teardown' => sub {
+    $self->_schema->storage->txn_rollback;
 };
 
 1;
