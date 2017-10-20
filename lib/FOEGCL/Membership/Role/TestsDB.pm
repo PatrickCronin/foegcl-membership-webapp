@@ -6,11 +6,13 @@ use FOEGCL::Membership::Moose::Role;
 
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
-around 'test_setup' => sub {
+around 'test_setup' => sub ( $self, @ ) {
+    say 'Starting transaction';
     $self->_schema->storage->txn_begin;
 };
 
-around 'test_teardown' => sub {
+around 'test_teardown' => sub ( $self, @ ) {
+    say 'Stopping transaction';
     $self->_schema->storage->txn_rollback;
 };
 
