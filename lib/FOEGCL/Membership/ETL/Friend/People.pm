@@ -12,7 +12,7 @@ has legacy_friend => (
     required => 1,
 );
 
-with 'FOEGCL::Membership::Role::HasSchema';
+with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
 sub etl ($self) {
     my @people;

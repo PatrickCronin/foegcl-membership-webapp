@@ -36,7 +36,7 @@ has _processed_annual_donations => (
     builder => '_build_processed_annual_donations',
 );
 
-with 'FOEGCL::Membership::Role::HasSchema';
+with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
 sub _build_annual_donations ($self) {
     my %annual_donations;

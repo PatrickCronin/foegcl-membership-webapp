@@ -19,7 +19,7 @@ has legacy_friend => (
 
 with qw(
   FOEGCL::Membership::Role::HasLegacySchema
-  FOEGCL::Membership::Role::HasSchema
+  FOEGCL::Membership::Role::HasWebAppSchema
 );
 
 sub etl ( $self, $legacy_friend ) {

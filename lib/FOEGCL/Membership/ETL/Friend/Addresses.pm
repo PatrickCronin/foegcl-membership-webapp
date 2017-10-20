@@ -20,7 +20,7 @@ has people => (
     required => 1,
 );
 
-with 'FOEGCL::Membership::Role::HasSchema';
+with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
 sub etl ($self) {
     return if !defined $self->legacy_friend->city_state_zip;
