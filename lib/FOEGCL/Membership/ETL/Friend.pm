@@ -17,11 +17,6 @@ has legacy_friend => (
     required => 1,
 );
 
-with qw(
-  FOEGCL::Membership::Role::HasLegacySchema
-  FOEGCL::Membership::Role::HasWebAppSchema
-);
-
 sub etl ( $self, $legacy_friend ) {
     my @people =
       FOEGCL::Membership::ETL::Friend::People->new(
