@@ -3,6 +3,7 @@ package TestFor::FOEGCL::Membership::ETL;
 use FOEGCL::Membership::Test::Class::Moose;
 
 use DBI qw(:sql_types);
+use FOEGCL::Membership::ETL ();
 use Test::Differences qw(eq_or_diff);
 
 with(
@@ -14,6 +15,8 @@ with(
 sub test_startup ( $self, @ ) {
     $self->test_skip('TEST_ETL environment variable not set')
       if !$ENV{TEST_ETL};
+
+    FOEGCL::Membership::ETL->new->run;
 }
 
 sub test_setup ( $self, @ ) {
