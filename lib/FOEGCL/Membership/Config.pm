@@ -5,7 +5,7 @@ package FOEGCL::Membership::Config;
 use FOEGCL::Membership::Moose;
 
 use Config::INI::Reader ();
-use MooseX::Types::Path::Tiny qw( Path );
+use FOEGCL::Membership::Types qw( HashRef Path );
 use Path::Tiny qw( path );
 
 has config_file => (
@@ -13,13 +13,6 @@ has config_file => (
     isa     => Path,
     lazy    => 1,
     builder => '_build_config_file',
-);
-
-has legacy_database => (
-    is      => 'ro',
-    isa     => 'HashRef',
-    lazy    => 1,
-    builder => '_build_legacy_database',
 );
 
 has _config => (
@@ -33,10 +26,6 @@ sub _build_config_file ( $self, @ ) {
     return path(__FILE__)
       ->parent->parent->parent->parent->child( 'etc',
         'foegcl-membership.conf' );
-}
-
-sub _build_legacy_database ( $self, @ ) {
-    return $self->_config->{'Legacy Database'};
 }
 
 with 'FOEGCL::Membership::Role::Singleton';
