@@ -12,17 +12,14 @@ run();
 sub run {
     my $migrator = FOEGCL::Membership::Storage::WebAppSchemaMigrator->new;
 
-    my $result;
     try {
         $migrator->create_or_update_database;
         Test::Class::Moose::Runner->new->runtests;
     }
     catch {
-        $result = $_;
+        die $_;
     }
     finally {
         $migrator->drop_database;
     };
-
-    die $result if $result;
 }
