@@ -14,7 +14,7 @@ has database => (
 
 has host => (
     is      => 'ro',
-    isa     => 'NonEmptySimpleStr',
+    isa     => NonEmptySimpleStr,
     lazy    => 1,
     builder => '_build_host',
 );
@@ -28,7 +28,7 @@ has port => (
 
 has _db_config => (
     is      => 'ro',
-    isa     => 'HashRef',
+    isa     => HashRef,
     lazy    => 1,
     builder => '_build_db_config',
 );

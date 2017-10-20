@@ -14,7 +14,7 @@ has legacy_friend => (
 
 has people => (
     is       => 'ro',
-    isa      => ArrayRef [FOEGCL::Membership::Schema::WebApp::Result::Person],
+    isa      => 'ArrayRef [FOEGCL::Membership::Schema::WebApp::Result::Person]',
     required => 1,
 );
 

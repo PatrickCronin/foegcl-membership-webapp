@@ -7,7 +7,7 @@ use Test::Differences qw(eq_or_diff);
 
 with(
     'FOEGCL::Membership::Role::HasLegacySchema',
-    'FOEGCL::Membership::Role::HasSchema',
+    'FOEGCL::Membership::Role::HasWebAppSchema',
     'FOEGCL::Membership::Role::TestsDB',
 );
 

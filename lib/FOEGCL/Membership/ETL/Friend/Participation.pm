@@ -5,6 +5,7 @@ package FOEGCL::Membership::ETL::Friend::Participation;
 use FOEGCL::Membership::Moose;
 
 use FOEGCL::Membership::DataUtil qw( trim );
+use FOEGCL::Membership::Types qw( ArrayRef );
 
 has legacy_friend => (
     is       => 'ro',
@@ -14,7 +15,7 @@ has legacy_friend => (
 
 has people => (
     is       => 'ro',
-    isa      => ArrayRef [FOEGCL::Membership::Schema::WebApp::Result::Person],
+    isa      => 'ArrayRef [FOEGCL::Membership::Schema::WebApp::Result::Person]',
     required => 1,
 );
 
