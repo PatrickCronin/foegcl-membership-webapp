@@ -5,6 +5,7 @@ package FOEGCL::Membership::Storage::WebAppSchemaMigrator;
 use FOEGCL::Membership::Moose;
 extends 'Database::Migrator::Pg';
 
+use DBI                                        ();
 use FOEGCL::Membership::Config::WebAppDatabase ();
 
 # Don't use the role here as we need the config available before creating
@@ -26,8 +27,27 @@ has '+migrations_dir'
 has '+schema_file'
     => ( default => $config->storage_dir->child('membership-webapp.sql') );
 
+sub _build_dbh {
+    my ( $dsn, $username, $password, $dbi_attributes, $extra_attributes ) =
+      $db_config->connect_info;
+
+    $dbi_attributes->{$_} = 1
+      for qw( RaiseError PrintError PrintWarn ShowErrorStatement );
+
+    my $dbh = DBI->connect( $dsn, $username, $password, $dbi_attributes );
+
+    $dbh->do('SET CLIENT_MIN_MESSAGES = ERROR');
+
+    return $dbh;
+}
+
 sub drop_database ($self) {
+    $self->_maybe_disconnect;
     $self->_drop_database;
+}
+
+sub _maybe_disconnect ( $self ) {
+    $self->dbh->disconnect if $self->dbh && $self->dbh->ping;
 }
 
 __PACKAGE__->meta->make_immutable;
