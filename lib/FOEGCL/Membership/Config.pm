@@ -15,21 +15,17 @@ has config_file => (
     builder => '_build_config_file',
 );
 
-has _config => (
+has config => (
     is      => 'ro',
-    isa     => 'HashRef',
+    isa     => HashRef,
     lazy    => 1,
     builder => '_build_config',
 );
 
-sub _build_config_file ( $self, @ ) {
-    return path(__FILE__)
-      ->parent->parent->parent->parent->child( 'etc',
-        'foegcl-membership.conf' );
-}
-
 with 'FOEGCL::Membership::Role::Singleton';
 
+sub _build_config_file ( $self, @ ) {
+    return path(__FILE__)->parent(4)->child( 'etc', 'foegcl-membership.conf' );
 }
 
 sub _build_config ( $self, @ ) {

@@ -4,17 +4,18 @@ package FOEGCL::Membership::Role::HasConfig;
 
 use FOEGCL::Membership::Moose::Role;
 
-use FOEGCL::Membership::Config;
+use FOEGCL::Membership::Config ();
+use FOEGCL::Membership::Types qw( HashRef );
 
 has _config => (
     is      => 'ro',
-    isa     => 'FOEGCL::Membership::Config',
+    isa     => HashRef,
     lazy    => 1,
     builder => '_build_config',
 );
 
 sub _build_config ( $self, @ ) {
-    return FOEGCL::Membership::Config->instance;
+    return FOEGCL::Membership::Config->instance->config;
 }
 
 1;
