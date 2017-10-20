@@ -1,3 +1,4 @@
+#<<<
 use utf8;
 package FOEGCL::Membership::Schema::WebApp::Result::AppUser;
 
@@ -15,6 +16,18 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
+=head1 ADDITIONAL CLASSES USED
+
+=over 4
+
+=item * L<FOEGCL::Membership::perlbase>
+
+=back
+
+=cut
+
+use FOEGCL::Membership::perlbase;
+
 =head1 COMPONENTS LOADED
 
 =over 4
@@ -23,11 +36,17 @@ use base 'DBIx::Class::Core';
 
 =item * L<DBIx::Class::InflateColumn::Serializer>
 
+=item * L<DBIx::Class::TimeStamp>
+
 =back
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "InflateColumn::Serializer");
+__PACKAGE__->load_components(
+  "InflateColumn::DateTime",
+  "InflateColumn::Serializer",
+  "TimeStamp",
+);
 
 =head1 TABLE: C<app_user>
 
@@ -165,10 +184,10 @@ __PACKAGE__->has_many(
   { "foreign.user_id" => "self.user_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
+#>>>
 
-
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-13 23:30:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FQTvp4usheq1P+FhpM6wcg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-17 22:17:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kDf+2fQRBPfeT3pCkjZjVA
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -1,3 +1,4 @@
+#<<<
 use utf8;
 package FOEGCL::Membership::Schema::WebApp::Result::AppUserHasRole;
 
@@ -15,6 +16,18 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
+=head1 ADDITIONAL CLASSES USED
+
+=over 4
+
+=item * L<FOEGCL::Membership::perlbase>
+
+=back
+
+=cut
+
+use FOEGCL::Membership::perlbase;
+
 =head1 COMPONENTS LOADED
 
 =over 4
@@ -23,11 +36,17 @@ use base 'DBIx::Class::Core';
 
 =item * L<DBIx::Class::InflateColumn::Serializer>
 
+=item * L<DBIx::Class::TimeStamp>
+
 =back
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "InflateColumn::Serializer");
+__PACKAGE__->load_components(
+  "InflateColumn::DateTime",
+  "InflateColumn::Serializer",
+  "TimeStamp",
+);
 
 =head1 TABLE: C<app_user_has_role>
 
@@ -131,10 +150,10 @@ __PACKAGE__->belongs_to(
   { user_id => "user_id" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
+#>>>
 
-
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-13 23:30:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:i64oEuI80nPG3VLaTUAQYA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-17 22:17:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:31GbEZgu1yhJOvO/gYlrcA
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
