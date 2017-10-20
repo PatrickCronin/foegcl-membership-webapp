@@ -13,14 +13,14 @@ has dsn => (
 
 has username => (
     is      => 'ro',
-    isa     => Maybe[ NonEmptySimpleStr ], # allow undef
+    isa     => Maybe [NonEmptySimpleStr],    # allow undef
     lazy    => 1,
     builder => '_build_username',
 );
 
 has password => (
     is      => 'ro',
-    isa     => Maybe[ NonEmptySimpleStr ], # allow undef
+    isa     => Maybe [NonEmptySimpleStr],    # allow undef
     lazy    => 1,
     builder => '_build_password',
 );
@@ -40,10 +40,10 @@ has extra_attributes => (
 );
 
 has schema_class_name => (
-    is => 'ro',
-    isa => PackageName,
-    lazy => 1,
-    builder => '_build_schema_class_name'
+    is      => 'ro',
+    isa     => PackageName,
+    lazy    => 1,
+    builder => '_build_schema_class_name',
 );
 
 requires qw( _build_dsn _build_schema_class_name );
@@ -68,7 +68,7 @@ sub _build_extra_attributes ( $self, @ ) {
 
 sub connect_info ($self) {
     return ( $self->dsn, $self->username, $self->password,
-        $self->dbi_attributes, $self->extra_attributes);
+        $self->dbi_attributes, $self->extra_attributes );
 }
 
 1;

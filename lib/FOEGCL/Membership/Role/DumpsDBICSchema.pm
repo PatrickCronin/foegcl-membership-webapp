@@ -42,9 +42,9 @@ has quiet => (
 );
 
 has _db_config => (
-    is => 'ro',
-    does => 'FOEGCL::Membership::Role::ConfiguresDatabase',
-    lazy => 1,
+    is      => 'ro',
+    does    => 'FOEGCL::Membership::Role::ConfiguresDatabase',
+    lazy    => 1,
     builder => '_build_db_config',
 );
 
@@ -84,12 +84,11 @@ sub _build_command_line_options ( $self, @ ) {
     for my $arg (qw( debug dry_run quiet overwrite_modifications )) {
         my $predicate_method = "_has_$arg";
         if ( $self->$predicate_method ) {
-            warn sprintf('Overwriting %s (%s) with %s from the command line.',
-                $arg,
-                $self->_loader_options->{$arg},
+            warn sprintf(
+                'Overwriting %s (%s) with %s from the command line.',
+                $arg, $self->_loader_options->{$arg},
                 $self->$arg
-                )
-                if exists $self->_loader_options->{$arg};
+            ) if exists $self->_loader_options->{$arg};
 
             $cmd_line_options{$arg} = $self->$arg;
         }
@@ -97,12 +96,11 @@ sub _build_command_line_options ( $self, @ ) {
 
     # Files
     if ( $self->_has_dump_directory ) {
-        warn sprintf('Overwriting %s (%s) with %s from the command line.',
-            'dump_directory',
-            $self->_loader_options->{dump_directory},
+        warn sprintf(
+            'Overwriting %s (%s) with %s from the command line.',
+            'dump_directory', $self->_loader_options->{dump_directory},
             $self->dump_directory
-            )
-            if exists $self->_loader_options->{dump_directory};
+        ) if exists $self->_loader_options->{dump_directory};
         $cmd_line_options{dump_directory} = $self->dump_directory->stringify;
     }
 

@@ -38,19 +38,19 @@ const my $TESTING_CONFIG_KEY    => 'WebApp Database Testing';
 # harness or not.
 sub _build_db_config ( $self, @ ) {
     return $self->_config->{$PRODUCTION_CONFIG_KEY}
-        if !$ENV{HARNESS_ACTIVE};
+      if !$ENV{HARNESS_ACTIVE};
 
     # If under a test harness, replace the database name with one suitable for
     # testing.
     my $test_database_config = {
         map {
             $_ => $_ eq 'database'
-                ? ( $self->_config->{$TESTING_CONFIG_KEY}->{$_} . q{_}
-                    . time() . q{_}
-                    . $$ )
-                : $self->_config->{$TESTING_CONFIG_KEY}->{$_}
-        }
-        keys $self->_config->{$TESTING_CONFIG_KEY}->%*
+              ? ( $self->_config->{$TESTING_CONFIG_KEY}->{$_} . q{_}
+                  . time() . q{_}
+                  . $$ )
+              : $self->_config->{$TESTING_CONFIG_KEY}->{$_}
+          }
+          keys $self->_config->{$TESTING_CONFIG_KEY}->%*
     };
 
     return $test_database_config;

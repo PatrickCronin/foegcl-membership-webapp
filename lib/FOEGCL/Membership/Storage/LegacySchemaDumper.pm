@@ -12,20 +12,18 @@ sub _build_db_config ( $self, @ ) {
 
 sub _build_loader_options ( $self, @ ) {
     my $tables_alternation = join q{|}, qw(
-        CityStateZip
-        Configuration
-        ContactInfo
-        ContactType
-        DataYears
-        Donations
-        Friends
-        Roles
-        RolesTypes
+      CityStateZip
+      Configuration
+      ContactInfo
+      ContactType
+      DataYears
+      Donations
+      Friends
+      Roles
+      RolesTypes
     );
 
-    return {
-        constraint => qr/\A(?:$tables_alternation)\z/,
-    };
+    return { constraint => qr/\A(?:$tables_alternation)\z/, };
 }
 
 __PACKAGE__->meta->make_immutable;

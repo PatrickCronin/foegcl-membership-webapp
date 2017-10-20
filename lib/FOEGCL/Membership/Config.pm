@@ -23,9 +23,9 @@ has config_file => (
 );
 
 has storage_dir => (
-    is => 'ro',
-    isa => Path,
-    lazy => 1,
+    is      => 'ro',
+    isa     => Path,
+    lazy    => 1,
     builder => '_build_storage_dir',
 );
 
@@ -40,7 +40,7 @@ sub _build_config_file ( $self, @ ) {
 }
 
 sub _build_storage_dir ( $self, @ ) {
-    return path(__FILE__)->parent(4)->child( 'storage' );
+    return path(__FILE__)->parent(4)->child('storage');
 }
 
 __PACKAGE__->meta->make_immutable( inline_constructor => 0 );

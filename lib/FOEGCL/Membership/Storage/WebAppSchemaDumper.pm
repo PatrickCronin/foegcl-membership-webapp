@@ -11,9 +11,7 @@ sub _build_db_config ( $self, @ ) {
 }
 
 sub _build_loader_options ( $self, @ ) {
-    return {
-        db_schema => 'public',
-    }
+    return { db_schema => 'public', };
 }
 
 __PACKAGE__->meta->make_immutable;
