@@ -6,6 +6,7 @@ use FOEGCL::Membership::Moose;
 
 use Data::Printer;
 use FOEGCL::Membership::DataUtil qw( trim );
+use FOEGCL::Membership::Types qw( ArrayRef HashRef );
 use List::MoreUtils qw(part);
 use List::Util qw(sum0);
 
@@ -16,21 +17,21 @@ has legacy_friend => (
 );
 
 has people => (
-    is  => 'ro',
-    isa => 'ArrayRef[ FOEGCL::Membership::Schema::WebApp::Result::Person ]',
+    is       => 'ro',
+    isa      => ArrayRef [FOEGCL::Membership::Schema::WebApp::Result::Person],
     required => 1,
 );
 
 has _annual_donations => (
     is      => 'ro',
-    isa     => 'HashRef',
+    isa     => HashRef,
     lazy    => 1,
     builder => '_build_annual_donations',
 );
 
 has _processed_annual_donations => (
     is      => 'ro',
-    isa     => 'HashRef',
+    isa     => HashRef,
     lazy    => 1,
     builder => '_build_processed_annual_donations',
 );
