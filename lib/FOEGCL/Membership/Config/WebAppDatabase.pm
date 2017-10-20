@@ -67,6 +67,14 @@ sub _build_db_config ( $self, @ ) {
     return $test_database_config;
 }
 
+sub _build_host ( $self, @ ) {
+    return $self->_db_config->{host} // '127.0.0.1';
+}
+
+sub _build_port ( $self, @ ) {
+    return $self->_db_config->{port} // 5432;
+}
+
 sub _build_dsn ( $self, @ ) {
     return sprintf(
         'dbi:Pg:dbname=%s;host=%s',
@@ -85,14 +93,6 @@ sub _build_password ( $self, @ ) {
 
 sub _build_schema_class_name ( $self, @ ) {
     return 'FOEGCL::Membership::Schema::WebApp';
-}
-
-sub _build_host ( $self, @ ) {
-    return $self->_db_config->{host} // '127.0.0.1';
-}
-
-sub _build_port ( $self, @ ) {
-    return $self->_db_config->{port} // 5432;
 }
 
 __PACKAGE__->meta->make_immutable( inline_constructor => 0 );
