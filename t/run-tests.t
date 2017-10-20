@@ -2,20 +2,27 @@
 
 use FOEGCL::Membership::perlbase;
 
-use FOEGCL::Membership::Storage::Migrator ();
+use FOEGCL::Membership::Storage::WebAppSchemaMigrator ();
 use Test::Class::Moose::Load 't/lib';
 use Test::Class::Moose::Runner ();
-use Try::Tiny qw( finally try );
+use Try::Tiny qw( catch finally try );
 
 run();
-exit;
 
 sub run {
-    my $migrator = FOEGCL::Membership::Storage::Migrator->new;
+    my $migrator = FOEGCL::Membership::Storage::WebAppSchemaMigrator->new;
 
+    my $result;
     try {
         $migrator->create_or_update_database;
         Test::Class::Moose::Runner->new->runtests;
     }
-    finally { $migrator->drop_database; die @_; };
+    catch {
+        $result = @_;
+    }
+    finally {
+        $migrator->drop_database;
+    };
+
+    die $result if $result;
 }
