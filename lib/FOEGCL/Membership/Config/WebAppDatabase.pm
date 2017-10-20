@@ -3,7 +3,14 @@ package FOEGCL::Membership::Config::WebAppDatabase;
 use FOEGCL::Membership::Moose;
 
 use Const::Fast qw( const );
-use MooseX::Types::PortNumber qw( PortNumber );
+use FOEGCL::Membership::Types qw( HashRef NonEmptySimpleStr PortNumber );
+
+has database => (
+    is      => 'ro',
+    isa     => NonEmptySimpleStr,
+    lazy    => 1,
+    builder => '_build_database',
+);
 
 has host => (
     is      => 'ro',
@@ -33,6 +40,10 @@ with qw(
 
 const my $PRODUCTION_CONFIG_KEY => 'WebApp Database Production';
 const my $TESTING_CONFIG_KEY    => 'WebApp Database Testing';
+
+sub _build_database ( $self, @ ) {
+    return $self->_db_config->{database};
+}
 
 # Vary the database information based on whether we're running under a test
 # harness or not.
