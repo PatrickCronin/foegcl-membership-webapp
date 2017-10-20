@@ -12,20 +12,20 @@ use FOEGCL::Membership::Config::WebAppDatabase ();
 # object attributes
 use FOEGCL::Membership::Config ();
 
-# Create the attribute defaults for the WebApp database connect_info
-my $connect_info =
-  FOEGCL::Membership::Config::WebAppDatabase->instance->connect_info;
+# Create the attribute defaults for the WebApp database
+my $db_config = FOEGCL::Membership::Config::WebAppDatabase->instance;
 for my $attr (qw( database host username password port )) {
-    has "+$attr" => ( default => $connect_info->$attr );
+    has "+$attr" => ( default => sub { $db_config->$attr } );
 }
 
 # Create the attribute defaults for the migration
-my $config = FOEGCL::Membership::Config->instance->config;
-has '+migration_table' => ( default => 'applied_migration' );
-has '+migrations_dir'
-    => ( default => $config->storage_dir->child('migrations') );
-has '+schema_file'
-    => ( default => $config->storage_dir->child('membership-webapp.sql') );
+my $storage_dir = FOEGCL::Membership::Config->instance->storage_dir;
+has '+migration_table' => ( default => sub { 'applied_migration' } );
+has '+migrations_dir' =>
+  ( default => sub { $storage_dir->child('migrations')->stringify } );
+has '+schema_file' =>
+  ( default => sub { $storage_dir->child('membership-webapp.sql')->stringify }
+  );
 
 sub _build_dbh {
     my ( $dsn, $username, $password, $dbi_attributes, $extra_attributes ) =
