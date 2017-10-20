@@ -7,6 +7,11 @@ GRANT ALL ON SCHEMA public TO public;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
+CREATE TABLE applied_migration (
+    migration TEXT PRIMARY KEY,
+    applied timestamp with time zone DEFAULT NOW()
+);
+
 CREATE TABLE person (
     person_id SERIAL PRIMARY KEY,
     first_name VARCHAR(64) NOT NULL
