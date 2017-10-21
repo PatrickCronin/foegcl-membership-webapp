@@ -13,8 +13,10 @@ with(
 );
 
 sub test_startup ( $self, @ ) {
-    $self->test_skip('TEST_ETL environment variable not set')
-      if !$ENV{TEST_ETL};
+    if ( !$ENV{TEST_ETL} ) {
+        $self->test_skip('TEST_ETL environment variable not set');
+        return;
+    }
 
     FOEGCL::Membership::ETL->new->run;
 }
