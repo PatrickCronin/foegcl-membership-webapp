@@ -5,6 +5,7 @@ use FOEGCL::Membership::Test::Class::Moose;
 use DBI qw(:sql_types);
 use FOEGCL::Membership::ETL ();
 use Test::Differences qw(eq_or_diff);
+use Test::Fatal qw(exception);
 
 with(
     'FOEGCL::Membership::Role::HasLegacySchema',
@@ -18,7 +19,9 @@ sub test_startup ( $self, @ ) {
         return;
     }
 
-    FOEGCL::Membership::ETL->new->run;
+    is( exception { FOEGCL::Membership::ETL->new->run },
+        undef, 'Migrate the Legacy database to the WebApp database' )
+      or $self->test_skip('migration failed');
 }
 
 sub test_setup ( $self, @ ) {
