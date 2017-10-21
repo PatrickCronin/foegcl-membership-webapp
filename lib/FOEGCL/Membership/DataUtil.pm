@@ -12,7 +12,10 @@ sub trim (@values) {
 }
 
 sub is_pobox ($line) {
-    my $maybe_whitespace = qr/\s*/;
+    state $maybe_whitespace = qr/\s*/;
+
+    return 0 if !defined $line;
+
     return $line =~ m/
         \A
         P (?: \.? | ost ) $maybe_whitespace
