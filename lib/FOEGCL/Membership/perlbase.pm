@@ -14,6 +14,9 @@ use indirect         ();
 use mro              ();
 use multidimensional ();
 
+use Devel::StackTrace ();
+use Ref::Util qw( is_ref );
+
 # This adds the UTF-8 layer on STDIN, STDOUT, STDERR for _everyone_
 use open qw( :encoding(UTF-8) :std );
 use utf8 ();
@@ -43,5 +46,25 @@ sub import {
     'open'->import::into( $caller_level, ':encoding(UTF-8)' );
     autodie->import::into( $caller_level, ':all' );
 }
+
+## no critic (RequireLocalizedPunctuationVars)
+$SIG{__DIE__} = sub {
+## use critic
+    my $message = $_[0];
+
+    # Scalar
+    my $trace = Devel::StackTrace->new(
+        skip_frames => 1,
+        indent      => 1,
+    )->as_string;
+
+    if ( !ref $message ) {
+
+        # If no carp-like message was appended, then no trace should be
+        # appended.
+        die $message if $message !~ m/^.* at .* line \d+\.$/;
+        die $message . "\n" . $trace;
+    }
+};
 
 1;
