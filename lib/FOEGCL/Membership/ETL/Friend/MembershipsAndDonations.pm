@@ -40,7 +40,7 @@ with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
 sub _build_annual_donations ($self) {
     my %annual_donations;
-    push $annual_donations{ $_->year }->@*, $_->donation
+    push $annual_donations{ $_->year }->@*, 0 + $_->donation
       for $self->legacy_friend->donations;
 
     return \%annual_donations;
