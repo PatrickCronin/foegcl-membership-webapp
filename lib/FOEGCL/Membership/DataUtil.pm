@@ -7,7 +7,8 @@ use FOEGCL::Membership::perlbase;
 use Sub::Exporter -setup => { exports => [qw( is_pobox trim )] };
 
 sub trim (@values) {
-    return map { defined $_ ? s/\A \s+ | \s+ \z//rgx : undef } @values;
+    my @trimmed = map { defined $_ ? s/\A \s+ | \s+ \z//rgx : undef } @values;
+    return wantarray ? @trimmed : $trimmed[0];
 }
 
 sub is_pobox ($line) {
