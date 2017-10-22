@@ -17,26 +17,26 @@ with 'FOEGCL::Membership::Role::HasWebAppSchema';
 sub etl ($self) {
     my @people;
     push @people,
-      $self->_schema->resultset('Person')->create(
+        $self->_schema->resultset('Person')->create(
         {
             first_name => trim( $self->legacy_friend->first_name ),
             last_name  => trim( $self->legacy_friend->last_name ),
             opted_out  => $self->legacy_friend->inactive,
         }
-      );
+        );
 
     if ( $self->legacy_friend->spouse_first_name ) {
         my $spouse_first_name = $self->legacy_friend->spouse_first_name;
         my $spouse_last_name  = $self->legacy_friend->spouse_last_name
-          || $self->legacy_friend->last_name;
+            || $self->legacy_friend->last_name;
         push @people,
-          $self->_schema->resultset('Person')->create(
+            $self->_schema->resultset('Person')->create(
             {
                 first_name => trim($spouse_first_name),
                 last_name  => trim($spouse_last_name),
                 opted_out  => $self->legacy_friend->inactive,
             }
-          );
+            );
     }
 
     return @people;

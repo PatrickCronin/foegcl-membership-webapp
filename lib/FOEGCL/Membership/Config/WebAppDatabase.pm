@@ -34,8 +34,8 @@ has _db_config => (
 );
 
 with qw(
-  FOEGCL::Membership::Role::ConfiguresDatabase
-  FOEGCL::Membership::Role::HasConfig
+    FOEGCL::Membership::Role::ConfiguresDatabase
+    FOEGCL::Membership::Role::HasConfig
 );
 
 const my $PRODUCTION_CONFIG_KEY => 'WebApp Database Production';
@@ -49,19 +49,19 @@ sub _build_database ( $self, @ ) {
 # harness or not.
 sub _build_db_config ( $self, @ ) {
     return $self->_config->{$PRODUCTION_CONFIG_KEY}
-      if !$ENV{HARNESS_ACTIVE};
+        if !$ENV{HARNESS_ACTIVE};
 
     # If under a test harness, replace the database name with one suitable for
     # testing.
     my $test_database_config = {
         map {
             $_ => $_ eq 'database'
-              ? ( $self->_config->{$TESTING_CONFIG_KEY}->{$_} . q{_}
-                  . time() . q{_}
-                  . $$ )
-              : $self->_config->{$TESTING_CONFIG_KEY}->{$_}
-          }
-          keys $self->_config->{$TESTING_CONFIG_KEY}->%*
+                ? ( $self->_config->{$TESTING_CONFIG_KEY}->{$_} . q{_}
+                    . time() . q{_}
+                    . $$ )
+                : $self->_config->{$TESTING_CONFIG_KEY}->{$_}
+            }
+            keys $self->_config->{$TESTING_CONFIG_KEY}->%*
     };
 
     return $test_database_config;

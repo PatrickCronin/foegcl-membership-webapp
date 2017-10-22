@@ -13,8 +13,8 @@ has legacy_friend => (
 );
 
 has people => (
-    is       => 'ro',
-    isa      => 'ArrayRef [FOEGCL::Membership::Schema::WebApp::Result::Person]',
+    is  => 'ro',
+    isa => 'ArrayRef [FOEGCL::Membership::Schema::WebApp::Result::Person]',
     required => 1,
 );
 
@@ -27,10 +27,7 @@ sub etl ($self) {
 
 sub _etl_friend_emails ($self) {
     my $friend_email_rs = $self->legacy_friend->contact_infos->search(
-        {
-            email_address => { '!=' => undef }
-        }
-    );
+        { email_address => { '!=' => undef } } );
 
     while ( my $friend_email = $friend_email_rs->next ) {
         foreach my $person ( $self->people->@* ) {
@@ -54,8 +51,8 @@ sub _etl_friend_phones ($self) {
 
     while ( my $friend_phone = $friend_phone_rs->next ) {
         foreach my $person ( $self->people->@* ) {
-            my $phone_number =
-              ( $friend_phone->area_code // q{} ) . $friend_phone->phone_number;
+            my $phone_number = ( $friend_phone->area_code // q{} )
+                . $friend_phone->phone_number;
             $phone_number =~ s/\D//g;
 
             $self->_schema->resultset('PersonPhone')->create(

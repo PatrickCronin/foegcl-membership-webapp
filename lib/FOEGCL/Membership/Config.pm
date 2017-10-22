@@ -36,7 +36,8 @@ sub _build_config ( $self, @ ) {
 }
 
 sub _build_config_file ( $self, @ ) {
-    return path(__FILE__)->parent(4)->child( 'etc', 'foegcl-membership.conf' );
+    return path(__FILE__)->parent(4)
+        ->child( 'etc', 'foegcl-membership.conf' );
 }
 
 sub _build_storage_dir ( $self, @ ) {

@@ -14,9 +14,9 @@ sub instance ( $class, @args ) {
 
 around 'new' => sub ( $orig, $self, @args ) {
     die q{Can't get a new instance of }
-      . ( ref $self )
-      . q{ -- instance already exists! Use `instance` instead of `new`.}
-      if $singletons{ ref $self };
+        . ( ref $self )
+        . q{ -- instance already exists! Use `instance` instead of `new`.}
+        if $singletons{ ref $self };
 
     return $self->$orig(@args);
 };

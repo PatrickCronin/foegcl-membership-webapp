@@ -22,17 +22,17 @@ for my $attr (qw( database host username password port )) {
 my $storage_dir = FOEGCL::Membership::Config->instance->storage_dir;
 has '+migration_table' => ( default => sub { 'applied_migration' } );
 has '+migrations_dir' =>
-  ( default => sub { $storage_dir->child('migrations')->stringify } );
-has '+schema_file' =>
-  ( default => sub { $storage_dir->child('membership-webapp.sql')->stringify }
-  );
+    ( default => sub { $storage_dir->child('migrations')->stringify } );
+has '+schema_file' => (
+    default => sub { $storage_dir->child('membership-webapp.sql')->stringify }
+);
 
 sub _build_dbh {
-    my ( $dsn, $username, $password, $dbi_attributes, $extra_attributes ) =
-      $db_config->connect_info;
+    my ( $dsn, $username, $password, $dbi_attributes, $extra_attributes )
+        = $db_config->connect_info;
 
     $dbi_attributes->{$_} = 1
-      for qw( RaiseError PrintError PrintWarn ShowErrorStatement );
+        for qw( RaiseError PrintError PrintWarn ShowErrorStatement );
 
     my $dbh = DBI->connect( $dsn, $username, $password, $dbi_attributes );
 

@@ -2,7 +2,8 @@ package FOEGCL::Membership::Role::ConfiguresDatabase;
 
 use FOEGCL::Membership::Moose::Role;
 
-use FOEGCL::Membership::Types qw( HashRef Maybe NonEmptySimpleStr PackageName );
+use FOEGCL::Membership::Types
+    qw( HashRef Maybe NonEmptySimpleStr PackageName );
 
 has dsn => (
     is      => 'ro',
@@ -67,8 +68,10 @@ sub _build_extra_attributes ( $self, @ ) {
 }
 
 sub connect_info ($self) {
-    return ( $self->dsn, $self->username, $self->password,
-        $self->dbi_attributes, $self->extra_attributes );
+    return (
+        $self->dsn,            $self->username, $self->password,
+        $self->dbi_attributes, $self->extra_attributes
+    );
 }
 
 1;

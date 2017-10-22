@@ -18,8 +18,7 @@ has legacy_friend => (
 );
 
 sub etl ( $self ) {
-    my @people =
-      FOEGCL::Membership::ETL::Friend::People->new(
+    my @people = FOEGCL::Membership::ETL::Friend::People->new(
         legacy_friend => $self->legacy_friend, )->etl;
 
     FOEGCL::Membership::ETL::Friend::Addresses->new(

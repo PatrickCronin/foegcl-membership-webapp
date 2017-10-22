@@ -17,7 +17,7 @@ has _legacy_schema => (
 
 sub _build_legacy_schema ( $self, @ ) {
     die q{Can't access Legacy schema unless on Windows}
-      if $OSNAME !~ m/MSWin32/;
+        if $OSNAME !~ m/MSWin32/;
 
     return FOEGCL::Membership::Schema::Legacy->connect(
         FOEGCL::Membership::Config::LegacyDatabase->instance->connect_info );

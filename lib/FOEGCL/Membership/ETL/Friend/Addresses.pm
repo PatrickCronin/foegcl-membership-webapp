@@ -14,8 +14,8 @@ has legacy_friend => (
 );
 
 has people => (
-    is       => 'ro',
-    isa      => 'ArrayRef [FOEGCL::Membership::Schema::WebApp::Result::Person]',
+    is  => 'ro',
+    isa => 'ArrayRef [FOEGCL::Membership::Schema::WebApp::Result::Person]',
     required => 1,
 );
 
@@ -73,17 +73,16 @@ sub _process_address ( $self, %field ) {
         ( is_pobox( $field{'street_line_1'} ) && $field{'street_line_2'} )
         || ( is_pobox( $field{'street_line_2'} )
             && $field{'street_line_1'} )
-      )
-    {
+        ) {
         push @addresses,
-          {
+            {
             street_line_1 => $field{street_line_1},
             csz_id        => $field{csz_id},
-          },
-          {
+            },
+            {
             street_line_1 => $field{street_line_2},
             csz_id        => $field{csz_id},
-          };
+            };
     }
     else {
         push @addresses, { %field{ grep { $field{$_} } keys %field } };

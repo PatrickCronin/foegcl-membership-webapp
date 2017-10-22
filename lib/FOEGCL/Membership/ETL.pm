@@ -9,10 +9,10 @@ use FOEGCL::Membership::ETL::Friend ();
 
 with(
     qw(
-      FOEGCL::Membership::Role::HasLegacySchema
-      FOEGCL::Membership::Role::HasWebAppSchema
-      MooseX::Getopt::Dashes
-      )
+        FOEGCL::Membership::Role::HasLegacySchema
+        FOEGCL::Membership::Role::HasWebAppSchema
+        MooseX::Getopt::Dashes
+        )
 );
 
 sub run ($self) {
@@ -37,12 +37,12 @@ sub _etl_city_state_zips ($self) {
 
 sub _etl_roletypes ($self) {
     my $legacy_role_types_rs = $self->_legacy_schema->resultset('RolesType');
-    my $webapp_participation_role_rs =
-      $self->_schema->resultset('ParticipationRole');
+    my $webapp_participation_role_rs
+        = $self->_schema->resultset('ParticipationRole');
     while ( my $legacy_role_type = $legacy_role_types_rs->next ) {
         my $role_name = trim( $legacy_role_type->role );
         $role_name = 'Historical ' . $role_name
-          if $legacy_role_type->historical;
+            if $legacy_role_type->historical;
 
         $webapp_participation_role_rs->create(
             {
@@ -55,10 +55,11 @@ sub _etl_roletypes ($self) {
 
 sub _etl_friends ($self) {
     my $legacy_friend_rs = $self->_legacy_schema->resultset('Friend')
-      ->search_rs( undef, { order_by => 'FriendID' } );
+        ->search_rs( undef, { order_by => 'FriendID' } );
     while ( my $legacy_friend = $legacy_friend_rs->next ) {
-        FOEGCL::Membership::ETL::Friend->new( legacy_friend => $legacy_friend, )
-          ->etl;
+        FOEGCL::Membership::ETL::Friend->new(
+            legacy_friend => $legacy_friend,
+        )->etl;
     }
 }
 

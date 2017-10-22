@@ -3,13 +3,15 @@ package FOEGCL::Membership::Config::LegacyDatabase;
 use FOEGCL::Membership::Moose;
 
 with qw(
-  FOEGCL::Membership::Role::ConfiguresDatabase
-  FOEGCL::Membership::Role::HasConfig
+    FOEGCL::Membership::Role::ConfiguresDatabase
+    FOEGCL::Membership::Role::HasConfig
 );
 
 sub _build_dsn ( $self, @ ) {
-    return sprintf( 'dbi:ADO:Provider=Microsoft.Jet.OLEDB.4.0;Data Source=%s',
-        $self->_config->{'Legacy Database'}->{filepath} );
+    return sprintf(
+        'dbi:ADO:Provider=Microsoft.Jet.OLEDB.4.0;Data Source=%s',
+        $self->_config->{'Legacy Database'}->{filepath}
+    );
 }
 
 sub _build_dbi_attributes ( $self, @ ) {

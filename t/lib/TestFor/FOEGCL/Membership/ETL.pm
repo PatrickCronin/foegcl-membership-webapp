@@ -24,7 +24,7 @@ sub test_startup ( $self, @ ) {
 sub test_setup ( $self, @ ) {
     my $test_method = $self->test_report->current_method;
 
-# $self->test_skip('not now') if $test_method->name ne 'test_annual_membership_count';
+    # $self->test_skip('not now') if $test_method->name ne 'test_annual_membership_count';
 }
 
 sub test_city_state_zip ( $self, @ ) {
@@ -35,7 +35,7 @@ sub test_city_state_zip ( $self, @ ) {
                     city  => $_->{city},
                     state => $_->{state_abbr},
                     zip   => $_->{zip},
-                  }
+                    }
             } $self->_schema->resultset('CityStateZip')->hri->all
         ],
         [
@@ -44,7 +44,7 @@ sub test_city_state_zip ( $self, @ ) {
                     city  => $_->{City},
                     state => $_->{State},
                     zip   => $_->{PostalCode},
-                  }
+                    }
             } $self->_legacy_schema->resultset('CityStateZip')->hri->all
         ],
         'City, State and Zip transferred successfully'
@@ -52,61 +52,61 @@ sub test_city_state_zip ( $self, @ ) {
 }
 
 sub test_annual_donation_sum ($self) {
-    my $new_annual_donations_rs =
-      $self->_schema->resultset('Donation')->search(
+    my $new_annual_donations_rs
+        = $self->_schema->resultset('Donation')->search(
         {},
         {
             select => [ 'affiliation_year', { sum => 'amount' } ],
             as       => [qw( affiliation_year donation_sum )],
             group_by => [qw(affiliation_year)],
         },
-      );
+        );
 
     my %new;
     while ( my $donation = $new_annual_donations_rs->next ) {
-        $new{ $donation->get_column('affiliation_year') } =
-          0 + $donation->get_column('donation_sum');
+        $new{ $donation->get_column('affiliation_year') }
+            = 0 + $donation->get_column('donation_sum');
     }
 
-    my $legacy_annual_donations_rs =
-      $self->_legacy_schema->resultset('Donation')->search(
+    my $legacy_annual_donations_rs
+        = $self->_legacy_schema->resultset('Donation')->search(
         {},
         {
             select   => [ 'year', { sum => 'donation' } ],
             as       => [qw( year donation_sum )],
             group_by => [qw( year )]
         },
-      );
+        );
 
     my %legacy;
     while ( my $donation = $legacy_annual_donations_rs->next ) {
-        $legacy{ $donation->get_column('year') } =
-          0 + $donation->get_column('donation_sum');
+        $legacy{ $donation->get_column('year') }
+            = 0 + $donation->get_column('donation_sum');
     }
 
     eq_or_diff( \%new, \%legacy, 'Annual donation sums are equal' );
 }
 
 sub test_annual_membership_count ( $self, @ ) {
-    my $years =
-      $self->_legacy_schema->storage->dbh->selectcol_arrayref(<<'SQL');
+    my $years
+        = $self->_legacy_schema->storage->dbh->selectcol_arrayref(<<'SQL');
     SELECT DISTINCT year
     FROM Donations
 SQL
 
     for my $year ( @{$years} ) {
-        my $minimum_donation =
-          0 +
-          $self->_schema->resultset('AffiliationYearMembershipLevel')->find(
+        my $minimum_donation
+            = 0 + $self->_schema->resultset('AffiliationYearMembershipLevel')
+            ->find(
             { affiliation_year => $year },
             {
                 select => [ { min => 'amount' } ],
                 as     => ['min_membership_amount'],
             },
-          )->get_column('min_membership_amount');
+            )->get_column('min_membership_amount');
 
-        my $legacy_membership_sth =
-          $self->_legacy_schema->storage->dbh->prepare(<<'SQL');
+        my $legacy_membership_sth
+            = $self->_legacy_schema->storage->dbh->prepare(<<'SQL');
     SELECT FriendID, SUM(Donation)
     FROM Donations
     WHERE Year = ?
@@ -115,11 +115,14 @@ SQL
     ORDER BY FriendID
 SQL
 
-        $legacy_membership_sth->bind_param( 1, $year,             SQL_NUMERIC );
-        $legacy_membership_sth->bind_param( 2, $minimum_donation, SQL_NUMERIC );
+        $legacy_membership_sth->bind_param( 1, $year, SQL_NUMERIC );
+        $legacy_membership_sth->bind_param(
+            2, $minimum_donation,
+            SQL_NUMERIC
+        );
         $legacy_membership_sth->execute;
-        my $legacy_membership =
-          [ map { $_->[0] } $legacy_membership_sth->fetchall_arrayref->@* ];
+        my $legacy_membership = [ map { $_->[0] }
+                $legacy_membership_sth->fetchall_arrayref->@* ];
 
         eq_or_diff(
             [

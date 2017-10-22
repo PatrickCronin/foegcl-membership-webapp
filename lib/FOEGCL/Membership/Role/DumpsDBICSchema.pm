@@ -112,10 +112,10 @@ sub _build_default_loader_options ( $self, @ ) {
         additional_classes => ['FOEGCL::Membership::perlbase'],
         components         => [
             qw(
-              InflateColumn::DateTime
-              InflateColumn::Serializer
-              TimeStamp
-              )
+                InflateColumn::DateTime
+                InflateColumn::Serializer
+                TimeStamp
+                )
         ],
         debug                   => 0,
         default_resultset_class => 'ResultSet',
