@@ -37,11 +37,14 @@ sub etl ($self) {
             )->id,
     );
 
-    my @street_lines = split /(?:\r\n|\r|\n)+/, $self->legacy_friend->address;
-    die 'Address for Friend '
-      . $self->legacy_friend->friend_id
-      . ' has more than 2 street address lines!'
-      if @street_lines > 2;
+    my @street_lines = grep { $_ ne q{} }
+        map { trim($_) }
+        split /(?:\r\n|\r|\n)+/, $self->legacy_friend->address;
+
+    die sprintf(
+        'This class cannot handle addresses with more than 2 street lines. Problem with %s',
+        $self->legacy_friend->friend_id
+    ) if @street_lines > 2;
 
     foreach my $line ( 1 .. 2 ) {
         $field{"street_line_$line"} = trim( $street_lines[ $line - 1 ] );
