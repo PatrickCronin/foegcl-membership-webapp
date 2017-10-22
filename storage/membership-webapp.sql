@@ -321,7 +321,7 @@ BEGIN
         RAISE EXCEPTION 'Cannot add any more people to this membership. It already has the maximum number of people for its membership type.';
     END IF;
 
-    -- Check membership people's physical addresses are the same
+    -- If this is the first person for this membership, we're all set.
     IF NOT EXISTS (
         SELECT 1
         FROM person_membership
@@ -330,6 +330,19 @@ BEGIN
         RETURN NEW;
     END IF;
 
+    -- If existing membership person has no address, we can't insert.
+    IF EXISTS (
+        SELECT 1
+        FROM person_membership
+        LEFT JOIN physical_address
+        ON person_membership.person_id = physical_address.person_id
+        WHERE membership_id = NEW.membership_id
+        AND physical_address.person_id IS NULL
+    ) THEN
+        RAISE EXCEPTION 'A person already in the membership has no physical address. In order to add a person to this membership, you need to make sure the existing person has a physical address first.';
+    END IF;
+
+    -- Check membership people's physical addresses are the same
     IF (
         WITH membership_physical_addresses AS (
             SELECT DISTINCT street_line_1, street_line_2, csz_id
