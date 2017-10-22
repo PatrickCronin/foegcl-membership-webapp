@@ -1,0 +1,11 @@
+--blank-lines-before-packages=0
+--iterations=2
+--no-outdent-long-comments
+--no-outdent-long-quotes
+--opening-brace-always-on-right
+--break-at-old-comma-breakpoints
+--indent-columns=4
+--continuation-indentation=4
+--maximum-line-length=78
+--standard-error-output
+--want-break-before="% + - * / x != == >= <= =~ !~ < > | & >= < = **= += *= &= <<= &&= -= /= |= >>= ||= .= %= ^= x="
