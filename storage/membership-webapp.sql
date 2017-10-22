@@ -255,7 +255,7 @@ CREATE OR REPLACE FUNCTION next_friend_id()
 $$
 BEGIN
     IF NEW.friend_id IS NULL THEN
-        NEW.friend_id = (SELECT MAX(friend_id) + 1FROM membership);
+        NEW.friend_id = (SELECT MAX(friend_id) + 1 FROM membership);
     END IF;
     RETURN NEW;
 END;
