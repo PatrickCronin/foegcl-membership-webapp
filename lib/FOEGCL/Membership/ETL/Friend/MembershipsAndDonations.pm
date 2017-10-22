@@ -107,8 +107,10 @@ sub etl ($self) {
                 next;
             }
 
-            $person->create_related( 'person_membership',
-                { membership_id => $membership->id } );
+            $person->create_related(
+                'person_memberships',
+                { membership_id => $membership->id }
+            );
         }
     }
 }
