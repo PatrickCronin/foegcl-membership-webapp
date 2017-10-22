@@ -82,21 +82,25 @@ sub etl ($self) {
         }
 
         # Relate the people to the membership
-        my $max_people =
-          $self->_schema->resultset('MembershipDonationType')->search_rs(
+        my $max_people = 0;
+        my $membership_type
+            = $self->_schema->resultset('MembershipDonationType')->search_rs(
             {
                 membership_year => $donation_year,
                 donation_type   => { -in => [ map { $_->[0] } @donations ] },
             },
             { columns => ['membership_max_people'] }
-          )->first->membership_max_people;
+            )->first;
+        $max_people = $membership_type->membership_max_people
+            if $membership_type;
+
         my $person_cnt = 0;
         foreach my $person ( $self->people->@* ) {
             $person_cnt++;
 
             if ( $person_cnt > $max_people ) {
                 warn sprintf(
-'Not adding %s to %s membership because the membership is full.',
+                    'Not adding %s to %s membership because the membership is full.',
                     $person->first_name . q{ } . $person->last_name,
                     $donation_year
                 );
