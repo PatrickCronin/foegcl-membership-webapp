@@ -17,7 +17,7 @@ has legacy_friend => (
     required => 1,
 );
 
-sub etl ( $self, $legacy_friend ) {
+sub etl ( $self ) {
     my @people =
       FOEGCL::Membership::ETL::Friend::People->new(
         legacy_friend => $self->legacy_friend, )->etl;
