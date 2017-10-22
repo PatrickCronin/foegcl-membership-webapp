@@ -298,12 +298,10 @@ BEGIN
         RAISE EXCEPTION 'person_id cannot be null';
     END IF;
 
-    -- Verify membership has a type
+    -- Verify membership has a membership donation type
     IF NOT EXISTS (
         SELECT 1
-        FROM donation
-        INNER JOIN membership USING (membership_id)
-        INNER JOIN membership_donation_type USING (membership_year, donation_type)
+        FROM paying_memberships
         WHERE membership_id = NEW.membership_id
     ) THEN
         RAISE EXCEPTION 'Cannot add people to a membership without a membership donation.';
@@ -316,8 +314,7 @@ BEGIN
         WHERE membership_id = NEW.membership_id
     ) >= (
         SELECT membership_max_people
-        FROM donation
-        INNER JOIN membership USING (membership_id)
+        FROM paying_memberships
         INNER JOIN membership_donation_type USING (membership_year, donation_type)
         WHERE membership_id = NEW.membership_id
     ) THEN
