@@ -223,7 +223,8 @@ VALUES
     (2014),
     (2015),
     (2016),
-    (2017);
+    (2017),
+    (2018);
 
 CREATE TABLE participation_record (
     membership_year SMALLINT NOT NULL REFERENCES membership_year (membership_year) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -474,7 +475,10 @@ VALUES
     (2016, 'honorary_membership', 1, 0),
     (2017, 'individual_membership', 1, 15),
     (2017, 'household_membership', 2, 25),
-    (2017, 'honorary_membership', 1, 0);
+    (2017, 'honorary_membership', 1, 0),
+    (2018, 'individual_membership', 1, 15),
+    (2018, 'household_membership', 2, 25),
+    (2018, 'honorary_membership', 1, 0);
 
 CREATE TABLE membership_year_voter_registration (
     membership_year SMALLINT NOT NULL REFERENCES membership_year (membership_year) ON DELETE CASCADE ON UPDATE CASCADE,
