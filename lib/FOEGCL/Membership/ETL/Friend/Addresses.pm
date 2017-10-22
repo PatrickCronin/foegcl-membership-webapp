@@ -29,12 +29,12 @@ sub etl ($self) {
             {
                 city => trim( $self->legacy_friend->city_state_zip->city ),
                 state_abbr =>
-                  trim( $self->legacy_friend->city_state_zip->state ),
+                    trim( $self->legacy_friend->city_state_zip->state ),
                 zip =>
-                  trim( $self->legacy_friend->city_state_zip->postal_code ),
+                    trim( $self->legacy_friend->city_state_zip->postal_code ),
             },
             { key => 'city_state_zip_is_unique' }
-        )->id,
+            )->id,
     );
 
     my @street_lines = split /(?:\r\n|\r|\n)+/, $self->legacy_friend->address;
