@@ -49,7 +49,6 @@ sub etl ($self) {
     foreach my $line ( 1 .. 2 ) {
         $field{"street_line_$line"} = trim( $street_lines[ $line - 1 ] );
     }
-    die 'Address has no Street Line 1' if !$field{street_line_1};
 
     my @addresses = $self->_process_address(%field);
 
@@ -64,10 +63,6 @@ sub etl ($self) {
               ->create( { $address->%*, person_id => $person->id } );
         }
     }
-
-    die
-      sprintf( 'Friend %d has no physical address!', $self->legacy_friend->id )
-      if !$self->people->[0]->physical_address;
 }
 
 sub _process_address ( $self, %field ) {
