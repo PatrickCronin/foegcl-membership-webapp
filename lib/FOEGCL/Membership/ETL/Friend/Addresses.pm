@@ -53,14 +53,12 @@ sub etl ($self) {
     my @addresses = $self->_process_address(%field);
 
     foreach my $address (@addresses) {
-        my $resultset =
-          is_pobox( $address->{street_line_1} )
-          ? 'MailingAddress'
-          : 'PhysicalAddress';
-        foreach my $person ( @{ $self->people } ) {
-            ## no critic (ValuesAndExpressions::ProhibitCommaSeparatedStatements)
-            $self->_schema->resultset($resultset)
-              ->create( { $address->%*, person_id => $person->id } );
+        my $relationship
+            = is_pobox( $address->{street_line_1} )
+            ? 'mailing_address'
+            : 'physical_address';
+        foreach my $person ( $self->people->@* ) {
+            $person->create_related( $relationship, $address );
         }
     }
 }
