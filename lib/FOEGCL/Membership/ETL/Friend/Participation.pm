@@ -22,23 +22,20 @@ has people => (
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
 sub etl ($self) {
-
-    # TODO: $self->_etl_friend_historical_roles($legacy_friend, @people);
-
-    my $legacy_roles_rs = $self->legacy_friend->roles;
-    my $webapp_interests_rs =
-      $self->_schema->resultset('ParticipationInterest');
-    my $webapp_roles_rs = $self->_schema->resultset('ParticipationRole');
-    while ( my $legacy_role = $legacy_roles_rs->next ) {
-        next if $legacy_role->role_type->historical;
+    my $friend_roles        = $self->legacy_friend->roles;
+    my $participation_roles = $self->_schema->resultset('ParticipationRole');
+    while ( my $friend_role = $friend_roles->next ) {
+        next if $friend_role->role_type->historical;
         foreach my $person ( $self->people->@* ) {
-            $webapp_interests_rs->create(
+            $person->create_related(
+                'participation_interests',
                 {
-                    person_id             => $person->id,
-                    participation_role_id => $webapp_roles_rs->find(
-                        { role_name => trim( $legacy_role->role_type->role ) },
-                        { key       => 'participation_role_name_is_unique' },
-                    )->participation_role_id,
+                    participation_role_id => $participation_roles->find(
+                        {
+                            role_name => trim( $friend_role->role_type->role )
+                        },
+                        { key => 'participation_role_name_is_unique' },
+                    )->participation_role_id
                 }
             );
         }
