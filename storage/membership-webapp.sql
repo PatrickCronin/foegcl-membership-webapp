@@ -266,6 +266,12 @@ BEFORE INSERT OR UPDATE ON membership
 FOR EACH ROW
 EXECUTE PROCEDURE next_friend_id();
 
+CREATE VIEW paying_memberships AS
+SELECT membership_id, membership_year, donation_type
+FROM donation
+INNER JOIN membership USING (membership_id)
+INNER JOIN membership_donation_type USING (membership_year, donation_type);
+
 CREATE TABLE person_membership (
     person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
     membership_id INTEGER NOT NULL REFERENCES membership (membership_id) ON DELETE CASCADE ON UPDATE CASCADE,
