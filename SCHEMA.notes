@@ -1,0 +1,11 @@
+Triggers have been added to the schema in order to support the following
+business rules that are not naturally supported by the schema design:
+
+1. Any person in an affiliation must have a physical address.
+2. People sharing an affiliation must have the same physical address.
+3. People sharing an affiliation must have the same mailing address
+   (which could be null).
+4. If an affiliation is a membership, the number of people belonging to that
+   membership must respect the membership_max_people setting (which could be
+   null).
+5. An affiliation can have only one membership donation.

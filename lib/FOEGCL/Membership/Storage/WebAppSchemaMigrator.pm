@@ -30,8 +30,8 @@ has '+schema_file' => (
 );
 
 has 'drop_first' => (
-    is => 'ro',
-    isa => Bool,
+    is      => 'ro',
+    isa     => Bool,
     default => 0,
 );
 
@@ -52,13 +52,14 @@ sub _build_dbh {
 }
 
 around 'create_or_update_database' => sub ( $orig, $self, @args ) {
-    if ($self->drop_first) {
-        $self->drop_database if prompt(
+    if ( $self->drop_first ) {
+        $self->drop_database
+            if prompt(
             'Are you sure you want to drop the existing database? ',
             -default => 'n',
-            -until => qr/yn/i,
+            -until   => qr/yn/i,
             -yn,
-        );
+            );
     }
 
     $self->$orig(@args);
