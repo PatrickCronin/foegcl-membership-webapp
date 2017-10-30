@@ -7,6 +7,8 @@ extends 'Database::Migrator::Pg';
 
 use DBI                                        ();
 use FOEGCL::Membership::Config::WebAppDatabase ();
+use FOEGCL::Membership::Types qw(Bool);
+use IO::Prompt qw(prompt);
 
 # Don't use the role here as we need the config available before creating
 # object attributes
@@ -27,6 +29,12 @@ has '+schema_file' => (
     default => sub { $storage_dir->child('membership-webapp.sql')->stringify }
 );
 
+has 'drop_first' => (
+    is => 'ro',
+    isa => Bool,
+    default => 0,
+);
+
 sub _build_dbh {
     my ( $dsn, $username, $password, $dbi_attributes, $extra_attributes )
         = $db_config->connect_info;
@@ -40,6 +48,19 @@ sub _build_dbh {
 
     return $dbh;
 }
+
+around 'create_or_update_database' => sub ( $orig, $self, @args ) {
+    if ($self->drop_first) {
+        $self->drop_database if prompt(
+            'Are you sure you want to drop the existing database? ',
+            -default => 'n',
+            -until => qr/yn/i,
+            -yn,
+        );
+    }
+
+    $self->$orig(@args);
+};
 
 sub drop_database ($self) {
     $self->_maybe_disconnect;
