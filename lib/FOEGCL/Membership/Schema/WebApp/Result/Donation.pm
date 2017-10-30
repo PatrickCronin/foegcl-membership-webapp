@@ -63,7 +63,7 @@ __PACKAGE__->table("donation");
   is_nullable: 0
   sequence: 'donation_donation_id_seq'
 
-=head2 membership_id
+=head2 affiliation_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -112,7 +112,7 @@ __PACKAGE__->add_columns(
     is_nullable       => 0,
     sequence          => "donation_donation_id_seq",
   },
-  "membership_id",
+  "affiliation_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "donation_type",
   {
@@ -163,24 +163,24 @@ __PACKAGE__->set_primary_key("donation_id");
 
 =head1 RELATIONS
 
-=head2 membership
+=head2 affiliation
 
 Type: belongs_to
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Membership>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Affiliation>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "membership",
-  "FOEGCL::Membership::Schema::WebApp::Result::Membership",
-  { membership_id => "membership_id" },
+  "affiliation",
+  "FOEGCL::Membership::Schema::WebApp::Result::Affiliation",
+  { affiliation_id => "affiliation_id" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-17 22:17:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Lju8Xk6ayOoEDMF7BM3sog
+# Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-10-29 23:09:59
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A/2p8ilEhwdr98oeqErX5Q
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

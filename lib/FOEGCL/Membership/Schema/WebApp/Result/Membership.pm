@@ -7,7 +7,7 @@ package FOEGCL::Membership::Schema::WebApp::Result::Membership;
 
 =head1 NAME
 
-FOEGCL::Membership::Schema::WebApp::Result::Membership
+FOEGCL::Membership::Schema::WebApp::Result::Membership - Affiliations with a qualifying membership donation
 
 =cut
 
@@ -47,142 +47,66 @@ __PACKAGE__->load_components(
   "InflateColumn::Serializer",
   "TimeStamp",
 );
+__PACKAGE__->table_class("DBIx::Class::ResultSource::View");
 
 =head1 TABLE: C<membership>
 
 =cut
 
 __PACKAGE__->table("membership");
+__PACKAGE__->result_source_instance->view_definition(" SELECT donation.affiliation_id,\n    affiliation.affiliation_year,\n    donation.donation_type,\n    membership_donation_type.membership_max_people\n   FROM ((donation\n     JOIN affiliation USING (affiliation_id))\n     JOIN membership_donation_type USING (affiliation_year, donation_type))");
 
 =head1 ACCESSORS
 
-=head2 membership_id
+=head2 affiliation_id
 
   data_type: 'integer'
-  is_auto_increment: 1
-  is_nullable: 0
-  sequence: 'membership_membership_id_seq'
+  is_nullable: 1
 
-=head2 membership_year
+=head2 affiliation_year
 
   data_type: 'smallint'
-  is_foreign_key: 1
-  is_nullable: 0
-
-=head2 friend_id
-
-  data_type: 'numeric'
-  is_nullable: 0
-  size: [11,0]
-
-This value should follow memberships year after year
-
-=head2 created_at
-
-  data_type: 'timestamp with time zone'
-  default_value: current_timestamp
   is_nullable: 1
-  original: {default_value => \"now()"}
 
-=head2 updated_at
+=head2 donation_type
 
-  data_type: 'timestamp with time zone'
-  default_value: current_timestamp
+  data_type: 'enum'
+  extra: {custom_type_name => "donation_type",list => ["individual_membership","household_membership","honorary_membership","general_donation"]}
   is_nullable: 1
-  original: {default_value => \"now()"}
+
+=head2 membership_max_people
+
+  data_type: 'smallint'
+  is_nullable: 1
 
 =cut
 
 __PACKAGE__->add_columns(
-  "membership_id",
+  "affiliation_id",
+  { data_type => "integer", is_nullable => 1 },
+  "affiliation_year",
+  { data_type => "smallint", is_nullable => 1 },
+  "donation_type",
   {
-    data_type         => "integer",
-    is_auto_increment => 1,
-    is_nullable       => 0,
-    sequence          => "membership_membership_id_seq",
+    data_type => "enum",
+    extra => {
+      custom_type_name => "donation_type",
+      list => [
+        "individual_membership",
+        "household_membership",
+        "honorary_membership",
+        "general_donation",
+      ],
+    },
+    is_nullable => 1,
   },
-  "membership_year",
-  { data_type => "smallint", is_foreign_key => 1, is_nullable => 0 },
-  "friend_id",
-  { data_type => "numeric", is_nullable => 0, size => [11, 0] },
-  "created_at",
-  {
-    data_type     => "timestamp with time zone",
-    default_value => \"current_timestamp",
-    is_nullable   => 1,
-    original      => { default_value => \"now()" },
-  },
-  "updated_at",
-  {
-    data_type     => "timestamp with time zone",
-    default_value => \"current_timestamp",
-    is_nullable   => 1,
-    original      => { default_value => \"now()" },
-  },
-);
-
-=head1 PRIMARY KEY
-
-=over 4
-
-=item * L</membership_id>
-
-=back
-
-=cut
-
-__PACKAGE__->set_primary_key("membership_id");
-
-=head1 RELATIONS
-
-=head2 donations
-
-Type: has_many
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Donation>
-
-=cut
-
-__PACKAGE__->has_many(
-  "donations",
-  "FOEGCL::Membership::Schema::WebApp::Result::Donation",
-  { "foreign.membership_id" => "self.membership_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 membership_year
-
-Type: belongs_to
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYear>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "membership_year",
-  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYear",
-  { membership_year => "membership_year" },
-  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
-);
-
-=head2 person_memberships
-
-Type: has_many
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::PersonMembership>
-
-=cut
-
-__PACKAGE__->has_many(
-  "person_memberships",
-  "FOEGCL::Membership::Schema::WebApp::Result::PersonMembership",
-  { "foreign.membership_id" => "self.membership_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+  "membership_max_people",
+  { data_type => "smallint", is_nullable => 1 },
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-17 22:17:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dczuhl9U3tw4LxrCCrxwgQ
+# Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-10-29 23:09:59
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RSxpu/C8BL9QoU17vXtgTw
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

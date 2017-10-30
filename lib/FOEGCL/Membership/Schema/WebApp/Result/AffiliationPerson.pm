@@ -1,13 +1,13 @@
 #<<<
 use utf8;
-package FOEGCL::Membership::Schema::WebApp::Result::ParticipationRecord;
+package FOEGCL::Membership::Schema::WebApp::Result::AffiliationPerson;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-FOEGCL::Membership::Schema::WebApp::Result::ParticipationRecord
+FOEGCL::Membership::Schema::WebApp::Result::AffiliationPerson
 
 =cut
 
@@ -48,27 +48,21 @@ __PACKAGE__->load_components(
   "TimeStamp",
 );
 
-=head1 TABLE: C<participation_record>
+=head1 TABLE: C<affiliation_person>
 
 =cut
 
-__PACKAGE__->table("participation_record");
+__PACKAGE__->table("affiliation_person");
 
 =head1 ACCESSORS
 
-=head2 affiliation_year
-
-  data_type: 'smallint'
-  is_foreign_key: 1
-  is_nullable: 0
-
-=head2 person_id
+=head2 affiliation_id
 
   data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 participation_role_id
+=head2 person_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -91,11 +85,9 @@ __PACKAGE__->table("participation_record");
 =cut
 
 __PACKAGE__->add_columns(
-  "affiliation_year",
-  { data_type => "smallint", is_foreign_key => 1, is_nullable => 0 },
-  "person_id",
+  "affiliation_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "participation_role_id",
+  "person_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "created_at",
   {
@@ -117,47 +109,30 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</affiliation_year>
+=item * L</affiliation_id>
 
 =item * L</person_id>
-
-=item * L</participation_role_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("affiliation_year", "person_id", "participation_role_id");
+__PACKAGE__->set_primary_key("affiliation_id", "person_id");
 
 =head1 RELATIONS
 
-=head2 affiliation_year
+=head2 affiliation
 
 Type: belongs_to
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Affiliation>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "affiliation_year",
-  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear",
-  { affiliation_year => "affiliation_year" },
-  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
-);
-
-=head2 participation_role
-
-Type: belongs_to
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::ParticipationRole>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "participation_role",
-  "FOEGCL::Membership::Schema::WebApp::Result::ParticipationRole",
-  { participation_role_id => "participation_role_id" },
+  "affiliation",
+  "FOEGCL::Membership::Schema::WebApp::Result::Affiliation",
+  { affiliation_id => "affiliation_id" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -178,7 +153,8 @@ __PACKAGE__->belongs_to(
 #>>>
 
 # Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-10-29 23:09:59
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RvwRUtjveOtj/k/Bi8Nf/g
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sQ/QifgS9gp9M7J2UQFD7A
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

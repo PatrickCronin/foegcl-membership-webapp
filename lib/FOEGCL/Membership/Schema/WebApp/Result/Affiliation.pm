@@ -1,13 +1,13 @@
 #<<<
 use utf8;
-package FOEGCL::Membership::Schema::WebApp::Result::ParticipationRecord;
+package FOEGCL::Membership::Schema::WebApp::Result::Affiliation;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-FOEGCL::Membership::Schema::WebApp::Result::ParticipationRecord
+FOEGCL::Membership::Schema::WebApp::Result::Affiliation
 
 =cut
 
@@ -48,13 +48,20 @@ __PACKAGE__->load_components(
   "TimeStamp",
 );
 
-=head1 TABLE: C<participation_record>
+=head1 TABLE: C<affiliation>
 
 =cut
 
-__PACKAGE__->table("participation_record");
+__PACKAGE__->table("affiliation");
 
 =head1 ACCESSORS
+
+=head2 affiliation_id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'affiliation_affiliation_id_seq'
 
 =head2 affiliation_year
 
@@ -62,17 +69,13 @@ __PACKAGE__->table("participation_record");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 person_id
+=head2 friend_id
 
-  data_type: 'integer'
-  is_foreign_key: 1
+  data_type: 'numeric'
   is_nullable: 0
+  size: [11,0]
 
-=head2 participation_role_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
+This value should follow a renewed affiliation. Otherwise, a new one should be assigned.
 
 =head2 created_at
 
@@ -91,12 +94,17 @@ __PACKAGE__->table("participation_record");
 =cut
 
 __PACKAGE__->add_columns(
+  "affiliation_id",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "affiliation_affiliation_id_seq",
+  },
   "affiliation_year",
   { data_type => "smallint", is_foreign_key => 1, is_nullable => 0 },
-  "person_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "participation_role_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "friend_id",
+  { data_type => "numeric", is_nullable => 0, size => [11, 0] },
   "created_at",
   {
     data_type     => "timestamp with time zone",
@@ -117,19 +125,30 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</affiliation_year>
-
-=item * L</person_id>
-
-=item * L</participation_role_id>
+=item * L</affiliation_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("affiliation_year", "person_id", "participation_role_id");
+__PACKAGE__->set_primary_key("affiliation_id");
 
 =head1 RELATIONS
+
+=head2 affiliation_people
+
+Type: has_many
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationPerson>
+
+=cut
+
+__PACKAGE__->has_many(
+  "affiliation_people",
+  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationPerson",
+  { "foreign.affiliation_id" => "self.affiliation_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 affiliation_year
 
@@ -146,39 +165,25 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 participation_role
+=head2 donations
 
-Type: belongs_to
+Type: has_many
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::ParticipationRole>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "participation_role",
-  "FOEGCL::Membership::Schema::WebApp::Result::ParticipationRole",
-  { participation_role_id => "participation_role_id" },
-  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
-);
-
-=head2 person
-
-Type: belongs_to
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Person>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Donation>
 
 =cut
 
-__PACKAGE__->belongs_to(
-  "person",
-  "FOEGCL::Membership::Schema::WebApp::Result::Person",
-  { person_id => "person_id" },
-  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
+__PACKAGE__->has_many(
+  "donations",
+  "FOEGCL::Membership::Schema::WebApp::Result::Donation",
+  { "foreign.affiliation_id" => "self.affiliation_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 #>>>
 
 # Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-10-29 23:09:59
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RvwRUtjveOtj/k/Bi8Nf/g
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MYE+IJOJ5Ob95g9GsKwG4A
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

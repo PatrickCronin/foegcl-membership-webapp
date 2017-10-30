@@ -141,6 +141,36 @@ __PACKAGE__->set_primary_key("person_id");
 
 =head1 RELATIONS
 
+=head2 affiliation_people
+
+Type: has_many
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationPerson>
+
+=cut
+
+__PACKAGE__->has_many(
+  "affiliation_people",
+  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationPerson",
+  { "foreign.person_id" => "self.person_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 affiliation_year_voter_registrations
+
+Type: has_many
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearVoterRegistration>
+
+=cut
+
+__PACKAGE__->has_many(
+  "affiliation_year_voter_registrations",
+  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearVoterRegistration",
+  { "foreign.person_id" => "self.person_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 mailing_address
 
 Type: might_have
@@ -152,21 +182,6 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MailingAddress>
 __PACKAGE__->might_have(
   "mailing_address",
   "FOEGCL::Membership::Schema::WebApp::Result::MailingAddress",
-  { "foreign.person_id" => "self.person_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 membership_year_voter_registrations
-
-Type: has_many
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYearVoterRegistration>
-
-=cut
-
-__PACKAGE__->has_many(
-  "membership_year_voter_registrations",
-  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYearVoterRegistration",
   { "foreign.person_id" => "self.person_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -216,21 +231,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 person_memberships
-
-Type: has_many
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::PersonMembership>
-
-=cut
-
-__PACKAGE__->has_many(
-  "person_memberships",
-  "FOEGCL::Membership::Schema::WebApp::Result::PersonMembership",
-  { "foreign.person_id" => "self.person_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 person_phones
 
 Type: has_many
@@ -262,8 +262,8 @@ __PACKAGE__->might_have(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-17 22:17:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MTt3Zp2KkIAKBd5KJqe3Og
+# Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-10-29 23:09:59
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TrHIXb7H2eVsViB7ifNUjQ
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

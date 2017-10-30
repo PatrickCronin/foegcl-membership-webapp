@@ -89,7 +89,9 @@ __PACKAGE__->table("physical_address");
 
 =head2 in_library_special_voting_district
 
-  data_type: 'boolean'
+  data_type: 'enum'
+  default_value: 'unchecked'
+  extra: {custom_type_name => "library_special_voting_district_status",list => ["in","out","unchecked","checked-but-unknown"]}
   is_nullable: 1
 
 =head2 created_at
@@ -120,7 +122,15 @@ __PACKAGE__->add_columns(
   "plus_four",
   { data_type => "char", default_value => \"null", is_nullable => 1, size => 4 },
   "in_library_special_voting_district",
-  { data_type => "boolean", is_nullable => 1 },
+  {
+    data_type => "enum",
+    default_value => "unchecked",
+    extra => {
+      custom_type_name => "library_special_voting_district_status",
+      list => ["in", "out", "unchecked", "checked-but-unknown"],
+    },
+    is_nullable => 1,
+  },
   "created_at",
   {
     data_type     => "timestamp with time zone",
@@ -182,8 +192,8 @@ __PACKAGE__->belongs_to(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-17 22:17:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4qC/YoNdtYpABQRmE9uiSg
+# Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-10-29 23:09:59
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rvbVIV0hlt4i0TZfGleSiQ
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
