@@ -1,5 +1,7 @@
 #!perl
 
+# PODNAME: dump-legacy-schema.pl
+
 use FOEGCL::Membership::perlbase;
 
 use FOEGCL::Membership::Storage::LegacySchemaDumper ();

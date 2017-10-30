@@ -1,5 +1,7 @@
 #!perl
 
+# PODNAME: dump-webapp-schema.pl
+
 use FOEGCL::Membership::perlbase;
 
 use FOEGCL::Membership::Storage::WebAppSchemaDumper ();
