@@ -35,6 +35,8 @@ has 'drop_first' => (
     default => 0,
 );
 
+has '+dbh' => ( clearer => '_clear_dbh' );
+
 sub _build_dbh {
     my ( $dsn, $username, $password, $dbi_attributes, $extra_attributes )
         = $db_config->connect_info;
@@ -64,6 +66,7 @@ around 'create_or_update_database' => sub ( $orig, $self, @args ) {
 
 sub drop_database ($self) {
     $self->_maybe_disconnect;
+    $self->_clear_dbh;
     $self->_drop_database;
 }
 
