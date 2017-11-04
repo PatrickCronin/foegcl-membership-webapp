@@ -47,7 +47,7 @@ sub etl ($self) {
     ) if @street_lines > 2;
 
     foreach my $line ( 1 .. 2 ) {
-        $field{"street_line_$line"} = trim( $street_lines[ $line - 1 ] );
+        $field{"street_line_$line"} = $street_lines[ $line - 1 ];
     }
 
     my @addresses = $self->_process_address(%field);
