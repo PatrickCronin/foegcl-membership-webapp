@@ -91,6 +91,15 @@ sub _build_password ( $self, @ ) {
     return $self->_db_config->{password};
 }
 
+sub _build_dbi_attributes ( $self, @ ) {
+    return {
+        AutoCommit => 1,
+        RaiseError => 1,
+        PrintError => 1,
+        PrintWarn => 1,
+    };
+}
+
 sub _build_schema_class_name ( $self, @ ) {
     return 'FOEGCL::Membership::Schema::WebApp';
 }
