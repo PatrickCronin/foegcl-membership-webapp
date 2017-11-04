@@ -184,6 +184,14 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-10-29 23:09:59
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MYE+IJOJ5Ob95g9GsKwG4A
 
+sub membership_donation_type ( $self ) {
+  return $self->affiliation_year->membership_donation_types->search_rs(
+      {
+        donation_type => {
+          -in => $self->donations->get_column('donation_type')->as_query
+        },
+      },
+    )->single;
+}
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

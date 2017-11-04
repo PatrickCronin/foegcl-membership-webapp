@@ -164,6 +164,13 @@ CREATE TABLE physical_address (
 CREATE INDEX physical_address__street_line_1__gin_trgm_idx ON physical_address USING gin (street_line_1 gin_trgm_ops);
 CREATE INDEX physical_address__street_line_2__gin_trgm_idx ON physical_address USING gin (street_line_2 gin_trgm_ops);
 
+CREATE VIEW address AS
+SELECT person_id, 'physical' AS address_type, street_line_1, street_line_2, csz_id, plus_four
+FROM physical_address
+UNION ALL
+SELECT person_id, 'mailing' AS address_type, street_line_1, street_line_2, csz_id, plus_four
+FROM mailing_address;
+
 CREATE TABLE participation_role (
     participation_role_id SERIAL PRIMARY KEY,
     parent_role_id INTEGER REFERENCES participation_role (participation_role_id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -338,22 +345,21 @@ BEGIN
         SELECT 1
         FROM affiliation_person
         INNER JOIN affiliation USING (affiliation_id)
-        WHERE person_id <> v_person_id
+        WHERE person_id = v_person_id
         AND affiliation_year = date_part('year', CURRENT_DATE)
     ) THEN
         RETURN TRUE;
-    ELSE
-        RETURN FALSE;
     END IF;
+
+    RETURN FALSE;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE FUNCTION validate_address_insert()
-RETURNS TRIGGER AS
-$$
+RETURNS TRIGGER AS $$
 BEGIN
-    IF person_is_in_affiliation(NEW.person_id) THEN
-        RAISE EXCEPTION 'Cannot add an address directly to a person in an affiliation. Change the affiliation''s address instead';
+    IF person_is_in_current_affiliation(NEW.person_id) THEN
+        RAISE EXCEPTION 'Cannot add an address to a person in an affiliation. Change the affiliation''s address instead.';
     END IF;
 
     RETURN NEW;
@@ -361,16 +367,17 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE FUNCTION validate_address_update()
-RETURNS TRIGGER AS
-$$
+RETURNS TRIGGER AS $$
 BEGIN
     IF OLD.person_id <> NEW.person_id THEN
         RAISE EXCEPTION 'Cannot reassign a person''s address to another person. Delete this one and create a new one.';
     END IF;
 
-    IF person_is_in_affiliation(NEW.person_id) THEN
+    IF person_is_in_current_affiliation(NEW.person_id) THEN
         RAISE EXCEPTION 'Cannot update the address of a person in an affiliation. Change the affiliation''s address instead.';
     END IF;
+
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -378,13 +385,15 @@ CREATE FUNCTION validate_address_delete()
 RETURNS TRIGGER AS
 $$
 BEGIN
-    IF person_is_in_affiliation(NEW.person_id) THEN
+    IF person_is_in_current_affiliation(NEW.person_id) THEN
         IF TG_TABLE_NAME = 'physical_address' THEN
             RAISE EXCEPTION 'Cannot delete the physical address of a person in an affiliation.';
         ELSIF TG_TABLE_NAME = 'mailing_address' THEN
             RAISE EXCEPTION 'Cannot delete the mailing address of a person in an affiliation. Please delete the mailing address of the person''s affiliation instead.';
         END IF;
     END IF;
+
+    RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -401,7 +410,7 @@ WHEN (NEW.person_id IS NOT NULL)
 EXECUTE PROCEDURE validate_address_update();
 
 CREATE TRIGGER check_mailing_address_on_delete
-BEFORE INSERT ON mailing_address
+BEFORE DELETE ON mailing_address
 FOR EACH ROW
 EXECUTE PROCEDURE validate_address_delete();
 
@@ -418,14 +427,17 @@ WHEN (NEW.person_id IS NOT NULL)
 EXECUTE PROCEDURE validate_address_update();
 
 CREATE TRIGGER check_physical_address_on_delete
-BEFORE INSERT ON physical_address
+BEFORE DELETE ON physical_address
 FOR EACH ROW
 EXECUTE PROCEDURE validate_address_delete();
 
 CREATE FUNCTION clear_library_special_voting_district_on_update()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.in_library_special_voting_district = 'unchecked';
+    IF NEW.in_library_special_voting_district IS NULL THEN
+        NEW.in_library_special_voting_district = 'unchecked';
+    END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -559,8 +571,8 @@ RETURNS BOOLEAN AS $$
 BEGIN
     IF v_person_id IS NULL THEN
         RAISE EXCEPTION 'v_person_id cannot be NULL';
-    ELSIF v_affiliatoin_id IS NULL THEN
-        RAISE EXCEPTION 'v_affiliatoin_id cannot be NULL';
+    ELSIF v_affiliation_id IS NULL THEN
+        RAISE EXCEPTION 'v_affiliation_id cannot be NULL';
     END IF;
 
     -- 1. All people in an affiliation must have a physical address
@@ -608,7 +620,7 @@ BEGIN
             'FROM membership '
             'INNER JOIN affiliation_person USING (affiliation_id) '
             'INNER JOIN %I USING (person_id) '
-            'WHERE affiliation = $1'
+            'WHERE affiliation_id = $1'
         '), '
         'new_person_address AS ( '
             'SELECT street_line_1, street_line_2, csz_id '
@@ -618,7 +630,7 @@ BEGIN
         'SELECT COUNT(*) '
         'FROM ( '
             '( '
-                'SELECT * FROM membership_physical_addresses '
+                'SELECT * FROM membership_addresses '
                 'EXCEPT '
                 'SELECT * FROM new_person_address '
             ') '
@@ -626,7 +638,7 @@ BEGIN
             '( '
                 'SELECT * FROM new_person_address '
                 'EXCEPT '
-                'SELECT * FROM membership_physical_addresses '
+                'SELECT * FROM membership_addresses '
             ') '
         ') AS unique_addresses ',
         v_table_name,
@@ -669,11 +681,11 @@ RETURNS TRIGGER AS $$
 BEGIN
     -- Make sure the person's address is compatible with the affiliation's
     IF NOT person_address_suitable_for_affiliation(NEW.person_id, NEW.affiliation_id) THEN
-        RAISE EXCEPTION 'Cannot add this person to this affiiation because one or more of the person''s addresses did not match those of the affiliation.';
+        RAISE EXCEPTION 'Cannot add this person to this affiliation because one or more of the person''s addresses did not match those of the affiliation.';
     END IF;
 
     -- Make sure the affiliation can fit another person
-    IF NOT affiliation_can_fit_another_person(NEW.affilation_id) THEN
+    IF NOT affiliation_can_fit_another_person(NEW.affiliation_id) THEN
         RAISE EXCEPTION 'This affiliation cannot accommodate another person because it''s membership limit has been reached.';
     END IF;
 
@@ -688,6 +700,8 @@ BEGIN
     IF NOT person_address_suitable_for_affiliation(NEW.person_id, NEW.affiliation_id) THEN
         RAISE EXCEPTION 'Cannot add this person to this affiiation because one or more of the person''s addresses did not match those of the affiliation.';
     END IF;
+
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -740,14 +754,14 @@ RETURNS TRIGGER AS $$
 DECLARE
     v_expected_donation_amount DECIMAL(11,2) DEFAULT NULL;
     v_maximum_members SMALLINT DEFAULT NULL;
-    v_donation_name_readable TEXT := REPLACE(NEW.donation_type, '_', ' ');
+    v_donation_name_readable TEXT := REPLACE(NEW.donation_type::text, '_', ' ');
 BEGIN
     IF NOT donation_is_membership_donation_for_affiliation(NEW.donation_type, NEW.affiliation_id) THEN
         RETURN NEW;
     END IF;
 
     -- The affiliation can have only one membership donation at a time
-    IF affiliation_is_membership(NEW.affilation_id) THEN
+    IF affiliation_is_membership(NEW.affiliation_id) THEN
         RAISE EXCEPTION 'Cannot add this donation because the affiliation already has an existing membership donation.';
     END IF;
 
@@ -765,10 +779,10 @@ BEGIN
     END IF;
 
     -- The affiliation should have a suitable number of people
-    IF v_maximum_members > (
-            SELECT COUNT(*)
-            FROM affiliation_person
-            WHERE affiliation_id = NEW.affiliation_id
+    IF v_maximum_members <= (
+        SELECT COUNT(*)
+        FROM affiliation_person
+        WHERE affiliation_id = NEW.affiliation_id
     ) THEN
         RAISE EXCEPTION 'There are too many people in the affiliation to add a %s.', v_donation_name_readable;
     END IF;
@@ -778,7 +792,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER check_donation_insert
-BEFORE INSERT OR UPDATE ON donation
+BEFORE INSERT ON donation
 FOR EACH ROW
 WHEN (
     NEW.affiliation_id IS NOT NULL
@@ -792,11 +806,11 @@ RETURNS TRIGGER AS $$
 DECLARE
     v_expected_donation_amount DECIMAL(11,2) DEFAULT NULL;
     v_maximum_members SMALLINT DEFAULT NULL;
-    v_donation_name_readable TEXT := REPLACE(NEW.donation_type, '_', ' ');
+    v_donation_name_readable TEXT := REPLACE(NEW.donation_type::text, '_', ' ');
     v_donation_is_for_membership BOOLEAN DEFAULT NULL;
 BEGIN
     -- Donation updates shouldn't move them to a new affiliation
-    IF OLD.affilation_id <> NEW.affiliation_id THEN
+    IF OLD.affiliation_id <> NEW.affiliation_id THEN
         RAISE EXCEPTION 'Cannot move a donation from one affiliation to another. Rather, delete this donation and create a new one on the affiliation that needs one.';
     END IF;
 
@@ -828,7 +842,7 @@ BEGIN
 
         -- The affiliation should have a suitable number of people
         IF OLD.donation_type <> NEW.donation_type THEN
-            IF v_maximum_members > (
+            IF v_maximum_members <= (
                 SELECT COUNT(*)
                 FROM affiliation_person
                 WHERE affiliation_id = NEW.affiliation_id
@@ -843,7 +857,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER check_donation_update
-BEFORE INSERT OR UPDATE ON donation
+BEFORE UPDATE ON donation
 FOR EACH ROW
 WHEN (
     NEW.affiliation_id IS NOT NULL

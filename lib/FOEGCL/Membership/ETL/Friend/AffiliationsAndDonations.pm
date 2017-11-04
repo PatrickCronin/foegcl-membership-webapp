@@ -1,4 +1,4 @@
-package FOEGCL::Membership::ETL::Friend::MembershipsAndDonations;
+package FOEGCL::Membership::ETL::Friend::AffiliationsAndDonations;
 
 # ABSTRACT: Extract, transform and load a Friend's annual memberships and donations
 
@@ -48,68 +48,60 @@ sub _build_annual_donations ($self) {
 
 sub _build_processed_annual_donations ($self) {
     my %processed_annual_donations;
-    foreach my $donation_year ( keys $self->_annual_donations->%* ) {
-        $processed_annual_donations{$donation_year}
-            = $self->_process_donations_for_year($donation_year);
+    foreach my $year ( keys $self->_annual_donations->%* ) {
+        $processed_annual_donations{$year}
+            = $self->_process_donations_for_year($year);
     }
 
     return \%processed_annual_donations;
 }
 
 sub etl ($self) {
-    foreach my $donation_year ( keys $self->_processed_annual_donations->%* )
-    {
+    foreach my $year ( keys $self->_processed_annual_donations->%* ) {
 
-        # Create the year's membership
-        my $membership = $self->_schema->resultset('Membership')->create(
+        # Create the year's affiliation
+        my $affiliation = $self->_schema->resultset('Affiliation')->create(
             {
-                membership_year => $donation_year,
-                friend_id       => $self->legacy_friend->friend_id,
+                affiliation_year => $year,
+                friend_id        => $self->legacy_friend->friend_id,
             }
         );
 
         # Create the donations
         my @donations
-            = $self->_processed_annual_donations->{$donation_year}->@*;
+            = $self->_processed_annual_donations->{$year}->@*;
         for my $donation (@donations) {
             $self->_schema->resultset('Donation')->create(
                 {
-                    membership_id => $membership->id,
-                    donation_type => $donation->[0],
-                    amount        => $donation->[1],
+                    affiliation_id => $affiliation->id,
+                    donation_type  => $donation->[0],
+                    amount         => $donation->[1],
                 }
             );
         }
 
-        # Relate the people to the membership
-        my $max_people = 0;
-        my $membership_type
-            = $self->_schema->resultset('MembershipDonationType')->search_rs(
-            {
-                membership_year => $donation_year,
-                donation_type   => { -in => [ map { $_->[0] } @donations ] },
-            },
-            { columns => ['membership_max_people'] }
-            )->first;
-        $max_people = $membership_type->membership_max_people
-            if $membership_type;
+        # Relate the people to the affiliation
+        my $membership_donation_type = $affiliation->membership_donation_type;
+        my $max_people;
+        $max_people = $membership_donation_type->membership_max_people
+            if $membership_donation_type;
 
         my $person_cnt = 0;
         foreach my $person ( $self->people->@* ) {
             $person_cnt++;
 
-            if ( $person_cnt > $max_people ) {
+            if ( $max_people && $person_cnt > $max_people ) {
                 warn sprintf(
                     'Not adding %s to %s membership because the membership is full.',
                     $person->first_name . q{ } . $person->last_name,
-                    $donation_year
+                    $year
                 );
                 next;
             }
 
             $person->create_related(
-                'person_memberships',
-                { membership_id => $membership->id }
+                'affiliation_people',
+                { affiliation_id => $affiliation->id }
             );
         }
     }
@@ -213,7 +205,7 @@ sub _membership_requirements_for_year ( $self, $year ) {
     my %membership_requirements
         = map { $_->donation_type => $_->membership_amount }
         $self->_schema->resultset('MembershipDonationType')
-        ->search_rs( { membership_year => $year } )->all;
+        ->search_rs( { affiliation_year => $year } )->all;
 
     my $is_currently_household
         = defined $self->legacy_friend->spouse_first_name
