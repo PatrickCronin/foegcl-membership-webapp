@@ -542,27 +542,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION person_has_physical_address(
-    v_person_id INTEGER
-)
-RETURNS BOOLEAN AS $$
-BEGIN
-    IF v_person_id IS NULL THEN
-        RAISE EXCEPTION 'v_person_id cannot be NULL';
-    END IF;
-
-    IF EXISTS (
-        SELECT 1
-        FROM physical_address
-        WHERE person_id = v_person_id
-    ) THEN
-        RETURN TRUE;
-    END IF;
-
-    RETURN FALSE;
-END;
-$$ LANGUAGE plpgsql;
-
 CREATE FUNCTION person_address_suitable_for_affiliation(
     v_person_id INTEGER,
     v_affiliation_id INTEGER
@@ -575,12 +554,11 @@ BEGIN
         RAISE EXCEPTION 'v_affiliation_id cannot be NULL';
     END IF;
 
-    -- 1. All people in an affiliation must have a physical address
-    -- 2. All people in an affiliation must have the same physical address
-    -- 3. All people in an affiliation must have the same mailing address (or
+    -- 1. All people in an affiliation must have the same physical address (
+    --    or all people may have no physical address)
+    -- 2. All people in an affiliation must have the same mailing address (or
     --    all people may have no mailing address)
-    IF person_has_physical_address(v_person_id)
-        AND person_address_matches_affiliation_address(v_person_id, 'physical', v_affiliation_id)
+    IF person_address_matches_affiliation_address(v_person_id, 'physical', v_affiliation_id)
         AND person_address_matches_affiliation_address(v_person_id, 'mailing', v_affiliation_id)
         THEN
         RETURN TRUE;
