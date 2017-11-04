@@ -29,13 +29,17 @@ has '+schema_file' => (
     default => sub { $storage_dir->child('membership-webapp.sql')->stringify }
 );
 
+# Other attribute modifications
+has '+dbh' => ( clearer => '_clear_dbh' );
+has '+verbose' => ( default => 1 );
+
+# Allow the schema to be dropped first
 has 'drop_first' => (
     is      => 'ro',
     isa     => Bool,
     default => 0,
+    documentation => 'whether or not the database should be dropped first',
 );
-
-has '+dbh' => ( clearer => '_clear_dbh' );
 
 sub _build_dbh {
     my ( $dsn, $username, $password, $dbi_attributes, $extra_attributes )
