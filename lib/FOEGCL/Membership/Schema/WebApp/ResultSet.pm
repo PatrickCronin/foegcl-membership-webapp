@@ -5,6 +5,9 @@ use warnings;
 
 use base 'DBIx::Class::ResultSet';
 
-__PACKAGE__->load_components('Helper::ResultSet::Shortcut::HRI');
+__PACKAGE__->load_components(
+    'Helper::ResultSet::OneRow',
+    'Helper::ResultSet::Shortcut::HRI',
+);
 
 1;
