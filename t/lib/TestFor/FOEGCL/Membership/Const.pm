@@ -9,8 +9,8 @@ use FOEGCL::Membership::Const qw(
 );
 
 sub test_constants ( $self, @ ) {
-    ok( $GENERAL_DONATION, 'general_donation' );
-    ok( $HOUSEHOLD_MEMBERSHIP, 'household_membership' );
+    ok( $GENERAL_DONATION,      'general_donation' );
+    ok( $HOUSEHOLD_MEMBERSHIP,  'household_membership' );
     ok( $INDIVIDUAL_MEMBERSHIP, 'individual_membership' );
 }
 

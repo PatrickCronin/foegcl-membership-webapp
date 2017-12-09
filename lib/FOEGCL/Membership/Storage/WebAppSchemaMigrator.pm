@@ -30,14 +30,14 @@ has '+schema_file' => (
 );
 
 # Other attribute modifications
-has '+dbh' => ( clearer => '_clear_dbh' );
+has '+dbh'     => ( clearer => '_clear_dbh' );
 has '+verbose' => ( default => 1 );
 
 # Allow the schema to be dropped first
 has 'drop_first' => (
-    is      => 'ro',
-    isa     => Bool,
-    default => 0,
+    is            => 'ro',
+    isa           => Bool,
+    default       => 0,
     documentation => 'whether or not the database should be dropped first',
 );
 

@@ -15,41 +15,39 @@ use List::MoreUtils qw(part);
 use List::Util qw(sum0);
 
 has _annual_membership_donation_types => (
-    is => 'ro',
-    isa => HashRef,
-    lazy => 1,
+    is      => 'ro',
+    isa     => HashRef,
+    lazy    => 1,
     builder => '_build_annual_membership_donation_types',
 );
 
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
-
 sub _build_annual_membership_donation_types ( $self, @ ) {
     my %annual_membership_donation_types;
     my @membership_donation_types
         = $self->_schema->resultset('MembershipDonationType')->search_rs(
-             {
-                donation_type => {
-                    -in => [
-                        ( $HOUSEHOLD_MEMBERSHIP, $INDIVIDUAL_MEMBERSHIP )
-                    ]
-                }
-             }
-        )->hri->all;
+        {
+            donation_type => {
+                -in => [ ( $HOUSEHOLD_MEMBERSHIP, $INDIVIDUAL_MEMBERSHIP ) ]
+            }
+        }
+        )->all;
 
-    $annual_membership_donation_types{ $_->{affiliation_year} }{ $_->{donation_type} } = $_
+    $annual_membership_donation_types{ $_->get_column('affiliation_year') }
+        { $_->donation_type } = $_
         for @membership_donation_types;
 
     return \%annual_membership_donation_types;
 }
 
-sub etl ($self, $legacy_friend, @people) {
-    my %extracted_donations = _extract_donations( $legacy_friend );
+sub etl ( $self, $legacy_friend, @people ) {
+    my %extracted_donations = _extract_donations($legacy_friend);
     my %transformed_donations
         = $self->_transform_donations( $legacy_friend, %extracted_donations );
 
     foreach my $year ( keys %transformed_donations ) {
-        next if ! sum0 map { $_->[1] } $transformed_donations{$year}->@*;
+        next if !sum0 map { $_->[1] } $transformed_donations{$year}->@*;
 
         # Create the year's affiliation
         my $affiliation = $self->_schema->resultset('Affiliation')->create(
@@ -60,7 +58,7 @@ sub etl ($self, $legacy_friend, @people) {
         );
 
         # Load the transformed donations
-        for my $donation ($transformed_donations{$year}->@*) {
+        for my $donation ( $transformed_donations{$year}->@* ) {
             $self->_schema->resultset('Donation')->create(
                 {
                     affiliation_id => $affiliation->id,
@@ -77,10 +75,11 @@ sub etl ($self, $legacy_friend, @people) {
             if $membership_donation_type;
 
         my $person_cnt = 0;
-        foreach my $person ( @people ) {
+        foreach my $person (@people) {
             $person_cnt++;
 
             if ( $max_people && $person_cnt > $max_people ) {
+
                 # warn sprintf(
                 #     'Not adding %s to %s membership because the membership is full.',
                 #     $person->first_name . q{ } . $person->last_name,
@@ -98,7 +97,7 @@ sub etl ($self, $legacy_friend, @people) {
 }
 
 sub _extract_donations ( $legacy_friend ) {
-    return () if ! $legacy_friend->donations;
+    return () if !$legacy_friend->donations;
 
     my %extracted_donations;
     push $extracted_donations{ $_->year }->@*, 0 + $_->donation
@@ -110,31 +109,30 @@ sub _extract_donations ( $legacy_friend ) {
 sub _transform_donations ( $self, $legacy_friend, %extracted_donations ) {
     my %transformed_donations;
     foreach my $year ( keys %extracted_donations ) {
-        $transformed_donations{$year}
-            = $self->_transform_donations_for_year(
-                $legacy_friend,
-                $year,
-                $extracted_donations{$year}->@*
-            );
+        $transformed_donations{$year} = $self->_transform_donations_for_year(
+            $legacy_friend,
+            $year,
+            $extracted_donations{$year}->@*
+        );
     }
 
     return %transformed_donations;
 }
 
-sub _transform_donations_for_year ( $self, $legacy_friend, $year, @donations ) {
+sub _transform_donations_for_year ( $self, $legacy_friend, $year, @donations )
+{
     my $donations_total = sum0 @donations;
 
     my $membership_donation_type = $self->_membership_donation_type_for(
-        $year,
-        $legacy_friend->num_people,
-        $donations_total
+        year         => $year,
+        num_people   => $legacy_friend->num_people,
+        donation_sum => $donations_total,
     );
 
     my @processed;
     if ($membership_donation_type) {
         @processed = _transform_year_donations_for_type(
-            $membership_donation_type->{donation_type},
-            $membership_donation_type->{membership_amount},
+            $membership_donation_type,
             @donations,
         );
     }
@@ -160,16 +158,15 @@ sub _transform_donations_for_year ( $self, $legacy_friend, $year, @donations ) {
 }
 
 sub _transform_year_donations_for_type (
-    $membership_donation_type,
-    $membership_amount,
+    $mdt,
     @donations
     ) {
 
-    my @parts = part { 1 + ( $_ <=> $membership_amount ) } @donations;
+    my @parts = part { 1 + ( $_ <=> $mdt->membership_amount ) } @donations;
 
     # Does a donation equal the expected amount? If so, its the membership; remaining are general donations.
     return (
-        [ $membership_donation_type, shift $parts[1]->@* ],
+        [ $mdt->donation_type, shift $parts[1]->@* ],
         _create_general_donations_for(
             grep { $_ > 0 } map { $_->@* } grep { defined } @parts
         )
@@ -179,30 +176,29 @@ sub _transform_year_donations_for_type (
     if ( defined $parts[2] ) {
         my $combined_donation = shift $parts[2]->@*;
         unshift $parts[2]->@*,
-            $membership_amount,
-            $combined_donation - $membership_amount;
+            $mdt->membership_amount,
+            $combined_donation - $mdt->membership_amount;
     }
 
     # Does a sum of the donations total the expected amount or more? If so, add 'em up and split the total if necessary.
-    elsif ( ( sum0 @donations ) >= $membership_amount ) {
+    elsif ( ( sum0 @donations ) >= $mdt->membership_amount ) {
         my $sum = 0;
-        while ( @donations && $sum < $membership_amount ) {
+        while ( @donations && $sum < $mdt->membership_amount ) {
             $sum += shift $parts[0]->@*;
         }
         unshift $parts[0]->@*,
-            $membership_amount,
-            $sum - $membership_amount;
+            $mdt->membership_amount,
+            $sum - $mdt->membership_amount;
     }
     else {
         confess
             'This sub cannot handle donations total under membership_amount. '
             . ( sum0 @donations ) . q{ }
-            . $membership_amount;
+            . $mdt->membership_amount;
     }
 
     return _transform_year_donations_for_type(
-        $membership_donation_type,
-        $membership_amount,
+        $mdt,
         ( grep { $_ > 0 } map { $_->@* } grep { defined } @parts )
     );
 }
@@ -211,15 +207,21 @@ sub _create_general_donations_for ( @amounts ) {
     return map { [ $GENERAL_DONATION, $_ ] } grep { $_ > 0 } @amounts;
 }
 
-sub _membership_donation_type_for( $self, $year, $num_people, $donation_sum ) {
+sub _membership_donation_type_for ( $self, %args ) {
+    my $year         = $args{year};
+    my $num_people   = $args{num_people};
+    my $donation_sum = $args{donation_sum};
+
     my $mdts = $self->_annual_membership_donation_types->{$year};
 
-    if ($num_people >= 2
-        && $donation_sum >= $mdts->{$HOUSEHOLD_MEMBERSHIP}->{membership_amount}) {
+    if (   $num_people >= 2
+        && $donation_sum
+        >= $mdts->{$HOUSEHOLD_MEMBERSHIP}->membership_amount ) {
         return $mdts->{$HOUSEHOLD_MEMBERSHIP};
     }
 
-    if ($donation_sum >= $mdts->{$INDIVIDUAL_MEMBERSHIP}->{membership_amount}) {
+    if ( $donation_sum >= $mdts->{$INDIVIDUAL_MEMBERSHIP}->membership_amount )
+    {
         return $mdts->{$INDIVIDUAL_MEMBERSHIP};
     }
 
