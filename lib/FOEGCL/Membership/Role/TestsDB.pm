@@ -4,16 +4,20 @@ package FOEGCL::Membership::Role::TestsDB;
 
 use FOEGCL::Membership::Moose::Role;
 
+use Test::More;
+
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
-around 'test_setup' => sub ( $self, @ ) {
-    say 'Starting transaction';
+around 'test_setup' => sub ( $orig, $self, @args ) {
+    note 'Starting transaction';
     $self->_schema->storage->txn_begin;
+    $self->$orig(@args);
 };
 
-around 'test_teardown' => sub ( $self, @ ) {
-    say 'Stopping transaction';
+around 'test_teardown' => sub ( $orig, $self, @args ) {
+    note 'Stopping transaction';
     $self->_schema->storage->txn_rollback;
+    $self->$orig(@args);
 };
 
 1;
