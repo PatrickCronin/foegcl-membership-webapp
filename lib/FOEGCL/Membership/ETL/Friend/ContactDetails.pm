@@ -4,37 +4,26 @@ package FOEGCL::Membership::ETL::Friend::ContactDetails;
 
 use FOEGCL::Membership::Moose;
 
+use FOEGCL::Membership::DataUtil qw( trim );
 use FOEGCL::Membership::Types qw( ArrayRef );
-
-has legacy_friend => (
-    is       => 'ro',
-    isa      => 'FOEGCL::Membership::Schema::Legacy::Result::Friend',
-    required => 1,
-);
-
-has people => (
-    is  => 'ro',
-    isa => 'ArrayRef [FOEGCL::Membership::Schema::WebApp::Result::Person]',
-    required => 1,
-);
 
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
-sub etl ($self) {
-    $self->_etl_friend_emails;
-    $self->_etl_friend_phones;
+sub etl ( $self, $legacy_friend, @people ) {
+    $self->_etl_friend_emails( $legacy_friend, @people );
+    $self->_etl_friend_phones( $legacy_friend, @people );
 }
 
-sub _etl_friend_emails ($self) {
-    my $friend_email_rs = $self->legacy_friend->contact_infos->search(
+sub _etl_friend_emails ( $self, $legacy_friend, @people ) {
+    my $friend_email_rs = $legacy_friend->contact_infos->search(
         { email_address => { '!=' => undef } } );
 
     while ( my $friend_email = $friend_email_rs->next ) {
-        foreach my $person ( $self->people->@* ) {
+        foreach my $person (@people) {
             $self->_schema->resultset('PersonEmail')->create(
                 {
                     person_id     => $person->id,
-                    email_address => $friend_email->email_address,
+                    email_address => trim( $friend_email->email_address ),
                     is_preferred  => $friend_email->preferred,
                 }
             );
@@ -42,17 +31,17 @@ sub _etl_friend_emails ($self) {
     }
 }
 
-sub _etl_friend_phones ($self) {
-    my $friend_phone_rs = $self->legacy_friend->contact_infos->search(
+sub _etl_friend_phones ( $self, $legacy_friend, @people ) {
+    my $friend_phone_rs = $legacy_friend->contact_infos->search(
         {
             'Phone Number' => { '!=' => undef },
         }
     );
 
     while ( my $friend_phone = $friend_phone_rs->next ) {
-        foreach my $person ( $self->people->@* ) {
-            my $phone_number = ( $friend_phone->area_code // q{} )
-                . $friend_phone->phone_number;
+        foreach my $person (@people) {
+            my $phone_number = ( trim( $friend_phone->area_code ) // q{} )
+                . trim( $friend_phone->phone_number );
             $phone_number =~ s/\D//g;
 
             $self->_schema->resultset('PersonPhone')->create(

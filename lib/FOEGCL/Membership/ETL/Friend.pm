@@ -4,7 +4,6 @@ package FOEGCL::Membership::ETL::Friend;
 
 use FOEGCL::Membership::Moose;
 
-use Carp qw(croak);
 use FOEGCL::Membership::ETL::Friend::Addresses                ();
 use FOEGCL::Membership::ETL::Friend::ContactDetails           ();
 use FOEGCL::Membership::ETL::Friend::AffiliationsAndDonations ();
@@ -18,28 +17,28 @@ has legacy_friend => (
 );
 
 sub etl ( $self ) {
-    my @people = FOEGCL::Membership::ETL::Friend::People->new(
-        legacy_friend => $self->legacy_friend, )->etl;
+    my @people = FOEGCL::Membership::ETL::Friend::People->new->etl(
+        $self->legacy_friend );
 
-    FOEGCL::Membership::ETL::Friend::Addresses->new(
-        legacy_friend => $self->legacy_friend,
-        people        => \@people,
-    )->etl;
+    FOEGCL::Membership::ETL::Friend::Addresses->new->etl(
+        $self->legacy_friend,
+        @people
+    );
 
-    FOEGCL::Membership::ETL::Friend::ContactDetails->new(
-        legacy_friend => $self->legacy_friend,
-        people        => \@people,
-    )->etl;
+    FOEGCL::Membership::ETL::Friend::ContactDetails->new->etl(
+        $self->legacy_friend,
+        @people
+    );
 
-    FOEGCL::Membership::ETL::Friend::Participation->new(
-        legacy_friend => $self->legacy_friend,
-        people        => \@people,
-    )->etl;
+    FOEGCL::Membership::ETL::Friend::Participation->new->etl(
+        $self->legacy_friend,
+        @people,
+    );
 
-    FOEGCL::Membership::ETL::Friend::AffiliationsAndDonations->new(
-        legacy_friend => $self->legacy_friend,
-        people        => \@people,
-    )->etl;
+    FOEGCL::Membership::ETL::Friend::AffiliationsAndDonations->new->etl(
+        $self->legacy_friend,
+        @people,
+    );
 }
 
 __PACKAGE__->meta->make_immutable;

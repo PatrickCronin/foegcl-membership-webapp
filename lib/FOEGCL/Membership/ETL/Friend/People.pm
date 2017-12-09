@@ -6,35 +6,31 @@ use FOEGCL::Membership::Moose;
 
 use FOEGCL::Membership::DataUtil qw( trim );
 
-has legacy_friend => (
-    is       => 'ro',
-    isa      => 'FOEGCL::Membership::Schema::Legacy::Result::Friend',
-    required => 1,
-);
-
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
-sub etl ($self) {
+sub etl ( $self, $legacy_friend ) {
     my @people;
     push @people,
         $self->_schema->resultset('Person')->create(
         {
-            first_name => trim( $self->legacy_friend->first_name ),
-            last_name  => trim( $self->legacy_friend->last_name ),
-            opted_out  => $self->legacy_friend->inactive,
+            first_name       => trim( $legacy_friend->first_name ),
+            last_name        => trim( $legacy_friend->last_name ),
+            opted_out        => $legacy_friend->inactive,
+            source_friend_id => $legacy_friend->friend_id,
         }
         );
 
-    if ( $self->legacy_friend->spouse_first_name ) {
-        my $spouse_first_name = $self->legacy_friend->spouse_first_name;
-        my $spouse_last_name  = $self->legacy_friend->spouse_last_name
-            || $self->legacy_friend->last_name;
+    if ( $legacy_friend->spouse_first_name ) {
+        my $spouse_first_name = $legacy_friend->spouse_first_name;
+        my $spouse_last_name  = $legacy_friend->spouse_last_name
+            || $legacy_friend->last_name;
         push @people,
             $self->_schema->resultset('Person')->create(
             {
-                first_name => trim($spouse_first_name),
-                last_name  => trim($spouse_last_name),
-                opted_out  => $self->legacy_friend->inactive,
+                first_name       => trim($spouse_first_name),
+                last_name        => trim($spouse_last_name),
+                opted_out        => $legacy_friend->inactive,
+                source_friend_id => $legacy_friend->friend_id,
             }
             );
     }

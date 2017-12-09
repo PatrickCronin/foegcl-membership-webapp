@@ -7,26 +7,14 @@ use FOEGCL::Membership::Moose;
 use FOEGCL::Membership::DataUtil qw( trim );
 use FOEGCL::Membership::Types qw( ArrayRef );
 
-has legacy_friend => (
-    is       => 'ro',
-    isa      => 'FOEGCL::Membership::Schema::Legacy::Result::Friend',
-    required => 1,
-);
-
-has people => (
-    is  => 'ro',
-    isa => 'ArrayRef [FOEGCL::Membership::Schema::WebApp::Result::Person]',
-    required => 1,
-);
-
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
-sub etl ($self) {
-    my $friend_roles        = $self->legacy_friend->roles;
+sub etl ( $self, $legacy_friend, @people ) {
+    my $friend_roles        = $legacy_friend->roles;
     my $participation_roles = $self->_schema->resultset('ParticipationRole');
     while ( my $friend_role = $friend_roles->next ) {
         next if $friend_role->role_type->historical;
-        foreach my $person ( $self->people->@* ) {
+        foreach my $person (@people) {
             $person->create_related(
                 'participation_interests',
                 {
