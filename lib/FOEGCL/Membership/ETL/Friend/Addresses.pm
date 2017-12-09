@@ -4,7 +4,7 @@ package FOEGCL::Membership::ETL::Friend::Addresses;
 
 use FOEGCL::Membership::Moose;
 
-use FOEGCL::Membership::DataUtil qw( is_pobox trim );
+use FOEGCL::Membership::DataUtil qw( trim );
 use FOEGCL::Membership::Types qw( ArrayRef );
 
 has legacy_friend => (
@@ -83,8 +83,17 @@ sub _process_address ( $self, %field ) {
     else {
         push @addresses, { %field{ grep { $field{$_} } keys %field } };
     }
+sub _is_pobox ($line) {
+    state $maybe_whitespace = qr/\s*/;
 
-    return @addresses;
+    return 0 if !defined $line;
+
+    return $line =~ m/
+        \A
+        P (?: \.? | ost ) $maybe_whitespace
+        O (?: \.? | ffice ) $maybe_whitespace
+        Box
+    /ix;
 }
 
 __PACKAGE__->meta->make_immutable;
