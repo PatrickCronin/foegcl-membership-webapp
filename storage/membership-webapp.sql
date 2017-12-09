@@ -19,6 +19,7 @@ CREATE TABLE person (
     last_name VARCHAR(64) NOT NULL
         CONSTRAINT last_name_is_trimmed_and_not_empty CHECK(last_name <> '' AND last_name = trim(both from last_name)),
     opted_out boolean NOT NULL DEFAULT false,
+    source_friend_id NUMERIC(11) NOT NULL,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );
@@ -234,7 +235,7 @@ CREATE TABLE affiliation (
 
 COMMENT ON COLUMN affiliation.friend_id IS 'This value should follow a renewed affiliation. Otherwise, a new one should be assigned.';
 
-CREATE INDEX affiliation__affiliation_year ON affiliation (affiliation_year);
+CREATE UNIQUE INDEX affiliation__affiliation_year__friend_id ON affiliation (affiliation_year, friend_id);
 CREATE INDEX affiliation__friend_id ON affiliation (friend_id);
 
 CREATE OR REPLACE FUNCTION next_friend_id()
