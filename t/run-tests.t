@@ -10,16 +10,28 @@ use Try::Tiny qw( catch finally try );
 run();
 
 sub run {
-    my $migrator = FOEGCL::Membership::Storage::WebAppSchemaMigrator->new;
-
+    my $migrator;
     try {
-        $migrator->create_or_update_database;
-        Test::Class::Moose::Runner->new->runtests;
+        if ( !$ENV{TEST_PRIMARY_DB} ) {
+            $migrator
+                = FOEGCL::Membership::Storage::WebAppSchemaMigrator->new(
+                quiet   => 1,
+                verbose => 0,
+                );
+            $migrator->create_or_update_database;
+        }
+
+        Test::Class::Moose::Runner->new(
+            jobs             => 1,
+            set_process_name => 1,
+            test_classes     => \@ARGV,
+            use_environment  => 1,
+        )->runtests;
     }
     catch {
         die $_;
     }
     finally {
-        $migrator->drop_database;
+        $migrator->drop_database if !$ENV{TEST_PRIMARY_DB};
     };
 }
