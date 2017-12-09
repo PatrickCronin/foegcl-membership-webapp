@@ -133,6 +133,25 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("affiliation_id");
 
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<affiliation__affiliation_year__friend_id>
+
+=over 4
+
+=item * L</affiliation_year>
+
+=item * L</friend_id>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint(
+  "affiliation__affiliation_year__friend_id",
+  ["affiliation_year", "friend_id"],
+);
+
 =head1 RELATIONS
 
 =head2 affiliation_people
@@ -181,17 +200,31 @@ __PACKAGE__->has_many(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-10-29 23:09:59
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MYE+IJOJ5Ob95g9GsKwG4A
+# Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-11-25 13:57:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:g2ADwkgt0DjIEOCMSdbliw
+
+__PACKAGE__->might_have(
+  'membership',
+  'FOEGCL::Membership::Schema::WebApp::Result::Membership',
+  { 'foreign.affiliation_id' => 'self.affiliation_id' },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 sub membership_donation_type ( $self ) {
-  return $self->affiliation_year->membership_donation_types->search_rs(
-      {
-        donation_type => {
-          -in => $self->donations->get_column('donation_type')->as_query
+    return $self->affiliation_year->membership_donation_types->search_rs(
+        {
+            donation_type => {
+                -in => $self->donations->get_column('donation_type')->as_query
+            },
         },
-      },
-    )->single;
+    )->one_row;
+}
+
+sub people ( $self ) {
+    return $self->result_source->schema->resultset('Person')->search_rs(
+        { 'affiliation_people.affiliation_id' => $self->id },
+        { join => 'affiliation_people' }
+    );
 }
 
 1;
