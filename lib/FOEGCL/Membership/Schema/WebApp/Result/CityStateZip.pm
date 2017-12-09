@@ -190,7 +190,7 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 state_abbr
+=head2 state
 
 Type: belongs_to
 
@@ -199,15 +199,15 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::State>
 =cut
 
 __PACKAGE__->belongs_to(
-  "state_abbr",
+  "state",
   "FOEGCL::Membership::Schema::WebApp::Result::State",
   { state_abbr => "state_abbr" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-17 22:17:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oLV3jTmBqOlukx8/rK9IAQ
+# Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-11-25 07:15:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XCVK6XGmrvmNrupHmxeMng
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
