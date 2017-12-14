@@ -12,6 +12,7 @@ sub _build_db_config ( $self, @ ) {
 
 sub _build_loader_options ( $self, @ ) {
     my $tables_alternation = join q{|}, qw(
+        ActiveRecentlyDonatingMembershipEmailAddresses
         CityStateZip
         Configuration
         ContactInfo
