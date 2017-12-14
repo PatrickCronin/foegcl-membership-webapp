@@ -908,6 +908,18 @@ CREATE TABLE app_role_has_privilege (
 
 CREATE INDEX app_role_has_privilege__privilege_id ON app_role_has_privilege (privilege_id);
 
+CREATE VIEW blast_email_list AS
+SELECT DISTINCT email_address
+FROM person_email
+INNER JOIN person USING (person_id)
+INNER JOIN affiliation_person USING (person_id)
+INNER JOIN membership USING (affiliation_id)
+WHERE affiliation_year IN (
+    date_part('year', CURRENT_DATE) - 1,
+    date_part('year', CURRENT_DATE)
+)
+AND opted_out = false;
+
 -- CREATE VIEW person_finder AS
 -- SELECT
     -- person_id,
