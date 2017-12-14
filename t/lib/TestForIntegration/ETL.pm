@@ -30,8 +30,8 @@ sub test_startup ( $self, @ ) {
 
 sub test_setup ( $self, @ ) {
 
-    # my $test_method = $self->test_report->current_method;
-    # $self->test_skip('not now') if $test_method->name ne 'test_memberships';
+    my $test_method = $self->test_report->current_method;
+    $self->test_skip('not now') if $test_method->name ne 'test_blast_email_list';
 }
 
 sub test_csz ( $self, @ ) {
@@ -481,6 +481,26 @@ sub _test_membership_num_people ( $self, $legacy_friend, %annual_max_people )
             'number of people in annual memberships agree for friend %d',
             $legacy_friend->friend_id
         )
+    );
+}
+
+sub test_blast_email_list ( $self, @ ) {
+    my @migrated_blast_emails =
+        sort
+        map { $_->{email_address} }
+        $self->_schema->resultset('BlastEmailList')->hri->all;
+
+    my @legacy_blast_emails =
+        sort
+        map { $_->{Email_Address} }
+        $self->_legacy_schema
+            ->resultset('ActiveRecentlyDonatingMembershipEmailAddress')
+            ->hri->all;
+
+    eq_or_diff(
+        \@migrated_blast_emails,
+        \@legacy_blast_emails,
+        'blast email lists are the same.'
     );
 }
 
