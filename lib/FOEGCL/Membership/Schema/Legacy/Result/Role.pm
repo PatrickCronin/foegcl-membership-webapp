@@ -103,6 +103,34 @@ __PACKAGE__->add_columns(
   },
 );
 
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</RoleRecordID>
+
+=back
+
+=cut
+
+__PACKAGE__->set_primary_key("RoleRecordID");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<FriendID_RoleTypeID_UX>
+
+=over 4
+
+=item * L</FriendID>
+
+=item * L</RoleTypeID>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("FriendID_RoleTypeID_UX", ["FriendID", "RoleTypeID"]);
+
 =head1 RELATIONS
 
 =head2 friend
@@ -146,8 +174,8 @@ __PACKAGE__->belongs_to(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-17 22:16:22
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IeIe2p472jYJI86H51au8A
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-12-13 21:17:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3tQfp0gCG/Rvb+/TBUqEkw
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
