@@ -195,5 +195,11 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-10-29 23:09:59
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rvbVIV0hlt4i0TZfGleSiQ
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub street_lines ($self) {
+    my @lines = ( $self->street_line_1 );
+    push @lines, $self->street_line_2 if defined $self->street_line_2;
+
+    return @lines;
+}
+
 1;

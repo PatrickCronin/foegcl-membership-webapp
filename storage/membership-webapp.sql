@@ -908,17 +908,91 @@ CREATE TABLE app_role_has_privilege (
 
 CREATE INDEX app_role_has_privilege__privilege_id ON app_role_has_privilege (privilege_id);
 
-CREATE VIEW blast_email_list AS
+CREATE VIEW report_blast_email_list AS
 SELECT DISTINCT email_address
-FROM person_email
-INNER JOIN person USING (person_id)
-INNER JOIN affiliation_person USING (person_id)
-INNER JOIN membership USING (affiliation_id)
-WHERE affiliation_year IN (
-    date_part('year', CURRENT_DATE) - 1,
-    date_part('year', CURRENT_DATE)
+FROM person
+INNER JOIN person_email USING (person_id)
+WHERE person_id IN (
+    -- Anyone who was a member within the last two years
+    SELECT person_id
+    FROM affiliation_person
+    INNER JOIN membership USING (affiliation_id)
+    WHERE affiliation_year IN (
+        date_part('year', CURRENT_DATE) - 1,
+        date_part('year', CURRENT_DATE)
+    )
+
+    UNION ALL
+
+    -- Anyone who has an active interest
+    SELECT person_id
+    FROM participation_interest
+
+    UNION ALL
+
+    -- Anyone who participated in something within the last two years
+    SELECT person_id
+    FROM participation_record
+    WHERE affiliation_year IN (
+        date_part('year', CURRENT_DATE) - 1,
+        date_part('year', CURRENT_DATE)
+    )
 )
 AND opted_out = false;
+
+CREATE FUNCTION format_phone_number (phone_number VARCHAR(32))
+RETURNS VARCHAR(32)
+LANGUAGE plpgsql
+IMMUTABLE
+RETURNS NULL ON NULL INPUT
+AS $$
+BEGIN
+    IF phone_number SIMILAR TO '[0-9]{10}' THEN
+        RETURN regexp_replace(phone_number, '^(\d{3})(\d{3})(\d{4})$', '(\1) \2-\3');
+    ELSIF phone_number SIMILAR TO '[0-9]{7}' THEN
+        RETURN regexp_replace(phone_number, '^(\d{3})(\d{4})$', '\1-\2');
+    ELSE
+        RETURN phone_number;
+    END IF;
+END;
+$$;
+
+CREATE VIEW report_current_membership_list AS
+WITH selected_person AS (
+    SELECT person_id
+    FROM person
+    INNER JOIN affiliation_person USING (person_id)
+    INNER JOIN membership USING (affiliation_id)
+    WHERE affiliation_year = date_part('year', CURRENT_DATE)
+),
+aggregated_email AS (
+    SELECT person_id, string_agg(email_address, E'\n' ORDER BY is_preferred DESC, email_address) emails
+    FROM person_email
+    INNER JOIN selected_person USING (person_id)
+    GROUP BY person_id
+),
+aggregated_phone AS (
+    SELECT person_id, string_agg(phone_number, E'\n' ORDER BY is_preferred DESC, phone_number) phones
+    FROM (
+        SELECT person_id, is_preferred, format_phone_number(phone_number) AS phone_number
+        FROM person_phone
+        INNER JOIN selected_person USING (person_id)
+    ) person_formatted_phone
+    GROUP BY person_id
+)
+SELECT
+    last_name || ', ' || first_name AS name,
+    COALESCE(street_line_1) || COALESCE( E'\n' || street_line_2, '') street_lines,
+    city || ', ' || state_abbr || ' ' || zip || COALESCE( '-' || plus_four, '') csz,
+    emails,
+    phones
+FROM person
+INNER JOIN selected_person USING (person_id)
+LEFT JOIN physical_address USING (person_id)
+LEFT JOIN city_state_zip USING (csz_id)
+LEFT JOIN aggregated_email USING (person_id)
+LEFT JOIN aggregated_phone USING (person_id)
+ORDER BY last_name, first_name;
 
 -- CREATE VIEW person_finder AS
 -- SELECT

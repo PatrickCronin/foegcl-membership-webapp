@@ -148,5 +148,16 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-17 22:17:41
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Uu1ofZITlU91B2QReEihYQ
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub as_text ($self) {
+    if ($self->phone_number =~ m/\A (\d{3})(\d{3})(\d{4}) \z/x) {
+        return sprintf('(%s) %s-%s', $1, $2, $3);
+    }
+
+    if ($self->phone_number =~ m/\A (\d{3})(\d{4}) \z/x) {
+        return sprintf('%s-%s', $1, $2);
+    }
+
+    return $self->phone_number;
+}
+
 1;

@@ -18,6 +18,7 @@ sub _build_loader_options ( $self, @ ) {
         ContactInfo
         ContactType
         DataYears
+        DonatingMembershipAnnualSummaryComplete
         Donations
         Friends
         Roles

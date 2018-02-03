@@ -273,5 +273,22 @@ __PACKAGE__->might_have(
 # Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-12-01 11:23:43
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LY3bwfRE9VF1cztB9eA8zA
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub name_as_text ($self) {
+    my @names = ( $self->first_name, $self->last_name );
+    my $name = join q{ }, grep { $_ } @names;
+    return $name;
+}
+
+sub emails ( $self ) {
+    return map { $_->email_address }
+        sort { $b->is_preferred <=> $a->is_preferred }
+        $self->person_emails->all;
+}
+
+sub phones ($self) {
+    return map { $_->as_text }
+        sort { $b->is_preferred <=> $a->is_preferred }
+        $self->person_phones->all;
+}
+
 1;

@@ -155,6 +155,11 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-10-29 23:09:59
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sQ/QifgS9gp9M7J2UQFD7A
 
+__PACKAGE__->belongs_to(
+    'membership',
+    'FOEGCL::Membership::Schema::WebApp::Result::Membership',
+    { affiliation_id => 'affiliation_id' },
+    { is_deferrable => 0, on_delete => 'CASCADE', on_update => 'CASCADE' },
+);
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
