@@ -71,7 +71,7 @@ __PACKAGE__->result_source_instance->view_definition(" SELECT donation.affiliati
 =head2 donation_type
 
   data_type: 'enum'
-  extra: {custom_type_name => "donation_type",list => ["individual_membership","household_membership","honorary_membership","general_donation"]}
+  extra: {custom_type_name => "donation_type",list => ["individual_membership","household_membership","general_donation"]}
   is_nullable: 1
 
 =head2 membership_max_people
@@ -94,7 +94,6 @@ __PACKAGE__->add_columns(
       list => [
         "individual_membership",
         "household_membership",
-        "honorary_membership",
         "general_donation",
       ],
     },
@@ -105,8 +104,8 @@ __PACKAGE__->add_columns(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-10-29 23:09:59
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RSxpu/C8BL9QoU17vXtgTw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-03 18:58:49
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:s/jbzIW+siwPcuX8vRMFFA
 
 =head2 affiliation
 

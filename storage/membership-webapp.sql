@@ -264,7 +264,7 @@ CREATE TABLE affiliation_person (
 
 CREATE INDEX affiliation_person__person_id ON affiliation_person (person_id);
 
-CREATE TYPE donation_type AS ENUM ('individual_membership', 'household_membership', 'honorary_membership', 'general_donation');
+CREATE TYPE donation_type AS ENUM ('individual_membership', 'household_membership', 'general_donation');
 
 CREATE TABLE membership_donation_type (
     affiliation_year SMALLINT NOT NULL REFERENCES affiliation_year (affiliation_year) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -281,28 +281,20 @@ INSERT INTO membership_donation_type
 VALUES
     (2011, 'individual_membership', 1, 10),
     (2011, 'household_membership', 2, 20),
-    (2011, 'honorary_membership', NULL, 0),
     (2012, 'individual_membership', 1, 10),
     (2012, 'household_membership', 2, 20),
-    (2012, 'honorary_membership', NULL, 0),
     (2013, 'individual_membership', 1, 10),
     (2013, 'household_membership', 2, 20),
-    (2013, 'honorary_membership', NULL, 0),
     (2014, 'individual_membership', 1, 10),
     (2014, 'household_membership', 2, 20),
-    (2014, 'honorary_membership', NULL, 0),
     (2015, 'individual_membership', 1, 10),
     (2015, 'household_membership', 2, 20),
-    (2015, 'honorary_membership', NULL, 0),
     (2016, 'individual_membership', 1, 10),
     (2016, 'household_membership', 2, 20),
-    (2016, 'honorary_membership', NULL, 0),
     (2017, 'individual_membership', 1, 15),
     (2017, 'household_membership', 2, 25),
-    (2017, 'honorary_membership', NULL, 0),
     (2018, 'individual_membership', 1, 15),
-    (2018, 'household_membership', 2, 25),
-    (2018, 'honorary_membership', NULL, 0);
+    (2018, 'household_membership', 2, 25);
 
 CREATE TABLE donation (
     donation_id SERIAL PRIMARY KEY,
