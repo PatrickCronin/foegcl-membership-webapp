@@ -83,7 +83,7 @@ __PACKAGE__->table("DonatingMembershipAnnualSummaryComplete");
 
 =head2 New
 
-  accessor: undef
+  accessor: 'new_memberships'
   data_type: 'integer'
   is_nullable: 1
 
@@ -113,7 +113,7 @@ __PACKAGE__->add_columns(
   "Refreshed",
   { accessor => "refreshed", data_type => "integer", is_nullable => 1 },
   "New",
-  { accessor => undef, data_type => "integer", is_nullable => 1 },
+  { accessor => "new_memberships", data_type => "integer", is_nullable => 1 },
   "Donation Sum",
   {
     accessor    => "donation_sum",
@@ -131,8 +131,8 @@ __PACKAGE__->add_columns(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-12-23 22:02:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fkyh5oQbcDPyIaJDOtUHSQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GFeqi5NxovRfLUPmExOaSQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

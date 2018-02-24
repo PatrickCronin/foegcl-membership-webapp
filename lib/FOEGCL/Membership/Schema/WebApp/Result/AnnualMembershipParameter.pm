@@ -1,13 +1,13 @@
 #<<<
 use utf8;
-package FOEGCL::Membership::Schema::WebApp::Result::MembershipDonationType;
+package FOEGCL::Membership::Schema::WebApp::Result::AnnualMembershipParameter;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-FOEGCL::Membership::Schema::WebApp::Result::MembershipDonationType
+FOEGCL::Membership::Schema::WebApp::Result::AnnualMembershipParameter
 
 =cut
 
@@ -48,24 +48,24 @@ __PACKAGE__->load_components(
   "TimeStamp",
 );
 
-=head1 TABLE: C<membership_donation_type>
+=head1 TABLE: C<annual_membership_parameters>
 
 =cut
 
-__PACKAGE__->table("membership_donation_type");
+__PACKAGE__->table("annual_membership_parameters");
 
 =head1 ACCESSORS
 
-=head2 affiliation_year
+=head2 membership_year
 
   data_type: 'smallint'
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 donation_type
+=head2 membership_type
 
   data_type: 'enum'
-  extra: {custom_type_name => "donation_type",list => ["individual_membership","household_membership","general_donation"]}
+  extra: {custom_type_name => "membership_type",list => ["individual_membership","household_membership"]}
   is_nullable: 0
 
 =head2 membership_max_people
@@ -83,18 +83,14 @@ __PACKAGE__->table("membership_donation_type");
 =cut
 
 __PACKAGE__->add_columns(
-  "affiliation_year",
+  "membership_year",
   { data_type => "smallint", is_foreign_key => 1, is_nullable => 0 },
-  "donation_type",
+  "membership_type",
   {
     data_type => "enum",
     extra => {
-      custom_type_name => "donation_type",
-      list => [
-        "individual_membership",
-        "household_membership",
-        "general_donation",
-      ],
+      custom_type_name => "membership_type",
+      list => ["individual_membership", "household_membership"],
     },
     is_nullable => 0,
   },
@@ -108,36 +104,37 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</affiliation_year>
+=item * L</membership_year>
 
-=item * L</donation_type>
+=item * L</membership_type>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("affiliation_year", "donation_type");
+__PACKAGE__->set_primary_key("membership_year", "membership_type");
 
 =head1 RELATIONS
 
-=head2 affiliation_year
+=head2 membership_year
 
 Type: belongs_to
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYear>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "affiliation_year",
-  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear",
-  { affiliation_year => "affiliation_year" },
+  "membership_year",
+  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYear",
+  { membership_year => "membership_year" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-03 18:58:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4HpRBoHBJL2MKv43c2AEAQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Vxl91+HrxHAvtwcS4gBKxA
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -1,6 +1,58 @@
 Triggers have been added to the schema in order to support the following
 business rules that are not naturally supported by the schema design:
 
+NEW (20180220):
+Memberships
+1. Memberships must have a membership type.
+2. A membership's members must meet the requirements of the membership type.
+3. A membership's donations must meet the requirements of the membership type.
+
+People
+1. People sharing a membership must have the same physical address (which
+    cannot be null).
+2. People sharing a membership must have teh same mailing address (which could
+    be null).
+
+Trigger-enforced:
+Memberships:
+1. The membership type is only allowable if the membership has sufficent
+   donations.
+2. The number of members in a membership must be allowable by it's type.
+
+a. MEMBERSHIP_PERSON
+   - INSERT:
+        - Block inserts where corresponding membership has no type (DONE)
+        - Block inserts where corresponding membership is "full" according to its type (DONE)
+   - UPDATE: block all updates (DONE)
+
+b. DONATION
+    - UPDATE:
+        - Block updates that would change a membership id (DONE)
+        - Block updates that would disqualify a membership's current type (DONE)
+    - DELETE: Block deletes that would disqualify a membership's current type (DONE)
+
+c. MEMBERSHIP
+    - UPDATE:
+        - Block updates that change the membership type to something that isn't supported by donations (DONE)
+        - Block updates that make the membership type NULL when there is at least one associated person (DONE)
+        - Block updates that change the membership type to something that doesn't support the current number of associated persons (DONE)
+
+d. PHYSICAL_ADDRESS
+    - INSERT: Block inserts for people in a membership for the current year (require use of a membership address update function) (DONE)
+    - UPDATE:
+        - Block updates that move an address from one person to another (DONE)
+        - Block updates for people in a membership for the current year (require use of a membership address update function) (DONE)
+        - Reset the in_library_special_voting_district field if any part of the address changes, and it's status isn't explicitly included in the update (DONE)
+    - DELETE: Block deletes for people in a membership for the current year (memberships must have a physical address) (DONE)
+
+e. MAILING_ADDRESS
+    - INSERT: Block inserts for people in a membership for the current year (require use of a membership address update function) (DONE)
+    - UPDATE:
+        - Block updates that move an address from one person to another (DONE)
+        - Block updates for people in a membership for the current year (require use of a membership address update function) (DONE)
+    - DELETE: Block deletes for people in a membership for the current year (require use of a membership address update function) (DONE)
+
+OLD:
 1. People sharing an affiliation must have the same physical address (which
    could be null).
 2. People sharing an affiliation must have the same mailing address (which
@@ -9,3 +61,4 @@ business rules that are not naturally supported by the schema design:
    membership must respect the membership_max_people setting (which could be
    null).
 4. An affiliation can have only one membership donation.
+

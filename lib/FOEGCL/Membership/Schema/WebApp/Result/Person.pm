@@ -149,36 +149,6 @@ __PACKAGE__->set_primary_key("person_id");
 
 =head1 RELATIONS
 
-=head2 affiliation_people
-
-Type: has_many
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationPerson>
-
-=cut
-
-__PACKAGE__->has_many(
-  "affiliation_people",
-  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationPerson",
-  { "foreign.person_id" => "self.person_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 affiliation_year_voter_registrations
-
-Type: has_many
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearVoterRegistration>
-
-=cut
-
-__PACKAGE__->has_many(
-  "affiliation_year_voter_registrations",
-  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearVoterRegistration",
-  { "foreign.person_id" => "self.person_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 mailing_address
 
 Type: might_have
@@ -190,6 +160,36 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MailingAddress>
 __PACKAGE__->might_have(
   "mailing_address",
   "FOEGCL::Membership::Schema::WebApp::Result::MailingAddress",
+  { "foreign.person_id" => "self.person_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 membership_people
+
+Type: has_many
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipPerson>
+
+=cut
+
+__PACKAGE__->has_many(
+  "membership_people",
+  "FOEGCL::Membership::Schema::WebApp::Result::MembershipPerson",
+  { "foreign.person_id" => "self.person_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 membership_year_voter_registrations
+
+Type: has_many
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYearVoterRegistration>
+
+=cut
+
+__PACKAGE__->has_many(
+  "membership_year_voter_registrations",
+  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYearVoterRegistration",
   { "foreign.person_id" => "self.person_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -270,25 +270,9 @@ __PACKAGE__->might_have(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-12-01 11:23:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LY3bwfRE9VF1cztB9eA8zA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3GK7XtiZDZ7G7xSXspVkjg
 
-sub name_as_text ($self) {
-    my @names = ( $self->first_name, $self->last_name );
-    my $name = join q{ }, grep { $_ } @names;
-    return $name;
-}
 
-sub emails ( $self ) {
-    return map { $_->email_address }
-        sort { $b->is_preferred <=> $a->is_preferred }
-        $self->person_emails->all;
-}
-
-sub phones ($self) {
-    return map { $_->as_text }
-        sort { $b->is_preferred <=> $a->is_preferred }
-        $self->person_phones->all;
-}
-
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

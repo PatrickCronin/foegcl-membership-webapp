@@ -1,13 +1,13 @@
 #<<<
 use utf8;
-package FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearVoterRegistration;
+package FOEGCL::Membership::Schema::WebApp::Result::MembershipPerson;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-FOEGCL::Membership::Schema::WebApp::Result::AffiliationYearVoterRegistration
+FOEGCL::Membership::Schema::WebApp::Result::MembershipPerson
 
 =cut
 
@@ -48,17 +48,17 @@ __PACKAGE__->load_components(
   "TimeStamp",
 );
 
-=head1 TABLE: C<affiliation_year_voter_registration>
+=head1 TABLE: C<membership_person>
 
 =cut
 
-__PACKAGE__->table("affiliation_year_voter_registration");
+__PACKAGE__->table("membership_person");
 
 =head1 ACCESSORS
 
-=head2 affiliation_year
+=head2 membership_id
 
-  data_type: 'smallint'
+  data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 0
 
@@ -85,8 +85,8 @@ __PACKAGE__->table("affiliation_year_voter_registration");
 =cut
 
 __PACKAGE__->add_columns(
-  "affiliation_year",
-  { data_type => "smallint", is_foreign_key => 1, is_nullable => 0 },
+  "membership_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "person_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "created_at",
@@ -109,7 +109,7 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</affiliation_year>
+=item * L</membership_id>
 
 =item * L</person_id>
 
@@ -117,22 +117,22 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key("affiliation_year", "person_id");
+__PACKAGE__->set_primary_key("membership_id", "person_id");
 
 =head1 RELATIONS
 
-=head2 affiliation_year
+=head2 membership
 
 Type: belongs_to
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Membership>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "affiliation_year",
-  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear",
-  { affiliation_year => "affiliation_year" },
+  "membership",
+  "FOEGCL::Membership::Schema::WebApp::Result::Membership",
+  { membership_id => "membership_id" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -152,8 +152,8 @@ __PACKAGE__->belongs_to(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-10-29 23:09:59
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2L/ICLDCHMd95k6HwG6Gqg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KjTNuiWTUqDGG14ERAdtXg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

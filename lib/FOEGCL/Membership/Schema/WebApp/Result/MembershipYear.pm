@@ -110,17 +110,17 @@ __PACKAGE__->set_primary_key("membership_year");
 
 =head1 RELATIONS
 
-=head2 membership_donation_types
+=head2 annual_membership_parameters
 
 Type: has_many
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipDonationType>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AnnualMembershipParameter>
 
 =cut
 
 __PACKAGE__->has_many(
-  "membership_donation_types",
-  "FOEGCL::Membership::Schema::WebApp::Result::MembershipDonationType",
+  "annual_membership_parameters",
+  "FOEGCL::Membership::Schema::WebApp::Result::AnnualMembershipParameter",
   { "foreign.membership_year" => "self.membership_year" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -171,8 +171,9 @@ __PACKAGE__->has_many(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-17 22:17:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+rU6CSLoXWAtIFqR83nXDw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SOosrxHCgForbEAGe/BxRQ
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

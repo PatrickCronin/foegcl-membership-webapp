@@ -262,13 +262,9 @@ __PACKAGE__->has_many(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-10-17 22:16:22
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tL7q49BhQuifpsMQb0BBFQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7gNp/aVkcsVJv1jwgf83lQ
 
-sub num_people ( $self ) {
-    return ($self->spouse_first_name || $self->spouse_last_name)
-        ? 2
-        : 1;
-}
 
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

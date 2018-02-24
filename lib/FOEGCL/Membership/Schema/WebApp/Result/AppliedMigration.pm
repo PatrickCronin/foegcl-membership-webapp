@@ -95,8 +95,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("migration");
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-10-29 23:09:59
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rpX9isdk5UA4aG+R6Nf61A
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:H3sxDplAYEJcbam4JU/9FQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
