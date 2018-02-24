@@ -11,21 +11,30 @@ sub _build_db_config ( $self, @ ) {
 }
 
 sub _build_loader_options ( $self, @ ) {
-    my $tables_alternation = join q{|}, qw(
-        ActiveRecentlyDonatingMembershipEmailAddresses
-        CityStateZip
-        Configuration
-        ContactInfo
-        ContactType
-        DataYears
-        DonatingMembershipAnnualSummaryComplete
-        Donations
-        Friends
-        Roles
-        RolesTypes
-    );
-
-    return { constraint => qr/\A(?:$tables_alternation)\z/, };
+    return {
+        constraint => qr/
+            \A
+            (?:
+                ActiveRecentlyDonatingMembershipEmailAddresses
+                | CityStateZip
+                | Configuration
+                | ContactInfo
+                | ContactType
+                | DataYears
+                | DonatingMembershipAnnualSummaryComplete
+                | Donations
+                | Friends
+                | Roles
+                | RolesTypes
+            )
+            \z
+        /x,
+        col_accessor_map => {
+            DonatingMembershipAnnualSummaryComplete => { # name
+                New => 'new_memberships' # column mapping
+            }
+        },
+    };
 }
 
 __PACKAGE__->meta->make_immutable;
