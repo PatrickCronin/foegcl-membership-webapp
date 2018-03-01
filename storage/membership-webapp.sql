@@ -136,7 +136,7 @@ CREATE TABLE mailing_address (
         CONSTRAINT mailing_address_street_line_1_is_trimmed_and_not_empty CHECK (street_line_1 <> '' AND street_line_1 = trim(both from street_line_1)),
     street_line_2 VARCHAR(128)
         CONSTRAINT mailing_address_street_line_2_is_null_or_trimmed_and_not_empty CHECK (street_line_2 IS NULL OR (street_line_2 <> '' AND street_line_2 = trim(both from street_line_2))),
-    csz_id INTEGER NOT NULL REFERENCES city_state_zip (csz_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    csz_id INTEGER NOT NULL REFERENCES city_state_zip (csz_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     plus_four CHAR(4) DEFAULT NULL
         CONSTRAINT mailing_address_plus_four_is_null_or_five_digits CHECK (plus_four IS NULL OR plus_four ~ '^[0-9]{4}$'),
     created_at timestamp with time zone DEFAULT NOW(),
@@ -154,10 +154,10 @@ CREATE TABLE physical_address (
         CONSTRAINT physical_address_street_line_1_is_trimmed_and_not_empty CHECK (street_line_1 <> '' AND street_line_1 = trim(both from street_line_1)),
     street_line_2 VARCHAR(128)
         CONSTRAINT physical_address_street_line_2_is_null_or_trimmed_and_not_empty CHECK (street_line_2 IS NULL OR (street_line_2 <> '' AND street_line_2 = trim(both from street_line_2))),
-    csz_id INTEGER NOT NULL REFERENCES city_state_zip (csz_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    csz_id INTEGER NOT NULL REFERENCES city_state_zip (csz_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     plus_four CHAR(4) DEFAULT NULL
         CONSTRAINT physical_address_plus_four_is_null_or_five_digits CHECK (plus_four IS NULL OR plus_four ~ '^[0-9]{4}$'),
-    in_library_special_voting_district library_special_voting_district_status DEFAULT 'unchecked'::library_special_voting_district_status,
+    in_library_special_voting_district library_special_voting_district_status NOT NULL DEFAULT 'unchecked'::library_special_voting_district_status,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );
@@ -165,17 +165,9 @@ CREATE TABLE physical_address (
 CREATE INDEX physical_address__street_line_1__gin_trgm_idx ON physical_address USING gin (street_line_1 gin_trgm_ops);
 CREATE INDEX physical_address__street_line_2__gin_trgm_idx ON physical_address USING gin (street_line_2 gin_trgm_ops);
 
--- Convenience view. Is this still needed?
-CREATE VIEW address AS
-SELECT person_id, 'physical' AS address_type, street_line_1, street_line_2, csz_id, plus_four
-FROM physical_address
-UNION ALL
-SELECT person_id, 'mailing' AS address_type, street_line_1, street_line_2, csz_id, plus_four
-FROM mailing_address;
-
 CREATE TABLE participation_role (
     participation_role_id SERIAL PRIMARY KEY,
-    parent_role_id INTEGER REFERENCES participation_role (participation_role_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    parent_role_id INTEGER REFERENCES participation_role (participation_role_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     role_name VARCHAR(128) NOT NULL
         CONSTRAINT participation_role_name_is_trimmed_and_not_empty CHECK (role_name <> '' AND role_name = trim(both from role_name))
         CONSTRAINT participation_role_name_is_unique UNIQUE,
@@ -188,7 +180,7 @@ CREATE INDEX participation_role__parent_role_id ON participation_role (parent_ro
 
 CREATE TABLE participation_interest (
     person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    participation_role_id INTEGER NOT NULL REFERENCES participation_role (participation_role_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    participation_role_id INTEGER NOT NULL REFERENCES participation_role (participation_role_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW(),
     PRIMARY KEY (person_id, participation_role_id)
@@ -196,14 +188,14 @@ CREATE TABLE participation_interest (
 
 CREATE INDEX participation_interest__participation_role_id ON participation_interest (participation_role_id);
 
-CREATE TABLE membership_year (
-    membership_year SMALLINT PRIMARY KEY
-        CONSTRAINT membership_year_is_reasonable CHECK (membership_year >= 1980 AND membership_year <= 2079),
+CREATE TABLE affiliation_year (
+    affiliation_year SMALLINT PRIMARY KEY
+        CONSTRAINT affiliation_year_is_reasonable CHECK (affiliation_year >= 1980 AND affiliation_year <= 2079),
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );
 
-INSERT INTO membership_year (membership_year)
+INSERT INTO affiliation_year (affiliation_year)
 VALUES
     (2011),
     (2012),
@@ -215,12 +207,12 @@ VALUES
     (2018);
 
 CREATE TABLE participation_record (
-    membership_year SMALLINT NOT NULL REFERENCES membership_year (membership_year) ON DELETE CASCADE ON UPDATE CASCADE,
+    year SMALLINT NOT NULL REFERENCES affiliation_year (affiliation_year) ON DELETE CASCADE ON UPDATE CASCADE,
     person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    participation_role_id INTEGER NOT NULL REFERENCES participation_role (participation_role_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    participation_role_id INTEGER NOT NULL REFERENCES participation_role (participation_role_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (membership_year, person_id, participation_role_id)
+    PRIMARY KEY (year, person_id, participation_role_id)
 );
 
 CREATE INDEX participation_record__person_id ON participation_record (person_id);
@@ -228,59 +220,18 @@ CREATE INDEX participation_record__participation_role_id ON participation_record
 
 CREATE TYPE membership_type AS ENUM ('individual_membership', 'household_membership');
 
-CREATE TABLE membership (
-    membership_id SERIAL PRIMARY KEY,
-    membership_year SMALLINT NOT NULL REFERENCES membership_year (membership_year) ON DELETE CASCADE ON UPDATE CASCADE,
-    membership_type membership_type NULL,
-    friend_id NUMERIC(11) NOT NULL,
-    created_at timestamp with time zone DEFAULT NOW(),
-    updated_at timestamp with time zone DEFAULT NOW()
-);
-
-COMMENT ON COLUMN membership.friend_id IS 'This value should follow a renewed membership. Otherwise, a new one should be assigned.';
-
-CREATE UNIQUE INDEX membership__membership_year__friend_id ON membership (membership_year, friend_id);
-CREATE INDEX membership__membership_type ON membership (membership_type);
-CREATE INDEX membership__friend_id ON membership (friend_id);
-
-CREATE OR REPLACE FUNCTION next_friend_id()
-    RETURNS TRIGGER AS
-$$
-BEGIN
-    IF NEW.friend_id IS NULL THEN
-        NEW.friend_id = (SELECT MAX(friend_id) + 1 FROM membership);
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER membership__next_friend_id
-BEFORE INSERT OR UPDATE ON membership
-FOR EACH ROW
-EXECUTE PROCEDURE next_friend_id();
-
-CREATE TABLE membership_person (
-    membership_id INTEGER NOT NULL REFERENCES membership (membership_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    created_at timestamp with time zone DEFAULT NOW(),
-    updated_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (membership_id, person_id)
-);
-
-CREATE INDEX membership_person__person_id ON membership_person (person_id);
-
-CREATE TABLE annual_membership_parameters (
-    membership_year SMALLINT NOT NULL REFERENCES membership_year (membership_year) ON DELETE CASCADE ON UPDATE CASCADE,
+CREATE TABLE membership_type_parameters (
+    year SMALLINT NOT NULL REFERENCES affiliation_year (affiliation_year) ON DELETE CASCADE ON UPDATE CASCADE,
     membership_type membership_type NOT NULL,
     membership_max_people SMALLINT DEFAULT 1
         CONSTRAINT max_people_is_greater_than_zero CHECK (membership_max_people > 0),
     membership_amount NUMERIC(11,2) NOT NULL
         CONSTRAINT membership_amount_is_not_negative CHECK (membership_amount >= 0),
-    PRIMARY KEY (membership_year, membership_type)
+    PRIMARY KEY (year, membership_type)
 );
 
-INSERT INTO annual_membership_parameters
-(membership_year, membership_type, membership_max_people, membership_amount)
+INSERT INTO membership_type_parameters
+(year, membership_type, membership_max_people, membership_amount)
 VALUES
     (2011, 'individual_membership', 1, 10),
     (2011, 'household_membership', 2, 20),
@@ -299,9 +250,54 @@ VALUES
     (2018, 'individual_membership', 1, 15),
     (2018, 'household_membership', 2, 25);
 
+CREATE TABLE affiliation (
+    affiliation_id SERIAL PRIMARY KEY,
+    year SMALLINT NOT NULL REFERENCES affiliation_year (affiliation_year) ON DELETE CASCADE ON UPDATE CASCADE,
+    membership_type membership_type NULL,
+    friend_id NUMERIC(11) NOT NULL,
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW(),
+    FOREIGN KEY (year, membership_type) REFERENCES membership_type_parameters (year, membership_type) ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+COMMENT ON COLUMN affiliation.friend_id IS 'This value should follow a renewed affiliation. Otherwise, a new one should be assigned.';
+
+CREATE UNIQUE INDEX affiliation__year__friend_id ON affiliation (year, friend_id);
+CREATE INDEX affiliation__membership_type ON affiliation (membership_type);
+CREATE INDEX affiliation__friend_id ON affiliation (friend_id);
+
+CREATE OR REPLACE FUNCTION next_friend_id()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.friend_id IS NULL THEN
+        NEW.friend_id = (SELECT MAX(friend_id) + 1 FROM affiliation);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER affiliation__next_friend_id
+BEFORE INSERT OR UPDATE ON affiliation
+FOR EACH ROW
+EXECUTE PROCEDURE next_friend_id();
+
+CREATE VIEW membership AS
+SELECT * FROM affiliation WHERE membership_TYPE IS NOT NULL;
+
+CREATE TABLE affiliation_person (
+    affiliation_id INTEGER NOT NULL REFERENCES affiliation (affiliation_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    created_at timestamp with time zone DEFAULT NOW(),
+    updated_at timestamp with time zone DEFAULT NOW(),
+    PRIMARY KEY (affiliation_id, person_id)
+);
+
+CREATE INDEX affiliation_person__person_id ON affiliation_person (person_id);
+
 CREATE TABLE donation (
     donation_id SERIAL PRIMARY KEY,
-    membership_id INTEGER NOT NULL REFERENCES membership (membership_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    affiliation_id INTEGER NOT NULL REFERENCES affiliation (affiliation_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     amount NUMERIC(11,2) NOT NULL
         CONSTRAINT amount_is_not_negative CHECK (amount >= 0),
     notes VARCHAR(128)
@@ -310,9 +306,9 @@ CREATE TABLE donation (
     updated_at timestamp with time zone DEFAULT NOW()
 );
 
-CREATE INDEX donation__membership_id ON donation (membership_id);
+CREATE INDEX donation__affiliation_id ON donation (affiliation_id);
 
-CREATE FUNCTION person_is_in_current_membership(
+CREATE FUNCTION person_is_in_current_affiliation(
     v_person_id INTEGER
 )
 RETURNS BOOLEAN AS $$
@@ -323,10 +319,10 @@ BEGIN
 
     IF EXISTS (
         SELECT 1
-        FROM membership_person
-        INNER JOIN membership USING (membership_id)
+        FROM affiliation_person
+        INNER JOIN affiliation USING (affiliation_id)
         WHERE person_id = v_person_id
-        AND membership_year = date_part('year', CURRENT_DATE)
+        AND year = date_part('year', CURRENT_DATE)
     ) THEN
         RETURN TRUE;
     END IF;
@@ -335,11 +331,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION person_is_in_current_affiliation (INTEGER) IS 'Check if a person is associated with an affiliation in the current year.';
+
 CREATE FUNCTION validate_address_insert()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF person_is_in_current_membership(NEW.person_id) THEN
-        RAISE EXCEPTION 'Cannot add an address to a person in an membership. Change the membership''s address instead.';
+    IF person_is_in_current_affiliation(NEW.person_id) THEN
+        RAISE EXCEPTION 'Cannot add an address to a person in an affiliation. Change the affiliation''s address instead.';
     END IF;
 
     RETURN NEW;
@@ -353,8 +351,8 @@ BEGIN
         RAISE EXCEPTION 'Cannot reassign a person''s address to another person. Delete this address and create a new one.';
     END IF;
 
-    IF person_is_in_current_membership(NEW.person_id) THEN
-        RAISE EXCEPTION 'Cannot update the address of a person in an membership. Change the membership''s address instead.';
+    IF person_is_in_current_affiliation(NEW.person_id) THEN
+        RAISE EXCEPTION 'Cannot update the address of a person in an affiliation. Change the affiliation''s address instead.';
     END IF;
 
     RETURN NEW;
@@ -365,11 +363,11 @@ CREATE FUNCTION validate_address_delete()
 RETURNS TRIGGER AS
 $$
 BEGIN
-    IF person_is_in_current_membership(NEW.person_id) THEN
+    IF person_is_in_current_affiliation(NEW.person_id) THEN
         IF TG_TABLE_NAME = 'physical_address' THEN
-            RAISE EXCEPTION 'Cannot delete the physical address of a person in an membership.';
+            RAISE EXCEPTION 'Cannot delete the physical address of a person in an affiliation.';
         ELSIF TG_TABLE_NAME = 'mailing_address' THEN
-            RAISE EXCEPTION 'Cannot delete the mailing address of a person in an membership. Please delete the mailing address of the person''s membership instead.';
+            RAISE EXCEPTION 'Cannot delete the mailing address of a person in an affiliation. Please delete the mailing address of the person''s affiliation instead.';
         END IF;
     END IF;
 
@@ -411,7 +409,29 @@ BEFORE DELETE ON physical_address
 FOR EACH ROW
 EXECUTE PROCEDURE validate_address_delete();
 
-CREATE FUNCTION clear_library_special_voting_district_on_update()
+CREATE FUNCTION clear_library_special_voting_district_on_update_step1()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.in_library_special_voting_district = NEW.in_library_special_voting_district THEN
+        NEW.in_library_special_voting_district = NULL;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION clear_library_special_voting_district_on_update_step2()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.in_library_special_voting_district IS NULL THEN
+        NEW.in_library_special_voting_district = OLD.in_library_special_voting_district;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION clear_library_special_voting_district_on_update_step3()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.in_library_special_voting_district IS NULL THEN
@@ -422,7 +442,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER clear_library_special_voting_district_status
+CREATE TRIGGER clear_library_special_voting_district_status_step1
 BEFORE UPDATE ON physical_address
 FOR EACH ROW
 WHEN (
@@ -430,26 +450,46 @@ WHEN (
     OR OLD.street_line_2 IS DISTINCT FROM NEW.street_line_2
     OR OLD.csz_id <> NEW.csz_id
 )
-EXECUTE PROCEDURE clear_library_special_voting_district_on_update();
+EXECUTE PROCEDURE clear_library_special_voting_district_on_update_step1();
+
+CREATE TRIGGER clear_library_special_voting_district_status_step2
+BEFORE UPDATE OF in_library_special_voting_district ON physical_address
+FOR EACH ROW
+WHEN (
+    OLD.street_line_1 <> NEW.street_line_1
+    OR OLD.street_line_2 IS DISTINCT FROM NEW.street_line_2
+    OR OLD.csz_id <> NEW.csz_id
+)
+EXECUTE PROCEDURE clear_library_special_voting_district_on_update_step2();
+
+CREATE TRIGGER clear_library_special_voting_district_status_step3
+BEFORE UPDATE ON physical_address
+FOR EACH ROW
+WHEN (
+    OLD.street_line_1 <> NEW.street_line_1
+    OR OLD.street_line_2 IS DISTINCT FROM NEW.street_line_2
+    OR OLD.csz_id <> NEW.csz_id
+)
+EXECUTE PROCEDURE clear_library_special_voting_district_on_update_step3();
 
 CREATE FUNCTION validate_donation_update()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF OLD.membership_id <> NEW.membership_id THEN
-        RAISE EXCEPTION 'You cannot move a donation from one membership to another.';
+    IF OLD.affiliation_id <> NEW.affiliation_id THEN
+        RAISE EXCEPTION 'You cannot move a donation from one affiliation to another.';
     END IF;
 
     IF (
         SELECT membership_amount
-        FROM membership
-        INNER JOIN annual_membership_parameters USING (membership_year, membership_type)
-        WHERE membership_id = NEW.membership_id
+        FROM affiliation
+        INNER JOIN membership_type_parameters USING (year, membership_type)
+        WHERE affiliation_id = NEW.affiliation_id
     ) > (
         SELECT SUM(amount) - OLD.amount + NEW.amount
         FROM donation
-        WHERE membership_id = NEW.membership_id
+        WHERE affiliation_id = NEW.affiliation_id
     ) THEN
-        RAISE EXCEPTION 'This update is prohibited because it would make the membership''s total donation amount less than what''s required for its current membership type.';
+        RAISE EXCEPTION 'This update is prohibited because it would make the affiliation''s total donation amount less than what''s required for its current membership type.';
     END IF;
 
     RETURN NEW;
@@ -457,11 +497,11 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER check_donation_update
-BEFORE DELETE ON donation
+BEFORE UPDATE ON donation
 FOR EACH ROW
 WHEN (
-    OLD.membership_id IS NOT NULL
-    AND OLD.amount IS NOT NULL
+    NEW.affiliation_id IS NOT NULL
+    AND NEW.amount IS NOT NULL
 )
 EXECUTE PROCEDURE validate_donation_update();
 
@@ -470,15 +510,15 @@ RETURNS TRIGGER AS $$
 BEGIN
     IF (
         SELECT membership_amount
-        FROM membership
-        INNER JOIN annual_membership_parameters USING (membership_year, membership_type)
-        WHERE membership_id = OLD.membership_id
+        FROM affiliation
+        INNER JOIN membership_type_parameters USING (year, membership_type)
+        WHERE affiliation_id = OLD.affiliation_id
     ) > (
         SELECT SUM(amount) - OLD.amount
         FROM donation
-        WHERE membership_id = OLD.membership_id
+        WHERE affiliation_id = OLD.affiliation_id
     ) THEN
-        RAISE EXCEPTION 'This delete is prohibited because it would make the membership''s total donation amount less than what''s required for its current membership type.';
+        RAISE EXCEPTION 'This delete is prohibited because it would make the affiliation''s total donation amount less than what''s required for its current membership type.';
     END IF;
     
     RETURN OLD;
@@ -488,83 +528,83 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER check_donation_delete
 BEFORE DELETE ON donation
 FOR EACH ROW
-WHEN (
-    OLD.membership_id IS NOT NULL
-)
 EXECUTE PROCEDURE validate_donation_delete();
 
-CREATE FUNCTION validate_membership_update()
+CREATE FUNCTION validate_affiliation_insert()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.membership_type IS NULL AND (
-        SELECT COUNT(*) num_membership_members
-        FROM membership_person
-        WHERE membership_id = NEW.membership_id
-    ) > 0 THEN
-        RAISE EXCEPTION 'This change is prohibited because it would result in too many members for the membership type.';
-    END IF;
+    RAISE EXCEPTION 'You cannot create an affiliation with a NOT NULL membership type. It will not have requisite donations at the time of creation.';
+END;
+$$ LANGUAGE plpgsql;
 
+CREATE TRIGGER check_affiliation_insert
+BEFORE INSERT ON affiliation
+FOR EACH ROW
+WHEN ( NEW.membership_type IS NOT NULL )
+EXECUTE PROCEDURE validate_affiliation_insert();
+
+CREATE FUNCTION validate_affiliation_update()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Check the membership donation sum
     IF NEW.membership_type IS NOT NULL AND (
         SELECT membership_amount
-        FROM annual_membership_parameters
-        WHERE membership_year = NEW.membership_year
+        FROM membership_type_parameters
+        WHERE year = NEW.year
         AND membership_type = NEW.membership_type
     ) < (
-        SELECT COUNT(*) membership_donation_sum
-        FROM donations
-        WHERE membership_id = NEW.membership_id
+        SELECT COUNT(*) affiliation_donation_sum
+        FROM donation
+        WHERE affiliation_id = NEW.affiliation_id
     ) THEN
-        RAISE EXCEPTION 'This change is prohibited because the total donation sum is not sufficient to support the selected membership type.';
+        RAISE EXCEPTION 'This change is prohibited because the total donation sum is not sufficient to support the affiliation''s current membership type.';
     END IF;
 
+    -- Check the membership max person limit
     IF NEW.membership_type IS NOT NULL AND (
         SELECT membership_max_people
-        FROM annual_membership_parameters
-        WHERE membership_year = NEW.membership_year
+        FROM membership_type_parameters
+        WHERE year = NEW.year
         AND membership_type = NEW.membership_type
     ) < (
-        SELECT COUNT(*) num_membership_members
-        FROM membership_person
-        WHERE membership_id = NEW.membership_id
+        SELECT COUNT(*) num_affiliation_members
+        FROM affiliation_person
+        WHERE affiliation_id = NEW.affiliation_id
     ) THEN
-        RAISE EXCEPTION 'This change is prohibited because it would result in too many members for the membership type.';
+        RAISE EXCEPTION 'This change is prohibited because it would result in too many members for the affiliation''s membership type.';
     END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER check_membership_update
-BEFORE UPDATE ON membership
+CREATE TRIGGER check_affiliation_update
+BEFORE UPDATE ON affiliation
 FOR EACH ROW
 WHEN (
-    NEW.membership_id IS NOT NULL
-    AND NEW.membership_year IS NOT NULL
+    NEW.affiliation_id IS NOT NULL
+    AND NEW.year IS NOT NULL
 )
-EXECUTE PROCEDURE validate_membership_update();
+EXECUTE PROCEDURE validate_affiliation_update();
 
-CREATE FUNCTION person_address_suitable_for_membership(
+CREATE FUNCTION person_address_suitable_for_affiliation(
     v_person_id INTEGER,
-    v_membership_id INTEGER
+    v_affiliation_id INTEGER
 )
 RETURNS BOOLEAN AS $$
 BEGIN
     IF v_person_id IS NULL THEN
         RAISE EXCEPTION 'v_person_id cannot be NULL';
-    ELSIF v_membership_id IS NULL THEN
-        RAISE EXCEPTION 'v_membership_id cannot be NULL';
+    ELSIF v_affiliation_id IS NULL THEN
+        RAISE EXCEPTION 'v_affiliation_id cannot be NULL';
     END IF;
 
-    -- 1. All people in an membership must have the same physical address
+    -- 1. All people in an affiliation must have the same physical address (
+    --    or all people may have no physical address)
     -- 2. All people in an membership must have the same mailing address (or
     --    all people may have no mailing address)
-    IF EXISTS (
-        SELECT 1
-        FROM physical_address
-        WHERE person_id = v_person_id
-        )
-        AND  person_address_matches_membership_address(v_person_id, 'physical', v_membership_id)
-        AND person_address_matches_membership_address(v_person_id, 'mailing', v_membership_id)
+    IF person_address_matches_affiliation_address(v_person_id, 'physical', v_affiliation_id)
+    AND person_address_matches_affiliation_address(v_person_id, 'mailing', v_affiliation_id)
         THEN
         RETURN TRUE;
     END IF;
@@ -573,10 +613,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION person_address_matches_membership_address (
+CREATE FUNCTION person_address_matches_affiliation_address (
     v_person_id INTEGER,
     v_address_type TEXT,
-    v_membership_id INTEGER
+    v_affiliation_id INTEGER
 )
 RETURNS BOOLEAN AS $$
 DECLARE
@@ -587,34 +627,34 @@ BEGIN
         RAISE EXCEPTION 'v_person_id cannot be NULL';
     ELSIF v_address_type IS NULL THEN
         RAISE EXCEPTION 'v_address_type cannot be NULL';
-    ELSIF v_membership_id IS NULL THEN
-        RAISE EXCEPTION 'v_membership_id cannot be NULL';
+    ELSIF v_affiliation_id IS NULL THEN
+        RAISE EXCEPTION 'v_affiliation_id cannot be NULL';
     END IF;
 
     IF v_address_type NOT IN ('mailing', 'physical') THEN
         RAISE EXCEPTION 'Address type must be either "mailing" or "physical". Received %s.', v_address_type;
     END IF;
 
-    -- Check the number of distinct addresses between the membership and the
-    -- person.
-    -- OK 1: The membership has no current address, and the person being added has one
-    -- OK 2: The membership has an address, and the person being added has the same
+    -- If the affiliation has an address (being the address of current
+    -- membership), then then person being added must have the same address.
+    -- If the affiliation has no address (meaning existing membership have
+    -- no address), the person being added may or may not have an address.
     EXECUTE FORMAT(
-        'WITH membership_addresses AS ( '
+        'WITH affiliation_addresses AS ( '
             'SELECT DISTINCT street_line_1, street_line_2, csz_id '
-            'FROM membership '
-            'INNER JOIN membership_person USING (membership_id) '
+            'FROM affiliation '
+            'INNER JOIN affiliation_person USING (affiliation_id) '
             'INNER JOIN %I USING (person_id) '
-            'WHERE membership_id = $1'
+            'WHERE affiliation_id = $1'
         '), '
         'new_person_address AS ( '
             'SELECT street_line_1, street_line_2, csz_id '
             'FROM %I '
             'WHERE person_id = $2 '
         ') '
-        'SELECT street_line_1, street_line_2, csz_id '
+        'SELECT COUNT(*) '
         'FROM ( '
-            'SELECT * FROM membership_addresses '
+            'SELECT * FROM affiliation_addresses '
             'UNION '
             'SELECT * FROM new_person_address '
         ') AS unique_addresses ',
@@ -622,7 +662,7 @@ BEGIN
         v_table_name
     )
     INTO v_num_unique_addresses
-    USING v_membership_id, v_person_id;
+    USING v_affiliation_id, v_person_id;
 
     IF v_num_unique_addresses <= 1 THEN
         RETURN TRUE;
@@ -632,75 +672,67 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION validate_membership_person_insert()
+CREATE FUNCTION validate_affiliation_person_insert()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF (
-        SELECT membership_type
-        FROM membership
-        WHERE membership_id = NEW.membership_id
-    ) IS NULL THEN
-        RAISE EXCEPTION 'Cannot add this person to this membership because the membership does not have a type.';
+    -- Make sure the person's address is compatible with the affiliation's
+    IF NOT person_address_suitable_for_affiliation(NEW.person_id, NEW.affiliation_id) THEN
+        RAISE EXCEPTION 'Cannot add this person to this affiliation because one or more of the person''s addresses did not match those of the affiliation.';
     END IF;
 
-    -- Make sure the person's address is compatible with the membership's
-    IF NOT person_address_suitable_for_membership(NEW.person_id, NEW.membership_id) THEN
-        RAISE EXCEPTION 'Cannot add this person to this membership because one or more of the person''s addresses did not match those of the membership.';
-    END IF;
-
-    -- Make sure the membership can fit another person
+    -- Make sure the affiliation can fit another person
     -- IF current_people + 1 > membership_max_people THEN WHAMO!
     IF (
         SELECT COUNT(*) num_members
-        FROM membership_person
-        WHERE membership_id = NEW.membership_id
-    ) + 1 > (
+        FROM affiliation_person
+        WHERE affiliation_id = NEW.affiliation_id
+    ) >= (
         SELECT membership_max_people
-        FROM membership
-        INNER JOIN annual_membership_parameters USING (membership_year, membership_type)
-        WHERE membership_id = NEW.membership_id
+        FROM affiliation
+        INNER JOIN membership_type_parameters USING (year, membership_type)
+        WHERE affiliation_id = NEW.affiliation_id
     ) THEN
-        RAISE EXCEPTION 'This membership cannot accommodate another person because it has reached its membership limit.';
+        RAISE EXCEPTION 'This affiliation cannot accommodate another person because it has reached its maximum person limit.';
     END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER check_membership_person_insert
-BEFORE INSERT ON membership_person
+CREATE TRIGGER check_affiliation_person_insert
+BEFORE INSERT ON affiliation_person
 FOR EACH ROW
 WHEN (
-    NEW.membership_id IS NOT NULL
+    NEW.affiliation_id IS NOT NULL
     AND NEW.person_id IS NOT NULL
 )
-EXECUTE PROCEDURE validate_membership_person_insert();
+EXECUTE PROCEDURE validate_affiliation_person_insert();
 
-CREATE FUNCTION validate_membership_person_update()
+CREATE FUNCTION validate_affiliation_person_update()
 RETURNS TRIGGER AS $$
 BEGIN
-    RAISE EXCEPTION 'Cannot update a membership person association. Try deleting and re-creating instead.';
+    RAISE EXCEPTION 'Cannot update an affiliation person association. Try deleting and re-creating instead.';
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER check_membership_person_update
-BEFORE UPDATE ON membership_person
+CREATE TRIGGER check_affiliation_person_update
+BEFORE UPDATE ON affiliation_person
 FOR EACH ROW
 WHEN (
-    NEW.membership_id IS NOT NULL
+    NEW.affiliation_id IS NOT NULL
     AND NEW.person_id IS NOT NULL
 )
-EXECUTE PROCEDURE validate_membership_person_update();
+EXECUTE PROCEDURE validate_affiliation_person_update();
 
-CREATE TABLE membership_year_voter_registration (
-    membership_year SMALLINT NOT NULL REFERENCES membership_year (membership_year) ON DELETE CASCADE ON UPDATE CASCADE,
+CREATE TABLE voter_registration (
+    year SMALLINT NOT NULL REFERENCES affiliation_year (affiliation_year) ON DELETE CASCADE ON UPDATE CASCADE,
     person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (membership_year, person_id)
+    PRIMARY KEY (year, person_id)
 );
 
-CREATE INDEX membership_year_voter_registration__person_id ON membership_year_voter_registration (person_id);
+CREATE INDEX voter_registration__person_id ON voter_registration (person_id);
 
 CREATE TABLE app_user (
     user_id SERIAL PRIMARY KEY,
@@ -760,11 +792,11 @@ SELECT DISTINCT email_address
 FROM person
 INNER JOIN person_email USING (person_id)
 WHERE person_id IN (
-    -- Anyone who was a member within the last two years
+    -- Anyone who was affiliated within the last two years
     SELECT person_id
-    FROM membership_person
-    INNER JOIN membership USING (membership_id)
-    WHERE membership_year IN (
+    FROM affiliation_person
+    INNER JOIN affiliation USING (affiliation_id)
+    WHERE year IN (
         date_part('year', CURRENT_DATE) - 1,
         date_part('year', CURRENT_DATE)
     )
@@ -780,7 +812,7 @@ WHERE person_id IN (
     -- Anyone who participated in something within the last two years
     SELECT person_id
     FROM participation_record
-    WHERE membership_year IN (
+    WHERE year IN (
         date_part('year', CURRENT_DATE) - 1,
         date_part('year', CURRENT_DATE)
     )
@@ -808,9 +840,9 @@ CREATE VIEW report_current_membership_list AS
 WITH member_person AS (
     SELECT person_id
     FROM person
-    INNER JOIN membership_person USING (person_id)
-    INNER JOIN membership USING (membership_id)
-    WHERE membership_year = date_part('year', CURRENT_DATE)
+    INNER JOIN affiliation_person USING (person_id)
+    INNER JOIN membership USING (affiliation_id)
+    WHERE year = date_part('year', CURRENT_DATE)
 ),
 aggregated_email AS (
     SELECT person_id, string_agg(email_address, E'\n' ORDER BY is_preferred DESC, email_address) emails
@@ -863,9 +895,9 @@ ORDER BY last_name, first_name;
 -- FROM person
 -- LEFT JOIN person_phone USING (person_id)
 -- LEFT JOIN person_email USING (person_id)
--- LEFT JOIN membership USING (membership_id)
--- LEFT JOIN physical_address pa USING (membership_id)
--- LEFT JOIN mailing_address ma USING (membership_id);
+-- LEFT JOIN affiliation USING (affiliation_id)
+-- LEFT JOIN physical_address pa USING (affiliation_id)
+-- LEFT JOIN mailing_address ma USING (affiliation_id);
 
 -- SELECT
     -- person_id,

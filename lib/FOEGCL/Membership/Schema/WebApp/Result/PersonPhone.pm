@@ -145,9 +145,19 @@ __PACKAGE__->belongs_to(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LFpEQ3eNRcaRzXom+l89hw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6K4yX4jLnid4xYFlkXve9w
 
+sub as_text ($self) {
+    if ($self->phone_number =~ m/\A (\d{3})(\d{3})(\d{4}) \z/x) {
+        return sprintf('(%s) %s-%s', $1, $2, $3);
+    }
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+    if ($self->phone_number =~ m/\A (\d{3})(\d{4}) \z/x) {
+        return sprintf('%s-%s', $1, $2);
+    }
+
+    return $self->phone_number;
+}
+
 1;

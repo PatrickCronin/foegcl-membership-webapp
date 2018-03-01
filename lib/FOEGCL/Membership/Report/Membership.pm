@@ -2,14 +2,14 @@ package FOEGCL::Membership::Report::Membership;
 
 use FOEGCL::Membership::Moose;
 
-use DateTime ();
+use DateTime          ();
 use PDF::ReportWriter ();
 use POSIX 'strftime';
 
 has _report_writer => (
-    is => 'ro',
-    isa => 'PDF::ReportWriter',
-    lazy => 1,
+    is      => 'ro',
+    isa     => 'PDF::ReportWriter',
+    lazy    => 1,
     builder => '_build_report_writer',
 );
 
@@ -20,18 +20,18 @@ my $data_row_number = 0;
 sub _build_report_writer ( $self, @ ) {
     return PDF::ReportWriter->new(
         {
-            destination => '/tmp/membership_report.pdf',
-            paper => 'Letter',
-            orientation => 'landscape',
-            font_list => [ qw( Times ) ],
-            default_font => 'Times',
+            destination       => '/tmp/membership_report.pdf',
+            paper             => 'Letter',
+            orientation       => 'landscape',
+            font_list         => [qw( Times )],
+            default_font      => 'Times',
             default_font_size => 10,
-            x_margin => 30, # in points; 72 pt = 1 in
+            x_margin => 30,    # in points; 72 pt = 1 in
             y_margin => 30,
-            info => {
-                Author => 'FOEGCL::Membership Report Generator',
+            info     => {
+                Author  => 'FOEGCL::Membership Report Generator',
                 Subject => 'Membership Report',
-                Title => 'Membership Report',
+                Title   => 'Membership Report',
             },
         }
     );
@@ -40,9 +40,9 @@ sub _build_report_writer ( $self, @ ) {
 sub run ($self) {
     $self->_report_writer->render_data(
         {
-            page => $self->_page_settings,
-            headings => $self->_field_headings,
-            fields => $self->_fields,
+            page       => $self->_page_settings,
+            headings   => $self->_field_headings,
+            fields     => $self->_fields,
             data_array => $self->_report_data,
         }
     );
@@ -53,33 +53,33 @@ sub _page_settings ($self) {
     return {
         header => [
             {
-                percent => 100,
+                percent   => 100,
                 font_size => 20,
-                align => 'left',
+                align     => 'left',
                 text => 'Current Friends Membership - ' . DateTime->now->year,
             }
         ],
         footer => [
             {
-                percent => 60,
+                percent   => 60,
                 font_size => 10,
-                align => 'left',
-                text => 'Created on ' . strftime('%d %b %Y', localtime)
+                align     => 'left',
+                text      => 'Created on ' . strftime( '%d %b %Y', localtime )
             },
             {
-                percent => 40,
+                percent   => 40,
                 font_size => 10,
-                align => 'right',
-                text => 'Page %PAGE% of %PAGES%',
+                align     => 'right',
+                text      => 'Page %PAGE% of %PAGES%',
             },
         ],
-    }
+    };
 }
 
 sub _field_headings ($self) {
     return {
         background => {
-            shape => 'box',
+            shape  => 'box',
             colour => 'darkgray',
         }
     };
@@ -88,48 +88,48 @@ sub _field_headings ($self) {
 sub _fields ($self) {
     return [
         {
-            name => 'Member',
-            percent => 20,
-            align => 'left',
-            colour => 'black',
-            font_size => 10,
-            wrap_text => 1,
+            name            => 'Member',
+            percent         => 20,
+            align           => 'left',
+            colour          => 'black',
+            font_size       => 10,
+            wrap_text       => 1,
             background_func => \&_alternate_data_row_background,
         },
         {
-            name => 'Street Address',
-            percent => 22,
-            align => 'left',
-            colour => 'black',
-            font_size => 10,
-            wrap_text => 1,
+            name            => 'Street Address',
+            percent         => 22,
+            align           => 'left',
+            colour          => 'black',
+            font_size       => 10,
+            wrap_text       => 1,
             background_func => \&_alternate_data_row_background,
         },
         {
-            name => 'City, State and ZIP™',
-            percent => 25,
-            align => 'left',
-            colour => 'black',
-            font_size => 10,
-            wrap_text => 1,
+            name            => 'City, State and ZIP™',
+            percent         => 25,
+            align           => 'left',
+            colour          => 'black',
+            font_size       => 10,
+            wrap_text       => 1,
             background_func => \&_alternate_data_row_background,
         },
         {
-            name => 'Email(s)',
-            percent => 23,
-            align => 'left',
-            colour => 'black',
-            font_size => 10,
-            wrap_text => 1,
+            name            => 'Email(s)',
+            percent         => 23,
+            align           => 'left',
+            colour          => 'black',
+            font_size       => 10,
+            wrap_text       => 1,
             background_func => \&_alternate_data_row_background,
         },
         {
-            name => 'Phone(s)',
-            percent => 10,
-            align => 'left',
-            colour => 'black',
-            font_size => 10,
-            wrap_text => 1,
+            name            => 'Phone(s)',
+            percent         => 10,
+            align           => 'left',
+            colour          => 'black',
+            font_size       => 10,
+            wrap_text       => 1,
             background_func => \&_alternate_data_row_background,
         },
     ];
@@ -139,31 +139,30 @@ sub _report_data ($self) {
     my $rs = $self->_schema->resultset('ReportCurrentMembershipList')->hri;
 
     my @data;
-    while (my $person = $rs->next) {
+    while ( my $person = $rs->next ) {
         push @data, [
             $person->{name},
             $person->{street_lines} // q{},
-            $person->{csz} // q{},
-            $person->{emails} // q{},
-            $person->{phones} // q{},
+            $person->{csz}          // q{},
+            $person->{emails}       // q{},
+            $person->{phones}       // q{},
         ];
     }
 
     return \@data;
 }
 
-sub _alternate_data_row_background ($value, $row, $options) {
+sub _alternate_data_row_background ( $value, $row, $options ) {
     $data_row_number++
-        if $options->{row_type} eq 'data' && ! $options->{cell_counter};
+        if $options->{row_type} eq 'data' && !$options->{cell_counter};
 
     return {
-        shape => 'box',
+        shape  => 'box',
         colour => $data_row_number % 2 == 0
-            ? 'white'
-            : 'lightgray'
+        ? 'white'
+        : 'lightgray'
     };
 }
-
 
 __PACKAGE__->meta->make_immutable;
 

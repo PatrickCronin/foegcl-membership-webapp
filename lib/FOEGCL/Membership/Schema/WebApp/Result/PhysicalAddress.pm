@@ -92,7 +92,7 @@ __PACKAGE__->table("physical_address");
   data_type: 'enum'
   default_value: 'unchecked'
   extra: {custom_type_name => "library_special_voting_district_status",list => ["in","out","unchecked","checked-but-unknown"]}
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 created_at
 
@@ -129,7 +129,7 @@ __PACKAGE__->add_columns(
       custom_type_name => "library_special_voting_district_status",
       list => ["in", "out", "unchecked", "checked-but-unknown"],
     },
-    is_nullable => 1,
+    is_nullable => 0,
   },
   "created_at",
   {
@@ -173,7 +173,7 @@ __PACKAGE__->belongs_to(
   "csz",
   "FOEGCL::Membership::Schema::WebApp::Result::CityStateZip",
   { csz_id => "csz_id" },
-  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "RESTRICT", on_update => "CASCADE" },
 );
 
 =head2 person
@@ -192,9 +192,13 @@ __PACKAGE__->belongs_to(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OfrI0FYngJPji3IQSTM5fw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1/K6t4E5ZXAsQjlvKhU66g
 
+sub street_lines ($self) {
+    my @lines = ( $self->street_line_1 );
+    push @lines, $self->street_line_2 if defined $self->street_line_2;
+    return @lines;
+}
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

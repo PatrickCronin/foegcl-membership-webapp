@@ -49,7 +49,7 @@ sub _build_database ( $self, @ ) {
 # harness or not.
 sub _build_db_config ( $self, @ ) {
     return $self->_config->{$PRODUCTION_CONFIG_KEY}
-        if !$ENV{HARNESS_ACTIVE} || $ENV{TEST_PRIMARY_DB};
+        if !$ENV{HARNESS_ACTIVE} || $ENV{TEST_PRODUCTION_DB};
 
     # If under a test harness, replace the database name with one suitable for
     # testing.

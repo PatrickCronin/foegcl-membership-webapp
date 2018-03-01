@@ -30,8 +30,8 @@ sub _build_loader_options ( $self, @ ) {
             \z
         /x,
         col_accessor_map => {
-            DonatingMembershipAnnualSummaryComplete => { # name
-                New => 'new_memberships' # column mapping
+            DonatingMembershipAnnualSummaryComplete => {    # name
+                New => 'new_memberships'                    # column mapping
             }
         },
     };

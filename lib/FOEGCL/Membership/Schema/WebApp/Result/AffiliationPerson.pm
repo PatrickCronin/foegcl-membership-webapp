@@ -1,13 +1,13 @@
 #<<<
 use utf8;
-package FOEGCL::Membership::Schema::WebApp::Result::MembershipPerson;
+package FOEGCL::Membership::Schema::WebApp::Result::AffiliationPerson;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-FOEGCL::Membership::Schema::WebApp::Result::MembershipPerson
+FOEGCL::Membership::Schema::WebApp::Result::AffiliationPerson
 
 =cut
 
@@ -48,15 +48,15 @@ __PACKAGE__->load_components(
   "TimeStamp",
 );
 
-=head1 TABLE: C<membership_person>
+=head1 TABLE: C<affiliation_person>
 
 =cut
 
-__PACKAGE__->table("membership_person");
+__PACKAGE__->table("affiliation_person");
 
 =head1 ACCESSORS
 
-=head2 membership_id
+=head2 affiliation_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -85,7 +85,7 @@ __PACKAGE__->table("membership_person");
 =cut
 
 __PACKAGE__->add_columns(
-  "membership_id",
+  "affiliation_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "person_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
@@ -109,7 +109,7 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</membership_id>
+=item * L</affiliation_id>
 
 =item * L</person_id>
 
@@ -117,23 +117,23 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key("membership_id", "person_id");
+__PACKAGE__->set_primary_key("affiliation_id", "person_id");
 
 =head1 RELATIONS
 
-=head2 membership
+=head2 affiliation
 
 Type: belongs_to
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Membership>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Affiliation>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "membership",
-  "FOEGCL::Membership::Schema::WebApp::Result::Membership",
-  { membership_id => "membership_id" },
-  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
+  "affiliation",
+  "FOEGCL::Membership::Schema::WebApp::Result::Affiliation",
+  { affiliation_id => "affiliation_id" },
+  { is_deferrable => 0, on_delete => "RESTRICT", on_update => "CASCADE" },
 );
 
 =head2 person
@@ -152,8 +152,8 @@ __PACKAGE__->belongs_to(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KjTNuiWTUqDGG14ERAdtXg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7/Mu2gbKXeA5d7jzlapFHA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -1,13 +1,13 @@
 #<<<
 use utf8;
-package FOEGCL::Membership::Schema::WebApp::Result::AnnualMembershipParameter;
+package FOEGCL::Membership::Schema::WebApp::Result::MembershipTypeParameter;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-FOEGCL::Membership::Schema::WebApp::Result::AnnualMembershipParameter
+FOEGCL::Membership::Schema::WebApp::Result::MembershipTypeParameter
 
 =cut
 
@@ -48,15 +48,15 @@ __PACKAGE__->load_components(
   "TimeStamp",
 );
 
-=head1 TABLE: C<annual_membership_parameters>
+=head1 TABLE: C<membership_type_parameters>
 
 =cut
 
-__PACKAGE__->table("annual_membership_parameters");
+__PACKAGE__->table("membership_type_parameters");
 
 =head1 ACCESSORS
 
-=head2 membership_year
+=head2 year
 
   data_type: 'smallint'
   is_foreign_key: 1
@@ -83,7 +83,7 @@ __PACKAGE__->table("annual_membership_parameters");
 =cut
 
 __PACKAGE__->add_columns(
-  "membership_year",
+  "year",
   { data_type => "smallint", is_foreign_key => 1, is_nullable => 0 },
   "membership_type",
   {
@@ -104,7 +104,7 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</membership_year>
+=item * L</year>
 
 =item * L</membership_type>
 
@@ -112,28 +112,46 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key("membership_year", "membership_type");
+__PACKAGE__->set_primary_key("year", "membership_type");
 
 =head1 RELATIONS
 
-=head2 membership_year
+=head2 affiliations
+
+Type: has_many
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Affiliation>
+
+=cut
+
+__PACKAGE__->has_many(
+  "affiliations",
+  "FOEGCL::Membership::Schema::WebApp::Result::Affiliation",
+  {
+    "foreign.membership_type" => "self.membership_type",
+    "foreign.year" => "self.year",
+  },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 year
 
 Type: belongs_to
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYear>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "membership_year",
-  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYear",
-  { membership_year => "membership_year" },
+  "year",
+  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear",
+  { affiliation_year => "year" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Vxl91+HrxHAvtwcS4gBKxA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WXUmsaGROSdwYel0Ql1sWg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

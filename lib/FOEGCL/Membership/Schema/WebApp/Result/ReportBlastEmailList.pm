@@ -54,7 +54,7 @@ __PACKAGE__->table_class("DBIx::Class::ResultSource::View");
 =cut
 
 __PACKAGE__->table("report_blast_email_list");
-__PACKAGE__->result_source_instance->view_definition(" SELECT DISTINCT person_email.email_address\n   FROM (person\n     JOIN person_email USING (person_id))\n  WHERE ((person.person_id IN ( SELECT membership_person.person_id\n           FROM (membership_person\n             JOIN membership USING (membership_id))\n          WHERE ((membership.membership_year)::double precision = ANY (ARRAY[(date_part('year'::text, ('now'::text)::date) - (1)::double precision), date_part('year'::text, ('now'::text)::date)]))\n        UNION ALL\n         SELECT participation_interest.person_id\n           FROM participation_interest\n        UNION ALL\n         SELECT participation_record.person_id\n           FROM participation_record\n          WHERE ((participation_record.membership_year)::double precision = ANY (ARRAY[(date_part('year'::text, ('now'::text)::date) - (1)::double precision), date_part('year'::text, ('now'::text)::date)])))) AND (person.opted_out = false))");
+__PACKAGE__->result_source_instance->view_definition(" SELECT DISTINCT person_email.email_address\n   FROM (person\n     JOIN person_email USING (person_id))\n  WHERE ((person.person_id IN ( SELECT affiliation_person.person_id\n           FROM (affiliation_person\n             JOIN affiliation USING (affiliation_id))\n          WHERE ((affiliation.year)::double precision = ANY (ARRAY[(date_part('year'::text, ('now'::text)::date) - (1)::double precision), date_part('year'::text, ('now'::text)::date)]))\n        UNION ALL\n         SELECT participation_interest.person_id\n           FROM participation_interest\n        UNION ALL\n         SELECT participation_record.person_id\n           FROM participation_record\n          WHERE ((participation_record.year)::double precision = ANY (ARRAY[(date_part('year'::text, ('now'::text)::date) - (1)::double precision), date_part('year'::text, ('now'::text)::date)])))) AND (person.opted_out = false))");
 
 =head1 ACCESSORS
 
@@ -72,8 +72,8 @@ __PACKAGE__->add_columns(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xGo6qK+vN3mJ1CekQ9GpEg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:c/TaVhLgk12PRBwXwvB/Jw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

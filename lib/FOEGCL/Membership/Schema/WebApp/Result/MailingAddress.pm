@@ -156,7 +156,7 @@ __PACKAGE__->belongs_to(
   "csz",
   "FOEGCL::Membership::Schema::WebApp::Result::CityStateZip",
   { csz_id => "csz_id" },
-  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "RESTRICT", on_update => "CASCADE" },
 );
 
 =head2 person
@@ -175,8 +175,8 @@ __PACKAGE__->belongs_to(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y9nVOhuiBiCmazl83ulFsw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NCUdrHBYoNa6KNX9MltEjw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -12,7 +12,7 @@ sub _build_db_config ( $self, @ ) {
 
 sub _build_loader_options ( $self, @ ) {
     return {
-        db_schema => 'public',
+        db_schema    => 'public',
         rel_name_map => {
             CityStateZip => {
                 state_abbr => 'state',    # CityStateZip.state => State

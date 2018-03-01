@@ -56,7 +56,7 @@ __PACKAGE__->table("participation_record");
 
 =head1 ACCESSORS
 
-=head2 membership_year
+=head2 year
 
   data_type: 'smallint'
   is_foreign_key: 1
@@ -91,7 +91,7 @@ __PACKAGE__->table("participation_record");
 =cut
 
 __PACKAGE__->add_columns(
-  "membership_year",
+  "year",
   { data_type => "smallint", is_foreign_key => 1, is_nullable => 0 },
   "person_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
@@ -117,7 +117,7 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</membership_year>
+=item * L</year>
 
 =item * L</person_id>
 
@@ -127,24 +127,9 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key("membership_year", "person_id", "participation_role_id");
+__PACKAGE__->set_primary_key("year", "person_id", "participation_role_id");
 
 =head1 RELATIONS
-
-=head2 membership_year
-
-Type: belongs_to
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipYear>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "membership_year",
-  "FOEGCL::Membership::Schema::WebApp::Result::MembershipYear",
-  { membership_year => "membership_year" },
-  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
-);
 
 =head2 participation_role
 
@@ -158,7 +143,7 @@ __PACKAGE__->belongs_to(
   "participation_role",
   "FOEGCL::Membership::Schema::WebApp::Result::ParticipationRole",
   { participation_role_id => "participation_role_id" },
-  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "RESTRICT", on_update => "CASCADE" },
 );
 
 =head2 person
@@ -175,10 +160,25 @@ __PACKAGE__->belongs_to(
   { person_id => "person_id" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
+
+=head2 year
+
+Type: belongs_to
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "year",
+  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear",
+  { affiliation_year => "year" },
+  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
+);
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:atU6FNF2I7+KHcK+fEQSUg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:koBJZfdfq+tu5k4gewUoUQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

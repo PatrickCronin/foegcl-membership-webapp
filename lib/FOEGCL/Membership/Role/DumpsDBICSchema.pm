@@ -12,25 +12,27 @@ use FOEGCL::Membership::Types qw( Bool HashRef Path );
 use Path::Tiny qw( path );
 
 const my %ARG_CONSTANT => (
-    debug => 0,
-    dump_directory => './lib',
-    dry_run => 0,
+    debug                   => 0,
+    dump_directory          => './lib',
+    dry_run                 => 0,
     overwrite_modifications => 0,
-    quiet => 1,
+    quiet                   => 1,
 );
 
 has debug => (
     is        => 'ro',
     isa       => Bool,
     predicate => '_has_debug',
-    documentation => "Whether or not debug messages should be displayed. Defaults to $ARG_CONSTANT{debug}.",
+    documentation =>
+        "Whether or not debug messages should be displayed. Defaults to $ARG_CONSTANT{debug}.",
 );
 
 has dry_run => (
     is        => 'ro',
     isa       => Bool,
     predicate => '_has_dry_run',
-    documentation => qq{If true, don't actually write out the generated files. Defaults to $ARG_CONSTANT{dry_run}.},
+    documentation =>
+        qq{If true, don't actually write out the generated files. Defaults to $ARG_CONSTANT{dry_run}.},
 );
 
 has dump_directory => (
@@ -38,21 +40,24 @@ has dump_directory => (
     isa       => Path,
     coerce    => 1,
     predicate => '_has_dump_directory',
-    documentation => "The Schema root directory within which the Result and ResultSet classes will be dumped. Defaults to $ARG_CONSTANT{dump_directory}.",
+    documentation =>
+        "The Schema root directory within which the Result and ResultSet classes will be dumped. Defaults to $ARG_CONSTANT{dump_directory}.",
 );
 
 has overwrite_modifications => (
     is        => 'ro',
     isa       => Bool,
     predicate => '_has_overwrite_modifications',
-    documentation => "Whether or not to update manually-modified files. Defaults to $ARG_CONSTANT{overwrite_modifications}.",
+    documentation =>
+        "Whether or not to update manually-modified files. Defaults to $ARG_CONSTANT{overwrite_modifications}.",
 );
 
 has quiet => (
     is        => 'ro',
     isa       => Bool,
     predicate => '_has_quiet',
-    documentation => "Whether or not to print status messages. Defaults to $ARG_CONSTANT{quiet}.",
+    documentation =>
+        "Whether or not to print status messages. Defaults to $ARG_CONSTANT{quiet}.",
 );
 
 has _db_config => (

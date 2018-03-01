@@ -206,9 +206,11 @@ __PACKAGE__->belongs_to(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-23 21:26:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:McAqAgxNQcI2LfohzJinOA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:e54983gzjRF3WaWDTtzfcw
 
+sub as_text ($self) {
+    return sprintf( '%s, %s %s', $self->city, $self->state_abbr, $self->zip );
+}
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
