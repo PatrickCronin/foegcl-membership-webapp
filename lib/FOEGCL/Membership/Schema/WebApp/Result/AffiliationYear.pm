@@ -56,7 +56,7 @@ __PACKAGE__->table("affiliation_year");
 
 =head1 ACCESSORS
 
-=head2 affiliation_year
+=head2 year
 
   data_type: 'smallint'
   is_nullable: 0
@@ -78,7 +78,7 @@ __PACKAGE__->table("affiliation_year");
 =cut
 
 __PACKAGE__->add_columns(
-  "affiliation_year",
+  "year",
   { data_type => "smallint", is_nullable => 0 },
   "created_at",
   {
@@ -100,13 +100,13 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</affiliation_year>
+=item * L</year>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("affiliation_year");
+__PACKAGE__->set_primary_key("year");
 
 =head1 RELATIONS
 
@@ -121,7 +121,7 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Affiliation>
 __PACKAGE__->has_many(
   "affiliations",
   "FOEGCL::Membership::Schema::WebApp::Result::Affiliation",
-  { "foreign.year" => "self.affiliation_year" },
+  { "foreign.year" => "self.year" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -136,7 +136,7 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::MembershipTypePara
 __PACKAGE__->has_many(
   "membership_type_parameters",
   "FOEGCL::Membership::Schema::WebApp::Result::MembershipTypeParameter",
-  { "foreign.year" => "self.affiliation_year" },
+  { "foreign.year" => "self.year" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -151,7 +151,7 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::ParticipationRecor
 __PACKAGE__->has_many(
   "participation_records",
   "FOEGCL::Membership::Schema::WebApp::Result::ParticipationRecord",
-  { "foreign.year" => "self.affiliation_year" },
+  { "foreign.year" => "self.year" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -166,13 +166,13 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::VoterRegistration>
 __PACKAGE__->has_many(
   "voter_registrations",
   "FOEGCL::Membership::Schema::WebApp::Result::VoterRegistration",
-  { "foreign.year" => "self.affiliation_year" },
+  { "foreign.year" => "self.year" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xQrFb7fgTOd2t4PrbOqXBg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-03-03 21:15:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eBCXr537X61gZZ9fvyZnnw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

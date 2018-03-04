@@ -2,7 +2,7 @@ package TestForETL::Affiliations;
 
 use FOEGCL::Membership::Test::Class::Moose;
 
-use FOEGCL::Membership::ETL::Friend::AffiliationsAndDonations ();
+use FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions ();
 use List::Util qw( min );
 use Test::Differences qw(eq_or_diff);
 
@@ -53,7 +53,7 @@ sub test_affiliations ( $self, @ ) {
 
 sub test_memberhips ( $self, @ ) {
     my $membership_helper
-        = FOEGCL::Membership::ETL::Friend::AffiliationsAndDonations->new;
+        = FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions->new;
 
     my $legacy_friend_rs = $self->_legacy_schema->resultset('Friend');
     while ( my $legacy_friend = $legacy_friend_rs->next ) {

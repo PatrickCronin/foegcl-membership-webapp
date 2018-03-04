@@ -1,13 +1,13 @@
 #<<<
 use utf8;
-package FOEGCL::Membership::Schema::WebApp::Result::Donation;
+package FOEGCL::Membership::Schema::WebApp::Result::Contribution;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-FOEGCL::Membership::Schema::WebApp::Result::Donation
+FOEGCL::Membership::Schema::WebApp::Result::Contribution
 
 =cut
 
@@ -48,20 +48,20 @@ __PACKAGE__->load_components(
   "TimeStamp",
 );
 
-=head1 TABLE: C<donation>
+=head1 TABLE: C<contribution>
 
 =cut
 
-__PACKAGE__->table("donation");
+__PACKAGE__->table("contribution");
 
 =head1 ACCESSORS
 
-=head2 donation_id
+=head2 contribution_id
 
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'donation_donation_id_seq'
+  sequence: 'contribution_contribution_id_seq'
 
 =head2 affiliation_id
 
@@ -98,12 +98,12 @@ __PACKAGE__->table("donation");
 =cut
 
 __PACKAGE__->add_columns(
-  "donation_id",
+  "contribution_id",
   {
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "donation_donation_id_seq",
+    sequence          => "contribution_contribution_id_seq",
   },
   "affiliation_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
@@ -131,13 +131,13 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</donation_id>
+=item * L</contribution_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("donation_id");
+__PACKAGE__->set_primary_key("contribution_id");
 
 =head1 RELATIONS
 
@@ -157,8 +157,8 @@ __PACKAGE__->belongs_to(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:opLjduT07aen+Ezohfdkdg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-03-03 21:15:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:l9S1UggXGanLhnvmy0gVxQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

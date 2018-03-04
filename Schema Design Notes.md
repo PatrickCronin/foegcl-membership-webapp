@@ -2,9 +2,12 @@
 
 ## Design Considerations
 
-### Donations
+### Contributions
 
-* Donations are recorded against affililiations; not against individuals.
+* Instead of the legacy term "donations", we now use "contribution" to allow
+  distinction between membership fees and donations, both of which are
+  "contributions.""
+* Contributions are only recorded against affililiations; not against people.
 
 ### Affiliations
 

@@ -1,4 +1,4 @@
-package TestFor::FOEGCL::Membership::ETL::Friend::AffiliationsAndDonations;
+package TestFor::FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions;
 
 use FOEGCL::Membership::Test::Class::Moose;
 
@@ -7,7 +7,7 @@ use FOEGCL::Membership::Const qw(
     $HOUSEHOLD_MEMBERSHIP
     $INDIVIDUAL_MEMBERSHIP
 );
-use FOEGCL::Membership::ETL::Friend::AffiliationsAndDonations;
+use FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions;
 use Hash::Objectify qw( objectify );
 use Test::Differences qw( eq_or_diff );
 use Test::Fatal qw( exception );
@@ -117,13 +117,13 @@ sub test_membership_donation_type_for ( $self, @ ) {
         },
     );
 
-    my $affiliations_and_donations_helper
-        = FOEGCL::Membership::ETL::Friend::AffiliationsAndDonations->new;
+    my $affiliations_and_contributions_helper
+        = FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions->new;
 
     foreach my $test_case (@test_cases) {
         ## no critic (Subroutines::ProtectPrivateSubs)
         my $mdt
-            = $affiliations_and_donations_helper
+            = $affiliations_and_contributions_helper
             ->_qualifying_membership_type_for(
             year         => $test_case->{in}->{year},
             num_people   => $test_case->{in}->{num_people},

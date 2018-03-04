@@ -189,13 +189,13 @@ CREATE TABLE participation_interest (
 CREATE INDEX participation_interest__participation_role_id ON participation_interest (participation_role_id);
 
 CREATE TABLE affiliation_year (
-    affiliation_year SMALLINT PRIMARY KEY
-        CONSTRAINT affiliation_year_is_reasonable CHECK (affiliation_year >= 1980 AND affiliation_year <= 2079),
+    year SMALLINT PRIMARY KEY
+        CONSTRAINT year_is_reasonable CHECK (year >= 1980 AND year <= 2079),
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );
 
-INSERT INTO affiliation_year (affiliation_year)
+INSERT INTO affiliation_year (year)
 VALUES
     (2011),
     (2012),
@@ -207,7 +207,7 @@ VALUES
     (2018);
 
 CREATE TABLE participation_record (
-    year SMALLINT NOT NULL REFERENCES affiliation_year (affiliation_year) ON DELETE CASCADE ON UPDATE CASCADE,
+    year SMALLINT NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
     person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
     participation_role_id INTEGER NOT NULL REFERENCES participation_role (participation_role_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     created_at timestamp with time zone DEFAULT NOW(),
@@ -221,7 +221,7 @@ CREATE INDEX participation_record__participation_role_id ON participation_record
 CREATE TYPE membership_type AS ENUM ('individual_membership', 'household_membership');
 
 CREATE TABLE membership_type_parameters (
-    year SMALLINT NOT NULL REFERENCES affiliation_year (affiliation_year) ON DELETE CASCADE ON UPDATE CASCADE,
+    year SMALLINT NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
     membership_type membership_type NOT NULL,
     membership_max_people SMALLINT DEFAULT 1
         CONSTRAINT max_people_is_greater_than_zero CHECK (membership_max_people > 0),
@@ -252,7 +252,7 @@ VALUES
 
 CREATE TABLE affiliation (
     affiliation_id SERIAL PRIMARY KEY,
-    year SMALLINT NOT NULL REFERENCES affiliation_year (affiliation_year) ON DELETE CASCADE ON UPDATE CASCADE,
+    year SMALLINT NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
     membership_type membership_type NULL,
     friend_id NUMERIC(11) NOT NULL,
     created_at timestamp with time zone DEFAULT NOW(),
@@ -295,8 +295,8 @@ CREATE TABLE affiliation_person (
 
 CREATE INDEX affiliation_person__person_id ON affiliation_person (person_id);
 
-CREATE TABLE donation (
-    donation_id SERIAL PRIMARY KEY,
+CREATE TABLE contribution (
+    contribution_id SERIAL PRIMARY KEY,
     affiliation_id INTEGER NOT NULL REFERENCES affiliation (affiliation_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     amount NUMERIC(11,2) NOT NULL
         CONSTRAINT amount_is_not_negative CHECK (amount >= 0),
@@ -306,7 +306,7 @@ CREATE TABLE donation (
     updated_at timestamp with time zone DEFAULT NOW()
 );
 
-CREATE INDEX donation__affiliation_id ON donation (affiliation_id);
+CREATE INDEX contribution__affiliation_id ON contribution (affiliation_id);
 
 CREATE FUNCTION person_is_in_current_affiliation(
     v_person_id INTEGER
@@ -472,11 +472,11 @@ WHEN (
 )
 EXECUTE PROCEDURE clear_library_special_voting_district_on_update_step3();
 
-CREATE FUNCTION validate_donation_update()
+CREATE FUNCTION validate_contribution_update()
 RETURNS TRIGGER AS $$
 BEGIN
     IF OLD.affiliation_id <> NEW.affiliation_id THEN
-        RAISE EXCEPTION 'You cannot move a donation from one affiliation to another.';
+        RAISE EXCEPTION 'You cannot move a contribution from one affiliation to another.';
     END IF;
 
     IF (
@@ -486,26 +486,26 @@ BEGIN
         WHERE affiliation_id = NEW.affiliation_id
     ) > (
         SELECT SUM(amount) - OLD.amount + NEW.amount
-        FROM donation
+        FROM contribution
         WHERE affiliation_id = NEW.affiliation_id
     ) THEN
-        RAISE EXCEPTION 'This update is prohibited because it would make the affiliation''s total donation amount less than what''s required for its current membership type.';
+        RAISE EXCEPTION 'This update is prohibited because it would make the affiliation''s total contribution amount less than what''s required for its current membership type.';
     END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER check_donation_update
-BEFORE UPDATE ON donation
+CREATE TRIGGER check_contribution_update
+BEFORE UPDATE ON contribution
 FOR EACH ROW
 WHEN (
     NEW.affiliation_id IS NOT NULL
     AND NEW.amount IS NOT NULL
 )
-EXECUTE PROCEDURE validate_donation_update();
+EXECUTE PROCEDURE validate_contribution_update();
 
-CREATE FUNCTION validate_donation_delete()
+CREATE FUNCTION validate_contribution_delete()
 RETURNS TRIGGER AS $$
 BEGIN
     IF (
@@ -515,25 +515,25 @@ BEGIN
         WHERE affiliation_id = OLD.affiliation_id
     ) > (
         SELECT SUM(amount) - OLD.amount
-        FROM donation
+        FROM contribution
         WHERE affiliation_id = OLD.affiliation_id
     ) THEN
-        RAISE EXCEPTION 'This delete is prohibited because it would make the affiliation''s total donation amount less than what''s required for its current membership type.';
+        RAISE EXCEPTION 'This delete is prohibited because it would make the affiliation''s total contribution amount less than what''s required for its current membership type.';
     END IF;
     
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER check_donation_delete
-BEFORE DELETE ON donation
+CREATE TRIGGER check_contribution_delete
+BEFORE DELETE ON contribution
 FOR EACH ROW
-EXECUTE PROCEDURE validate_donation_delete();
+EXECUTE PROCEDURE validate_contribution_delete();
 
 CREATE FUNCTION validate_affiliation_insert()
 RETURNS TRIGGER AS $$
 BEGIN
-    RAISE EXCEPTION 'You cannot create an affiliation with a NOT NULL membership type. It will not have requisite donations at the time of creation.';
+    RAISE EXCEPTION 'You cannot create an affiliation with a NOT NULL membership type. It will not have requisite contributions at the time of creation.';
 END;
 $$ LANGUAGE plpgsql;
 
@@ -546,18 +546,18 @@ EXECUTE PROCEDURE validate_affiliation_insert();
 CREATE FUNCTION validate_affiliation_update()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Check the membership donation sum
+    -- Check the membership contribution sum
     IF NEW.membership_type IS NOT NULL AND (
         SELECT membership_amount
         FROM membership_type_parameters
         WHERE year = NEW.year
         AND membership_type = NEW.membership_type
     ) < (
-        SELECT COUNT(*) affiliation_donation_sum
-        FROM donation
+        SELECT COUNT(*) affiliation_contribution_sum
+        FROM contribution
         WHERE affiliation_id = NEW.affiliation_id
     ) THEN
-        RAISE EXCEPTION 'This change is prohibited because the total donation sum is not sufficient to support the affiliation''s current membership type.';
+        RAISE EXCEPTION 'This change is prohibited because the total contribution sum is not sufficient to support the affiliation''s current membership type.';
     END IF;
 
     -- Check the membership max person limit
@@ -725,7 +725,7 @@ WHEN (
 EXECUTE PROCEDURE validate_affiliation_person_update();
 
 CREATE TABLE voter_registration (
-    year SMALLINT NOT NULL REFERENCES affiliation_year (affiliation_year) ON DELETE CASCADE ON UPDATE CASCADE,
+    year SMALLINT NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
     person_id INTEGER NOT NULL REFERENCES person (person_id) ON DELETE CASCADE ON UPDATE CASCADE,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW(),
@@ -792,10 +792,12 @@ SELECT DISTINCT email_address
 FROM person
 INNER JOIN person_email USING (person_id)
 WHERE person_id IN (
-    -- Anyone who was affiliated within the last two years
+    -- Anyone who was connected with a contributing affiliation within the
+    -- last two years
     SELECT person_id
     FROM affiliation_person
     INNER JOIN affiliation USING (affiliation_id)
+    INNER JOIN contribution USING (affiliation_id)
     WHERE year IN (
         date_part('year', CURRENT_DATE) - 1,
         date_part('year', CURRENT_DATE)

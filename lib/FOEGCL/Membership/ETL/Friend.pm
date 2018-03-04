@@ -4,11 +4,11 @@ package FOEGCL::Membership::ETL::Friend;
 
 use FOEGCL::Membership::Moose;
 
-use FOEGCL::Membership::ETL::Friend::Addresses                ();
-use FOEGCL::Membership::ETL::Friend::ContactDetails           ();
-use FOEGCL::Membership::ETL::Friend::AffiliationsAndDonations ();
-use FOEGCL::Membership::ETL::Friend::Participation            ();
-use FOEGCL::Membership::ETL::Friend::People                   ();
+use FOEGCL::Membership::ETL::Friend::Addresses                    ();
+use FOEGCL::Membership::ETL::Friend::ContactDetails               ();
+use FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions ();
+use FOEGCL::Membership::ETL::Friend::Participation                ();
+use FOEGCL::Membership::ETL::Friend::People                       ();
 
 has legacy_friend => (
     is       => 'ro',
@@ -35,7 +35,7 @@ sub etl ( $self ) {
         @people,
     );
 
-    FOEGCL::Membership::ETL::Friend::AffiliationsAndDonations->new->etl(
+    FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions->new->etl(
         $self->legacy_friend,
         @people,
     );

@@ -1,6 +1,6 @@
-package FOEGCL::Membership::ETL::Friend::AffiliationsAndDonations;
+package FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions;
 
-# ABSTRACT: Extract, transform and load a Friend's annual affiliations and donations
+# ABSTRACT: Extract, transform and load a Friend's annual affiliations and contributions
 
 use FOEGCL::Membership::Moose;
 
@@ -43,10 +43,10 @@ sub etl ( $self, $legacy_friend, @people ) {
             }
         );
 
-        # Relate the donations to the membership
-        my $donation_rs = $self->_schema->resultset('Donation');
+        # Relate the contributions to the membership
+        my $contribution_rs = $self->_schema->resultset('Contribution');
         foreach my $amount (@donation_amounts) {
-            $donation_rs->create(
+            $contribution_rs->create(
                 {
                     affiliation_id => $affiliation->id,
                     amount         => $amount,

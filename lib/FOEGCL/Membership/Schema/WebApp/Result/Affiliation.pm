@@ -183,17 +183,17 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 donations
+=head2 contributions
 
 Type: has_many
 
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Donation>
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::Contribution>
 
 =cut
 
 __PACKAGE__->has_many(
-  "donations",
-  "FOEGCL::Membership::Schema::WebApp::Result::Donation",
+  "contributions",
+  "FOEGCL::Membership::Schema::WebApp::Result::Contribution",
   { "foreign.affiliation_id" => "self.affiliation_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -229,13 +229,13 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear>
 __PACKAGE__->belongs_to(
   "year",
   "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear",
-  { affiliation_year => "year" },
+  { year => "year" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ntTlzSHdzTlkvb4uYxc+Dw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-03-03 21:15:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Dbl3WTx1Pw0Z6fpHHn4Zdg
 
 sub people ( $self ) {
     return $self->result_source->schema->resultset('Person')->search_rs(

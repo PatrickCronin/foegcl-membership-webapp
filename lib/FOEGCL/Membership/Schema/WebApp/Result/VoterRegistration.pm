@@ -147,13 +147,13 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear>
 __PACKAGE__->belongs_to(
   "year",
   "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear",
-  { affiliation_year => "year" },
+  { year => "year" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EDRL2V+tT/Tc5q/qXvqV+g
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-03-03 21:15:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7oo9x3gjwY+UO8Ize6pewg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

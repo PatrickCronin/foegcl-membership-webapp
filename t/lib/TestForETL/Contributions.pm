@@ -1,4 +1,4 @@
-package TestForETL::Donations;
+package TestForETL::Contributions;
 
 use FOEGCL::Membership::Test::Class::Moose;
 
@@ -11,13 +11,13 @@ with(
     'TestRole::TestsETL',
 );
 
-sub test_annual_donations ( $self, @ ) {
-    my @migrated_annual_donations
-        = $self->_schema->resultset('Donation')->search_rs(
+sub test_annual_contributions ( $self, @ ) {
+    my @migrated_annual_contributions
+        = $self->_schema->resultset('Contribution')->search_rs(
         {},
         {
             select    => [ { sum => 'amount' } ],
-            as        => ['donation_sum'],
+            as        => ['contribution_sum'],
             join      => 'affiliation',
             '+select' => ['affiliation.year'],
             '+as'     => ['year'],
@@ -25,10 +25,10 @@ sub test_annual_donations ( $self, @ ) {
         },
         )->hri->all;
 
-    my %migrated = map { $_->{year} => 0 + $_->{donation_sum} }
-        @migrated_annual_donations;
+    my %migrated = map { $_->{year} => 0 + $_->{contribution_sum} }
+        @migrated_annual_contributions;
 
-    my @legacy_annual_donations
+    my @legacy_annual_contributions
         = $self->_legacy_schema->resultset('Donation')->search_rs(
         {},
         {
@@ -39,19 +39,19 @@ sub test_annual_donations ( $self, @ ) {
         )->hri->all;
 
     my %legacy = map { $_->{year} => 0 + $_->{donation_sum} }
-        @legacy_annual_donations;
+        @legacy_annual_contributions;
 
-    eq_or_diff( \%migrated, \%legacy, 'Annual donation sums are equal' );
+    eq_or_diff( \%migrated, \%legacy, 'Annual contribution sums are equal' );
 }
 
-sub test_annual_donations_per_friend ( $self, @ ) {
-    my @migrated_affiliation_donation_aggregates
-        = apply { $_->{AnnualDonation} += 0 }
-    $self->_schema->resultset('Donation')->search_rs(
+sub test_annual_contributions_per_friend ( $self, @ ) {
+    my @migrated_affiliation_contribution_aggregates
+        = apply { $_->{Annualcontribution} += 0 }
+    $self->_schema->resultset('Contribution')->search_rs(
         {},
         {
             select => [ { sum => 'amount' } ],
-            as     => ['AnnualDonation'],
+            as     => ['Annualcontribution'],
             join   => 'affiliation',
             '+select' => [ 'affiliation.friend_id', 'affiliation.year' ],
             '+as'     => [ 'FriendID',              'Year' ],
@@ -64,18 +64,18 @@ sub test_annual_donations_per_friend ( $self, @ ) {
         = $self->_legacy_schema->resultset('Donation')->search_rs(
         {},
         {
-            select => [ 'FriendID', 'Year', { sum => 'Donation' } ],
-            as       => [ 'FriendID',           'Year', 'AnnualDonation' ],
+            select => [ 'FriendID', 'Year', { sum => 'donation' } ],
+            as       => [ 'FriendID',           'Year', 'Annualcontribution' ],
             group_by => [ 'FriendID',           'Year' ],
-            having   => \[ 'sum(Donation) > ?', 0 ],
+            having   => \[ 'sum(donation) > ?', 0 ],
             order_by => [ 'FriendID',           'Year' ],
         }
         )->hri->all;
 
     eq_or_diff(
-        \@migrated_affiliation_donation_aggregates,
+        \@migrated_affiliation_contribution_aggregates,
         \@legacy_friend_donation_aggregates,
-        'Annual donations for all Friends are equal'
+        'Annual contributions for all Friends are equal'
     );
 }
 
