@@ -18,7 +18,7 @@ sub test_blast_email_list ( $self, @ ) {
     my @legacy_blast_emails = sort
         map { $_->{Email_Address} }
         $self->_legacy_schema->resultset(
-        'ActiveRecentlyDonatingMembershipEmailAddress')->hri->all;
+        'ActiveRecentlyDonatingMembershipEmailAddresses2018')->hri->all;
 
     eq_or_diff(
         \@migrated_blast_emails,
