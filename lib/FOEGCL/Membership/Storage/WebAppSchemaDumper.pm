@@ -12,7 +12,17 @@ sub _build_db_config ( $self, @ ) {
 
 sub _build_loader_options ( $self, @ ) {
     return {
-        db_schema    => 'public',
+        db_schema => 'public',
+        exclude   => qr/
+            \A
+            (?:
+                report_contributing_friends_annual_friend_contribution_agg
+                | report_contributing_friends_earliest_friend_contributions
+                | report_contributing_friends_renewees
+                | report_contributing_friends_refreshees
+            )
+            \z
+        /x,
         rel_name_map => {
             CityStateZip => {
                 state_abbr => 'state',    # CityStateZip.state => State

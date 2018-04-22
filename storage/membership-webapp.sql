@@ -875,26 +875,48 @@ LEFT JOIN aggregated_email USING (person_id)
 LEFT JOIN aggregated_phone USING (person_id)
 ORDER BY last_name, first_name;
 
--- should this be in terms of "friend_id" or "affiliation_id"?
--- affiliation_id doesn't span years
+CREATE VIEW report_contributing_friends_annual_friend_contribution_agg AS
+SELECT
+    year,
+    friend_id,
+    SUM(amount) AS "Total Contributed",
+    COALESCE(membership_amount, 0) AS "Of that, Membership",
+    SUM(amount) - COALESCE(membership_amount, 0) AS "Additional Donations",
+    COUNT(amount) AS "Number of Contributions"
+FROM contribution
+INNER JOIN affiliation USING (affiliation_id)
+LEFT JOIN membership_type_parameters USING (year, membership_type)
+GROUP BY year, friend_id, membership_amount;
+
+CREATE VIEW report_contributing_friends_earliest_friend_contributions AS
+SELECT friend_id, min(year) AS first_contribution_year
+FROM affiliation
+INNER JOIN contribution USING (affiliation_id)
+GROUP BY friend_id;
+
+CREATE VIEW report_contributing_friends_renewees AS
+SELECT
+    base_year.year AS year,
+    base_year.friend_id AS renewee_friend_id
+FROM report_contributing_friends_annual_friend_contribution_agg AS base_year
+INNER JOIN report_contributing_friends_annual_friend_contribution_agg AS last_year
+ON base_year.friend_id = last_year.friend_id
+AND base_year.year - 1 = last_year.year;
+
+CREATE VIEW report_contributing_friends_refreshees AS
+SELECT
+    base_year.year AS year,
+    base_year.friend_id refreshee_friend_id
+FROM report_contributing_friends_annual_friend_contribution_agg AS base_year
+INNER JOIN report_contributing_friends_earliest_friend_contributions
+    ON base_year.friend_id = report_contributing_friends_earliest_friend_contributions.friend_id
+    AND base_year.year > first_contribution_year
+LEFT JOIN report_contributing_friends_annual_friend_contribution_agg AS last_year
+ON base_year.friend_id = last_year.friend_id
+AND base_year.year - 1 = last_year.year
+WHERE last_year.year IS NULL;
 
 CREATE VIEW report_contributing_friends AS
-WITH annual_friend_contribution_agg AS (
-    SELECT
-        year,
-        friend_id,
-        SUM(amount) AS "Total Contributed",
-        COUNT(amount) AS "Number of Contributions"
-    FROM contribution
-    JOIN affiliation USING (affiliation_id)
-    GROUP BY year, friend_id
-),
-earliest_friend_contributions AS (
-    SELECT friend_id, min(year) AS first_contribution_year
-    FROM affiliation
-    INNER JOIN contribution USING (affiliation_id)
-    GROUP BY friend_id
-)
 SELECT
     year,
     "Contributing Friends",
@@ -902,6 +924,8 @@ SELECT
     "Refreshees",
     "First Timers",
     "Total Contributed",
+    "Of that, Membership",
+    "Additional Donations",
     "Number of Contributions"
 FROM affiliation_year
 LEFT JOIN (
@@ -909,45 +933,31 @@ LEFT JOIN (
         year,
         COUNT(*) "Contributing Friends",
         SUM("Total Contributed") AS "Total Contributed",
+        SUM("Of that, Membership") AS "Of that, Membership",
+        SUM("Additional Donations") AS "Additional Donations",
         SUM("Number of Contributions") AS "Number of Contributions"
-    FROM annual_friend_contribution_agg
+    FROM report_contributing_friends_annual_friend_contribution_agg
     GROUP BY year
 ) annual_all_friend_contribution_agg USING (year)
 LEFT JOIN (
-    SELECT
-        base_year.year AS year,
-        COUNT(base_year.friend_id) AS "Renewees"
-    FROM annual_friend_contribution_agg AS base_year
-    INNER JOIN annual_friend_contribution_agg AS last_year
-    ON base_year.friend_id = last_year.friend_id
-    AND base_year.year - 1 = last_year.year
-    GROUP BY base_year.year
+    SELECT year, COUNT(renewee_friend_id) AS "Renewees"
+    FROM report_contributing_friends_renewees
+    GROUP BY year
 ) annual_renewals_agg USING (year)
 LEFT JOIN (
-    SELECT year, COUNT(base_year.friend_id) AS "Refreshees"
-    FROM annual_friend_contribution_agg as base_year
-    INNER JOIN earliest_friend_contributions
-        ON base_year.friend_id = earliest_friend_contributions.friend_id
-        AND base_year.year > first_contribution_year
-    -- TODO: Get this out of a subselect
-    WHERE NOT EXISTS (
-        SELECT 1
-        FROM annual_friend_contribution_agg AS last_year
-        WHERE base_year.friend_id = last_year.friend_id
-        AND base_year.year - 1 = last_year.year
-    )
+    SELECT year, COUNT(refreshee_friend_id) AS "Refreshees"
+    FROM report_contributing_friends_refreshees
     GROUP BY year
-) annual_returnees_agg USING (year)
+) annual_refreshees_agg USING (year)
 LEFT JOIN (
     SELECT
         first_contribution_year AS year,
         COUNT(friend_id) AS "First Timers"
-    FROM earliest_friend_contributions
+    FROM report_contributing_friends_earliest_friend_contributions
     GROUP BY first_contribution_year
 ) first_timers_agg USING (year)
 WHERE year <= date_part('year', CURRENT_DATE)
-ORDER BY year
-;
+ORDER BY year;
 
 -- CREATE VIEW person_finder AS
 -- SELECT

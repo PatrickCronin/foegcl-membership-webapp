@@ -54,7 +54,7 @@ __PACKAGE__->table_class("DBIx::Class::ResultSource::View");
 =cut
 
 __PACKAGE__->table("report_contributing_friends");
-__PACKAGE__->result_source_instance->view_definition(" WITH annual_friend_contribution_agg AS (\n         SELECT affiliation.year,\n            affiliation.friend_id,\n            sum(contribution.amount) AS \"Total Contributed\",\n            count(contribution.amount) AS \"Number of Contributions\"\n           FROM (contribution\n             JOIN affiliation USING (affiliation_id))\n          GROUP BY affiliation.year, affiliation.friend_id\n        ), earliest_friend_contributions AS (\n         SELECT affiliation.friend_id,\n            min(affiliation.year) AS first_contribution_year\n           FROM (affiliation\n             JOIN contribution USING (affiliation_id))\n          GROUP BY affiliation.friend_id\n        )\n SELECT affiliation_year.year,\n    annual_all_friend_contribution_agg.\"Contributing Friends\",\n    annual_renewals_agg.\"Renewees\",\n    annual_returnees_agg.\"Refreshees\",\n    first_timers_agg.\"First Timers\",\n    annual_all_friend_contribution_agg.\"Total Contributed\",\n    annual_all_friend_contribution_agg.\"Number of Contributions\"\n   FROM ((((affiliation_year\n     LEFT JOIN ( SELECT annual_friend_contribution_agg.year,\n            count(*) AS \"Contributing Friends\",\n            sum(annual_friend_contribution_agg.\"Total Contributed\") AS \"Total Contributed\",\n            sum(annual_friend_contribution_agg.\"Number of Contributions\") AS \"Number of Contributions\"\n           FROM annual_friend_contribution_agg\n          GROUP BY annual_friend_contribution_agg.year) annual_all_friend_contribution_agg USING (year))\n     LEFT JOIN ( SELECT base_year.year,\n            count(base_year.friend_id) AS \"Renewees\"\n           FROM (annual_friend_contribution_agg base_year\n             JOIN annual_friend_contribution_agg last_year ON (((base_year.friend_id = last_year.friend_id) AND ((base_year.year - 1) = last_year.year))))\n          GROUP BY base_year.year) annual_renewals_agg USING (year))\n     LEFT JOIN ( SELECT base_year.year,\n            count(base_year.friend_id) AS \"Refreshees\"\n           FROM (annual_friend_contribution_agg base_year\n             JOIN earliest_friend_contributions ON (((base_year.friend_id = earliest_friend_contributions.friend_id) AND (base_year.year > earliest_friend_contributions.first_contribution_year))))\n          WHERE (NOT (EXISTS ( SELECT 1\n                   FROM annual_friend_contribution_agg last_year\n                  WHERE ((base_year.friend_id = last_year.friend_id) AND ((base_year.year - 1) = last_year.year)))))\n          GROUP BY base_year.year) annual_returnees_agg USING (year))\n     LEFT JOIN ( SELECT earliest_friend_contributions.first_contribution_year AS year,\n            count(earliest_friend_contributions.friend_id) AS \"First Timers\"\n           FROM earliest_friend_contributions\n          GROUP BY earliest_friend_contributions.first_contribution_year) first_timers_agg USING (year))\n  WHERE ((affiliation_year.year)::double precision <= date_part('year'::text, ('now'::text)::date))\n  ORDER BY affiliation_year.year");
+__PACKAGE__->result_source_instance->view_definition(" SELECT affiliation_year.year,\n    annual_all_friend_contribution_agg.\"Contributing Friends\",\n    annual_renewals_agg.\"Renewees\",\n    annual_refreshees_agg.\"Refreshees\",\n    first_timers_agg.\"First Timers\",\n    annual_all_friend_contribution_agg.\"Total Contributed\",\n    annual_all_friend_contribution_agg.\"Of that, Membership\",\n    annual_all_friend_contribution_agg.\"Additional Donations\",\n    annual_all_friend_contribution_agg.\"Number of Contributions\"\n   FROM ((((affiliation_year\n     LEFT JOIN ( SELECT report_contributing_friends_annual_friend_contribution_agg.year,\n            count(*) AS \"Contributing Friends\",\n            sum(report_contributing_friends_annual_friend_contribution_agg.\"Total Contributed\") AS \"Total Contributed\",\n            sum(report_contributing_friends_annual_friend_contribution_agg.\"Of that, Membership\") AS \"Of that, Membership\",\n            sum(report_contributing_friends_annual_friend_contribution_agg.\"Additional Donations\") AS \"Additional Donations\",\n            sum(report_contributing_friends_annual_friend_contribution_agg.\"Number of Contributions\") AS \"Number of Contributions\"\n           FROM report_contributing_friends_annual_friend_contribution_agg\n          GROUP BY report_contributing_friends_annual_friend_contribution_agg.year) annual_all_friend_contribution_agg USING (year))\n     LEFT JOIN ( SELECT report_contributing_friends_renewees.year,\n            count(report_contributing_friends_renewees.renewee_friend_id) AS \"Renewees\"\n           FROM report_contributing_friends_renewees\n          GROUP BY report_contributing_friends_renewees.year) annual_renewals_agg USING (year))\n     LEFT JOIN ( SELECT report_contributing_friends_refreshees.year,\n            count(report_contributing_friends_refreshees.refreshee_friend_id) AS \"Refreshees\"\n           FROM report_contributing_friends_refreshees\n          GROUP BY report_contributing_friends_refreshees.year) annual_refreshees_agg USING (year))\n     LEFT JOIN ( SELECT report_contributing_friends_earliest_friend_contributions.first_contribution_year AS year,\n            count(report_contributing_friends_earliest_friend_contributions.friend_id) AS \"First Timers\"\n           FROM report_contributing_friends_earliest_friend_contributions\n          GROUP BY report_contributing_friends_earliest_friend_contributions.first_contribution_year) first_timers_agg USING (year))\n  WHERE ((affiliation_year.year)::double precision <= date_part('year'::text, ('now'::text)::date))\n  ORDER BY affiliation_year.year");
 
 =head1 ACCESSORS
 
@@ -93,6 +93,18 @@ __PACKAGE__->result_source_instance->view_definition(" WITH annual_friend_contri
   data_type: 'numeric'
   is_nullable: 1
 
+=head2 Of that, Membership
+
+  accessor: 'of_that_membership'
+  data_type: 'numeric'
+  is_nullable: 1
+
+=head2 Additional Donations
+
+  accessor: 'additional_donations'
+  data_type: 'numeric'
+  is_nullable: 1
+
 =head2 Number of Contributions
 
   accessor: 'number_of_contributions'
@@ -122,6 +134,18 @@ __PACKAGE__->add_columns(
     data_type   => "numeric",
     is_nullable => 1,
   },
+  "Of that, Membership",
+  {
+    accessor    => "of_that_membership",
+    data_type   => "numeric",
+    is_nullable => 1,
+  },
+  "Additional Donations",
+  {
+    accessor    => "additional_donations",
+    data_type   => "numeric",
+    is_nullable => 1,
+  },
   "Number of Contributions",
   {
     accessor    => "number_of_contributions",
@@ -131,8 +155,8 @@ __PACKAGE__->add_columns(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-04-19 22:37:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sg69yrcgNjmeTArp5QRTtQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-04-22 22:07:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kyncIB3/1DnLR1GvBEhE+Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
