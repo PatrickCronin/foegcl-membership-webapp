@@ -16,8 +16,8 @@ use Params::ValidationCompiler 'validation_for';
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
 sub etl ( $self, $legacy_friend, @people ) {
-    my %donations_by_year = partition_by { $_->year }
-    $legacy_friend->donations->all;
+    my %donations_by_year
+        = partition_by { $_->year } $legacy_friend->donations->all;
 
     foreach my $year ( keys %donations_by_year ) {
 
@@ -100,9 +100,12 @@ sub _qualifying_membership_type_for ( $self, @args ) {
 
     my @potential_membership_types
         = $self->_schema->resultset('MembershipTypeParameter')->search_rs(
-        { membership_amount => { '<=' => $donation_sum } },
-        { order_by          => 'membership_max_people' },
-        )->all;
+        {
+            year              => $year,
+            membership_amount => { '<=' => $donation_sum }
+        },
+        { order_by => 'membership_max_people' },
+    )->all;
 
     return undef if @potential_membership_types == 0;
     return $potential_membership_types[0]
