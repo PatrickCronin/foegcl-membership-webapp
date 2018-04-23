@@ -28,8 +28,9 @@ Triggers are used to support the following business rules that are not naturally
     * Deletes that disqualify a membership's donation sum requirement are blocked. (Done)
 
 ### Affiliations
+
 * INSERT Triggers
-    * Inserts including a NOT NULL membership_type will be blocked.
+    * Inserts including a NOT NULL membership_type will be blocked. (Done)
 * UPDATE Triggers
     * Updates changing the affiliation's membership type to something that would break the donation sum requirement or maximum person requirement are blocked (Done)
 
