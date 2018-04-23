@@ -15,8 +15,7 @@ sub _build_loader_options ( $self, @ ) {
         constraint => qr/
             \A
             (?:
-                ActiveRecentlyDonatingMembershipEmailAddresses2017
-                | ActiveRecentlyDonatingMembershipEmailAddresses2018
+                ActiveRecentlyDonatingMembershipEmailAddresses2018
                 | CityStateZip
                 | Configuration
                 | ContactInfo
