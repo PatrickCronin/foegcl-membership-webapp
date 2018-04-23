@@ -10,19 +10,21 @@ with(
 );
 
 sub test_blast_email_list ( $self, @ ) {
-    my @migrated_blast_emails = sort
-        map { $_->{email_address} }
-        $self->_schema->resultset('ReportBlastEmailList')->hri->all;
+    my @migrated_blast_emails
+        = sort $self->_dbh->selectcol_arrayref(<<'SQL')->@*;
+            SELECT email_address
+            FROM report_blast_email_list_by_contribution
+SQL
 
-    my @legacy_blast_emails = sort
-        map { $_->{Email_Address} }
+    my @legacy_blast_emails
+        = sort map { $_->{Email_Address} }
         $self->_legacy_schema->resultset(
         'ActiveRecentlyDonatingMembershipEmailAddresses2018')->hri->all;
 
     eq_or_diff(
         \@migrated_blast_emails,
         \@legacy_blast_emails,
-        'blast email lists are the same.'
+        'blast email lists by contribution are identical'
     );
 }
 

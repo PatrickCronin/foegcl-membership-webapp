@@ -780,39 +780,49 @@ CREATE TABLE app_role_has_privilege (
 
 CREATE INDEX app_role_has_privilege__privilege_id ON app_role_has_privilege (privilege_id);
 
-CREATE VIEW report_blast_email_list AS
+-- Anyone who was connected with a contributing affiliation within the
+-- last two calendar years. Separated to enable testing.
+CREATE VIEW report_blast_email_list_by_contribution AS
 SELECT DISTINCT email_address
-FROM person
+FROM contribution
+INNER JOIN affiliation USING (affiliation_id)
+INNER JOIN affiliation_person USING (affiliation_id)
+INNER JOIN person USING (person_id)
 INNER JOIN person_email USING (person_id)
-WHERE person_id IN (
-    -- Anyone who was connected with a contributing affiliation within the
-    -- last two years
-    SELECT person_id
-    FROM affiliation_person
-    INNER JOIN affiliation USING (affiliation_id)
-    INNER JOIN contribution USING (affiliation_id)
-    WHERE year IN (
-        date_part('year', CURRENT_DATE) - 1,
-        date_part('year', CURRENT_DATE)
-    )
-
-    UNION ALL
-
-    -- Anyone who has an active interest
-    SELECT person_id
-    FROM participation_interest
-
-    UNION ALL
-
-    -- Anyone who participated in something within the last two years
-    SELECT person_id
-    FROM participation_record
-    WHERE year IN (
-        date_part('year', CURRENT_DATE) - 1,
-        date_part('year', CURRENT_DATE)
-    )
+WHERE year IN (
+    date_part('year', CURRENT_DATE) - 1,
+    date_part('year', CURRENT_DATE)
 )
 AND opted_out = false;
+
+-- Anyone who has an active interest. Separated to enable testing.
+CREATE VIEW report_blast_email_list_by_interest AS
+SELECT DISTINCT email_address
+FROM participation_interest
+INNER JOIN person USING (person_id)
+INNER JOIN person_email USING (person_id)
+WHERE opted_out = false;
+
+-- Anyone who participated in something within the last two calendar years.
+-- Separated to enable testing.
+CREATE VIEW report_blast_email_list_by_participation AS
+SELECT DISTINCT email_address
+FROM participation_record
+INNER JOIN person USING (person_id)
+INNER JOIN person_email USING (person_id)
+WHERE year IN (
+    date_part('year', CURRENT_DATE) - 1,
+    date_part('year', CURRENT_DATE)
+)
+AND opted_out = false;
+
+CREATE VIEW report_blast_email_list AS
+SELECT email_address FROM report_blast_email_list_by_contribution
+UNION
+SELECT email_address FROM report_blast_email_list_by_interest
+UNION
+SELECT email_address FROM report_blast_email_list_by_participation
+ORDER BY email_address;
 
 CREATE FUNCTION format_phone_number (phone_number VARCHAR(32))
 RETURNS VARCHAR(32)

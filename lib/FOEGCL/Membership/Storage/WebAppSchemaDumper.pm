@@ -13,16 +13,21 @@ sub _build_db_config ( $self, @ ) {
 sub _build_loader_options ( $self, @ ) {
     return {
         db_schema => 'public',
-        exclude   => qr/
+        ## no critic (RegularExpressions::ProhibitComplexRegexes)
+        exclude => qr/
             \A
             (?:
-                report_contributing_friends_annual_friend_contribution_agg
+                report_blast_email_list_by_contribution
+                | report_blast_email_list_by_interest
+                | report_blast_email_list_by_participation
+                | report_contributing_friends_annual_friend_contribution_agg
                 | report_contributing_friends_earliest_friend_contributions
                 | report_contributing_friends_renewees
                 | report_contributing_friends_refreshees
             )
             \z
         /x,
+        ## use critic
         rel_name_map => {
             CityStateZip => {
                 state_abbr => 'state',    # CityStateZip.state => State
