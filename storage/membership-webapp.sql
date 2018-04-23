@@ -872,10 +872,10 @@ CREATE VIEW report_contributing_friends_annual_friend_contribution_agg AS
 SELECT
     year,
     friend_id,
-    COALESCE(SUM(amount), 0) AS "Total Contributed",
-    COALESCE(membership_amount, 0) AS "Of that, Membership",
-    COALESCE(SUM(amount), 0) - COALESCE(membership_amount, 0) AS "Additional Donations",
-    COUNT(amount) AS "Number of Contributions"
+    COALESCE(SUM(amount), 0) AS total_contributed,
+    COALESCE(membership_amount, 0) AS membership_portion_of_contributions,
+    COALESCE(SUM(amount), 0) - COALESCE(membership_amount, 0) AS donation_portion_of_contributions,
+    COUNT(amount) AS number_of_contributions
 FROM contribution
 INNER JOIN affiliation USING (affiliation_id)
 LEFT JOIN membership_type_parameters USING (year, membership_type)
@@ -911,41 +911,41 @@ WHERE last_year.year IS NULL;
 
 CREATE VIEW report_contributing_friends AS
 SELECT
-    year,
-    "Contributing Friends",
-    "Renewees",
-    "Refreshees",
-    "First Timers",
-    "Total Contributed",
-    "Of that, Membership",
-    "Additional Donations",
-    "Number of Contributions"
+    year AS "Year",
+    number_of_contributing_friends AS "Contributing Friends",
+    number_of_renewees AS "Renewees",
+    number_of_refreshees AS "Refreshees",
+    number_of_first_timers AS "First Timers",
+    contribution_total AS "Total Contributed",
+    membership_portion AS "Membership Portion",
+    donation_portion AS "Donation Portion",
+    number_of_contributions AS "Number of Contributions"
 FROM affiliation_year
 LEFT JOIN (
     SELECT
         year,
-        COUNT(*) "Contributing Friends",
-        COALESCE(SUM("Total Contributed"), 0) AS "Total Contributed",
-        COALESCE(SUM("Of that, Membership"), 0) AS "Of that, Membership",
-        COALESCE(SUM("Additional Donations"), 0) AS "Additional Donations",
-        COALESCE(SUM("Number of Contributions"), 0) AS "Number of Contributions"
+        COUNT(*) number_of_contributing_friends,
+        COALESCE(SUM(total_contributed), 0) AS contribution_total,
+        COALESCE(SUM(membership_portion_of_contributions), 0) AS membership_portion,
+        COALESCE(SUM(donation_portion_of_contributions), 0) AS donation_portion,
+        COALESCE(SUM(number_of_contributions), 0) AS number_of_contributions
     FROM report_contributing_friends_annual_friend_contribution_agg
     GROUP BY year
 ) annual_all_friend_contribution_agg USING (year)
 LEFT JOIN (
-    SELECT year, COUNT(renewee_friend_id) AS "Renewees"
+    SELECT year, COUNT(renewee_friend_id) AS number_of_renewees
     FROM report_contributing_friends_renewees
     GROUP BY year
 ) annual_renewals_agg USING (year)
 LEFT JOIN (
-    SELECT year, COUNT(refreshee_friend_id) AS "Refreshees"
+    SELECT year, COUNT(refreshee_friend_id) AS number_of_refreshees
     FROM report_contributing_friends_refreshees
     GROUP BY year
 ) annual_refreshees_agg USING (year)
 LEFT JOIN (
     SELECT
         first_contribution_year AS year,
-        COUNT(friend_id) AS "First Timers"
+        COUNT(friend_id) AS number_of_first_timers
     FROM report_contributing_friends_earliest_friend_contributions
     GROUP BY first_contribution_year
 ) first_timers_agg USING (year)

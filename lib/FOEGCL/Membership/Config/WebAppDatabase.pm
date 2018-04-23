@@ -77,6 +77,8 @@ sub _build_dbi_attributes ( $self, @ ) {
         RaiseError => 1,
         PrintError => 1,
         PrintWarn  => 1,
+        quote_char => q{"},
+        name_sep   => q{.},
     };
 }
 
