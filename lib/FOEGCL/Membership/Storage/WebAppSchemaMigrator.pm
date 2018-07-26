@@ -14,10 +14,19 @@ use IO::Prompt 'prompt';
 # object attributes
 use FOEGCL::Membership::Config ();
 
-# Create the attribute defaults for the WebApp database
-my $db_config = FOEGCL::Membership::Config::WebAppDatabase->instance;
+has 'db_config' => (
+    is      => 'ro',
+    isa     => 'FOEGCL::Membership::Config::WebAppDatabase',
+    lazy    => 1,
+    default => sub { FOEGCL::Membership::Config::WebAppDatabase->instance },
+);
+
+# Setup the attribute defaults for the WebApp database
 for my $attr (qw( database host username password port )) {
-    has "+$attr" => ( default => sub { $db_config->$attr } );
+    has "+$attr" => (
+        lazy    => 1,
+        default => sub { shift->db_config->$attr },
+    );
 }
 
 # Create the attribute defaults for the migration
@@ -41,15 +50,19 @@ has 'drop_first' => (
     documentation => 'whether or not the database should be dropped first',
 );
 
-sub _build_dbh {
-    my ( $dsn, $username, $password, $dbi_attributes, $extra_attributes )
-        = $db_config->connect_info;
 
-    $dbi_attributes->{$_} = 1
-        for qw( RaiseError PrintError PrintWarn ShowErrorStatement );
+sub _build_dbh ( $self, @ ) {
+    my @dbh_config = (
+        $self->db_config->dsn,
+        $self->db_config->username,
+        $self->db_config->password,
+        {
+            $self->db_config->dbi_attributes->%*,
+            ShowErrorStatement => 1,
+        },
+    );
 
-    my $dbh = DBI->connect( $dsn, $username, $password, $dbi_attributes );
-
+    my $dbh = DBI->connect(@dbh_config);
     $dbh->do('SET CLIENT_MIN_MESSAGES = ERROR');
 
     return $dbh;
