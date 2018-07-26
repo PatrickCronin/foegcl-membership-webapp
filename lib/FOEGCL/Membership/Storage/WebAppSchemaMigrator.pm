@@ -9,6 +9,7 @@ use DBI                                        ();
 use FOEGCL::Membership::Config::WebAppDatabase ();
 use FOEGCL::Membership::Types qw(Bool);
 use IO::Prompt 'prompt';
+use Try::Tiny 'try';
 
 # Don't use the role here as we need the config available before creating
 # object attributes
@@ -50,6 +51,9 @@ has 'drop_first' => (
     documentation => 'whether or not the database should be dropped first',
 );
 
+sub DEMOLISH ( $self, @ ) {
+    $self->clear_connection;
+}
 
 sub _build_dbh ( $self, @ ) {
     my @dbh_config = (
@@ -82,14 +86,47 @@ around 'create_or_update_database' => sub ( $orig, $self, @args ) {
     $self->$orig(@args);
 };
 
+sub database_exists ($self) { $self->_database_exists }
+
 sub drop_database ($self) {
+    if ( $self->database_exists ) {
+        $self->terminate_all_other_connections;
+        $self->clear_connection;
+        $self->_drop_database;
+    }
+}
+
+sub terminate_all_other_connections ($self) {
+    $self->dbh->do(
+        <<'SQL', undef, $self->database ) or die $self->dbh->errstr;
+        SELECT pg_terminate_backend(pid)
+        FROM pg_stat_activity
+        WHERE pid <> pg_backend_pid()
+        AND datname = ?
+SQL
+}
+
+sub get_connections ($self) {
+    $self->dbh->selectall_arrayref(
+        <<'SQL', { Slice => {} }, $self->database ) or die $self->dbh->errstr;
+        SELECT pid, pg_backend_pid() as my_pid, datname, state, query
+        FROM pg_stat_activity
+        WHERE pid <> pg_backend_pid()
+        AND datname = ?
+SQL
+}
+
+sub clear_connection ($self) {
     $self->_maybe_disconnect;
     $self->_clear_dbh;
-    $self->_drop_database;
 }
 
 sub _maybe_disconnect ( $self ) {
-    $self->dbh->disconnect if $self->dbh && $self->dbh->ping;
+    $self->dbh->disconnect if $self->_is_connected;
+}
+
+sub _is_connected ( $self ) {
+    return try { $self->dbh && $self->dbh->ping; 1; } || 0;
 }
 
 __PACKAGE__->meta->make_immutable;
