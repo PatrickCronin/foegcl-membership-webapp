@@ -2,15 +2,19 @@ package FOEGCL::Membership::Config::LegacyDatabase;
 
 use FOEGCL::Membership::Moose;
 
+use Const::Fast 'const';
+
 with qw(
     FOEGCL::Membership::Role::ConfiguresDatabase
     FOEGCL::Membership::Role::HasConfig
 );
 
+const my $LEGACY_DB_CONFIG_KEY => 'Legacy Database';
+
 sub _build_dsn ( $self, @ ) {
     return sprintf(
         'dbi:ADO:Provider=Microsoft.Jet.OLEDB.4.0;Data Source=%s',
-        $self->_config->{'Legacy Database'}->{filepath}
+        $self->_config->{$LEGACY_DB_CONFIG_KEY}{filepath}
     );
 }
 
