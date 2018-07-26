@@ -49,7 +49,10 @@ has schema_class_name => (
 
 requires qw( _build_dsn _build_schema_class_name );
 
-with 'FOEGCL::Membership::Role::Singleton';
+with qw(
+    FOEGCL::Membership::Role::VersionedSingleton
+    MooseX::Clone
+);
 
 sub _build_username ( $self, @ ) {
     return undef;

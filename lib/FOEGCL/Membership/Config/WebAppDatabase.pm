@@ -38,33 +38,16 @@ with qw(
     FOEGCL::Membership::Role::HasConfig
 );
 
-const my $PRODUCTION_CONFIG_KEY => 'WebApp Database Production';
-const my $TESTING_CONFIG_KEY    => 'WebApp Database Testing';
+const my $WEBAPP_DB_CONFIG_KEY => 'WebApp Database';
 
+# Note that the complete database name in Postgres should be 63 characters or
+# less.
 sub _build_database ( $self, @ ) {
     return $self->_db_config->{database};
 }
 
-# Vary the database information based on whether we're running under a test
-# harness or not.
 sub _build_db_config ( $self, @ ) {
-    return $self->_config->{$PRODUCTION_CONFIG_KEY}
-        if !$ENV{HARNESS_ACTIVE} || $ENV{TEST_PRODUCTION_DB};
-
-    # If under a test harness, replace the database name with one suitable for
-    # testing.
-    my $test_database_config = {
-        map {
-            $_ => $_ eq 'database'
-                ? ( $self->_config->{$TESTING_CONFIG_KEY}->{$_} . q{_}
-                    . time() . q{_}
-                    . $$ )
-                : $self->_config->{$TESTING_CONFIG_KEY}->{$_}
-            }
-            keys $self->_config->{$TESTING_CONFIG_KEY}->%*
-    };
-
-    return $test_database_config;
+    return $self->_config->{$WEBAPP_DB_CONFIG_KEY};
 }
 
 sub _build_host ( $self, @ ) {
@@ -76,11 +59,8 @@ sub _build_port ( $self, @ ) {
 }
 
 sub _build_dsn ( $self, @ ) {
-    return sprintf(
-        'dbi:Pg:dbname=%s;host=%s',
-        $self->_db_config->{database},
-        $self->_db_config->{host}
-    );
+    return
+        sprintf( 'dbi:Pg:dbname=%s;host=%s', $self->database, $self->host );
 }
 
 sub _build_username ( $self, @ ) {
