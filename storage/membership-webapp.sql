@@ -271,7 +271,7 @@ CREATE OR REPLACE FUNCTION next_friend_id()
 $$
 BEGIN
     IF NEW.friend_id IS NULL THEN
-        NEW.friend_id = (SELECT MAX(friend_id) + 1 FROM affiliation);
+        NEW.friend_id = (SELECT COALESCE(MAX(friend_id), 0) + 1 FROM affiliation);
     END IF;
     RETURN NEW;
 END;
@@ -485,7 +485,7 @@ BEGIN
         INNER JOIN membership_type_parameters USING (year, membership_type)
         WHERE affiliation_id = NEW.affiliation_id
     ) > (
-        SELECT SUM(amount) - OLD.amount + NEW.amount
+        SELECT COALESCE(SUM(amount), 0) - OLD.amount + NEW.amount
         FROM contribution
         WHERE affiliation_id = NEW.affiliation_id
     ) THEN
@@ -514,7 +514,7 @@ BEGIN
         INNER JOIN membership_type_parameters USING (year, membership_type)
         WHERE affiliation_id = OLD.affiliation_id
     ) > (
-        SELECT SUM(amount) - OLD.amount
+        SELECT COALESCE(SUM(amount), 0) - OLD.amount
         FROM contribution
         WHERE affiliation_id = OLD.affiliation_id
     ) THEN
@@ -552,12 +552,12 @@ BEGIN
         FROM membership_type_parameters
         WHERE year = NEW.year
         AND membership_type = NEW.membership_type
-    ) < (
-        SELECT COUNT(*) affiliation_contribution_sum
+    ) > (
+        SELECT COALESCE(SUM(amount), 0) affiliation_contribution_sum
         FROM contribution
         WHERE affiliation_id = NEW.affiliation_id
     ) THEN
-        RAISE EXCEPTION 'This change is prohibited because the total contribution sum is not sufficient to support the affiliation''s current membership type.';
+        RAISE EXCEPTION 'This change is prohibited because the total contribution sum is not sufficient to support the affiliation''s new membership type.';
     END IF;
 
     -- Check the membership max person limit
@@ -571,7 +571,7 @@ BEGIN
         FROM affiliation_person
         WHERE affiliation_id = NEW.affiliation_id
     ) THEN
-        RAISE EXCEPTION 'This change is prohibited because it would result in too many members for the affiliation''s membership type.';
+        RAISE EXCEPTION 'This change is prohibited because it would result in too many members for the affiliation''s new membership type.';
     END IF;
 
     RETURN NEW;
@@ -879,9 +879,9 @@ CREATE VIEW report_contributing_friends_annual_friend_contribution_agg AS
 SELECT
     year,
     friend_id,
-    SUM(amount) AS "Total Contributed",
+    COALESCE(SUM(amount), 0) AS "Total Contributed",
     COALESCE(membership_amount, 0) AS "Of that, Membership",
-    SUM(amount) - COALESCE(membership_amount, 0) AS "Additional Donations",
+    COALESCE(SUM(amount), 0) - COALESCE(membership_amount, 0) AS "Additional Donations",
     COUNT(amount) AS "Number of Contributions"
 FROM contribution
 INNER JOIN affiliation USING (affiliation_id)
@@ -932,10 +932,10 @@ LEFT JOIN (
     SELECT
         year,
         COUNT(*) "Contributing Friends",
-        SUM("Total Contributed") AS "Total Contributed",
-        SUM("Of that, Membership") AS "Of that, Membership",
-        SUM("Additional Donations") AS "Additional Donations",
-        SUM("Number of Contributions") AS "Number of Contributions"
+        COALESCE(SUM("Total Contributed"), 0) AS "Total Contributed",
+        COALESCE(SUM("Of that, Membership"), 0) AS "Of that, Membership",
+        COALESCE(SUM("Additional Donations"), 0) AS "Additional Donations",
+        COALESCE(SUM("Number of Contributions"), 0) AS "Number of Contributions"
     FROM report_contributing_friends_annual_friend_contribution_agg
     GROUP BY year
 ) annual_all_friend_contribution_agg USING (year)

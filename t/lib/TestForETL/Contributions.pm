@@ -22,7 +22,7 @@ sub test_annual_contributions ( $self, @ ) {
             '+as'     => ['year'],
             group_by  => ['year'],
         },
-        )->hri->all;
+    )->hri->all;
 
     my %migrated = map { $_->{year} => 0 + $_->{contribution_sum} }
         @migrated_annual_contributions;
@@ -35,7 +35,7 @@ sub test_annual_contributions ( $self, @ ) {
             as       => [ 'year', 'donation_sum' ],
             group_by => ['year'],
         },
-        )->hri->all;
+    )->hri->all;
 
     my %legacy = map { $_->{year} => 0 + $_->{donation_sum} }
         @legacy_annual_contributions;
@@ -49,13 +49,13 @@ sub test_annual_contributions_per_friend ( $self, @ ) {
     $self->_schema->resultset('Contribution')->search_rs(
         {},
         {
-            select => [ { sum => 'amount' } ],
-            as     => ['Annualcontribution'],
-            join   => 'affiliation',
+            select    => [ { sum => 'amount' } ],
+            as        => ['Annualcontribution'],
+            join      => 'affiliation',
             '+select' => [ 'affiliation.friend_id', 'affiliation.year' ],
-            '+as'     => [ 'FriendID',              'Year' ],
-            group_by  => [ 'friend_id',             'year', ],
-            order_by  => [ 'friend_id',             'year', ],
+            '+as'     => [ 'FriendID', 'Year' ],
+            group_by  => [ 'friend_id', 'year', ],
+            order_by  => [ 'friend_id', 'year', ],
         }
     )->hri->all;
 
@@ -64,12 +64,12 @@ sub test_annual_contributions_per_friend ( $self, @ ) {
         {},
         {
             select => [ 'FriendID', 'Year', { sum => 'donation' } ],
-            as       => [ 'FriendID',           'Year', 'Annualcontribution' ],
-            group_by => [ 'FriendID',           'Year' ],
+            as       => [ 'FriendID', 'Year', 'Annualcontribution' ],
+            group_by => [ 'FriendID', 'Year' ],
             having   => \[ 'sum(donation) > ?', 0 ],
             order_by => [ 'FriendID',           'Year' ],
         }
-        )->hri->all;
+    )->hri->all;
 
     eq_or_diff(
         \@migrated_affiliation_contribution_aggregates,

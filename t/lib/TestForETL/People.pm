@@ -158,7 +158,7 @@ sub _test_phones ( $legacy_friend, $migrated_person ) {
                 =~ s/\D//r,
             is_preferred => $_->{Preferred},
         }
-        } $legacy_friend->contact_infos->search_rs(
+    } $legacy_friend->contact_infos->search_rs(
         { 'Phone Number' => { '!=' => undef } } )->hri->all;
 
     eq_or_diff(
@@ -181,7 +181,7 @@ sub _test_emails ( $legacy_friend, $migrated_person ) {
             email        => $_->{'Email_Address'},
             is_preferred => $_->{Preferred},
         }
-        } $legacy_friend->contact_infos->search_rs(
+    } $legacy_friend->contact_infos->search_rs(
         { 'Email_Address' => { '!=' => undef } } )->hri->all;
 
     eq_or_diff(
@@ -198,14 +198,14 @@ sub _test_interests ( $legacy_friend, $migrated_person ) {
         'participation_role',
         {},
         { columns => ['role_name'] },
-        )->hri->all;
+    )->hri->all;
 
     my @legacy_roles
         = map { trim( $_->{Role} ) } $legacy_friend->roles->search_related(
         'role_type',
         { Historical => 0 },
         { columns    => ['Role'] },
-        )->hri->all;
+    )->hri->all;
 
     eq_or_diff(
         [ sort @migrated_roles ],
