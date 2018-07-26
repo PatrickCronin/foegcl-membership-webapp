@@ -8,7 +8,7 @@ extends 'Database::Migrator::Pg';
 use DBI                                        ();
 use FOEGCL::Membership::Config::WebAppDatabase ();
 use FOEGCL::Membership::Types qw(Bool);
-use IO::Prompt qw(prompt);
+use IO::Prompt 'prompt';
 
 # Don't use the role here as we need the config available before creating
 # object attributes
