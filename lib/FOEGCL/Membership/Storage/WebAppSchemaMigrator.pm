@@ -86,6 +86,14 @@ around 'create_or_update_database' => sub ( $orig, $self, @args ) {
     $self->$orig(@args);
 };
 
+sub copy_to ( $self, $to ) {
+    $self->dbh->do(<<"SQL") or die $self->dbh->errstr;
+        CREATE DATABASE @{[ $to ]}
+        WITH TEMPLATE @{[ $self->database ]}
+        OWNER @{[ $self->username ]}
+SQL
+}
+
 sub database_exists ($self) { $self->_database_exists }
 
 sub drop_database ($self) {
