@@ -9,7 +9,6 @@ use Test::Differences qw(eq_or_diff);
 with(
     'FOEGCL::Membership::Role::HasLegacySchema',
     'FOEGCL::Membership::Role::HasWebAppSchema',
-    'TestRole::TestsETL',
 );
 
 # For each person in the legacy database, make sure they're in the WebApp

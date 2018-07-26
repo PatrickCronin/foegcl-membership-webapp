@@ -8,7 +8,6 @@ use Test::Differences qw(eq_or_diff);
 with(
     'FOEGCL::Membership::Role::HasLegacySchema',
     'FOEGCL::Membership::Role::HasWebAppSchema',
-    'TestRole::TestsETL',
 );
 
 sub test_annual_contributions ( $self, @ ) {
