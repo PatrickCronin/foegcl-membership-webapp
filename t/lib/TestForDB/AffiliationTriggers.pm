@@ -107,8 +107,13 @@ sub test_membership_type_updates ( $self, @ ) {
     for my $name (@names) {
         is(
             exception {
-                push @people,
-                    $self->_schema->resultset('Person')->create($name)
+                push @people, $self->_schema->resultset('Person')->create(
+                    {
+                        first_name       => $name->{first_name},
+                        last_name        => $name->{last_name},
+                        source_friend_id => 99,
+                    }
+                    )
             },
             undef,
             "person $name->{first_name} $name->{last_name} can be created"
