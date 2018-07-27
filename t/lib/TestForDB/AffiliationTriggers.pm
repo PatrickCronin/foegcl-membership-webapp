@@ -131,14 +131,14 @@ sub test_membership_type_updates ( $self, @ ) {
         '1 person can be linked to an individual membership affiliation'
     );
 
-    is(
+    like(
         exception {
             $people[1]->create_related(
                 'affiliation_people',
                 { affiliation_id => $affiliation->id }
                 )
         },
-        qr/This change is prohibited because it would result in too many members for the affiliation's new membership type[.]/,
+        qr/This affiliation cannot accommodate another person because it has reached its maximum person limit[.]/,
         '2 people cannot be linked to an individual membership affiliation'
     );
 }
