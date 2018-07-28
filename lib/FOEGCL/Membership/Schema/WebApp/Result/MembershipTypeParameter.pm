@@ -65,7 +65,7 @@ __PACKAGE__->table("membership_type_parameters");
 =head2 membership_type
 
   data_type: 'enum'
-  extra: {custom_type_name => "membership_type",list => ["individual_membership","household_membership"]}
+  extra: {custom_type_name => "membership_type",list => ["individual_membership","household_membership","senior_student_individual_membership","senior_household_membership"]}
   is_nullable: 0
 
 =head2 membership_max_people
@@ -90,7 +90,12 @@ __PACKAGE__->add_columns(
     data_type => "enum",
     extra => {
       custom_type_name => "membership_type",
-      list => ["individual_membership", "household_membership"],
+      list => [
+        "individual_membership",
+        "household_membership",
+        "senior_student_individual_membership",
+        "senior_household_membership",
+      ],
     },
     is_nullable => 0,
   },
@@ -150,8 +155,8 @@ __PACKAGE__->belongs_to(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-03-03 21:15:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r5fHWb2xvgMn6Cv1V+f5Aw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2018-08-06 13:55:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L+n8i1pD28PRw+vkMTxGmw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

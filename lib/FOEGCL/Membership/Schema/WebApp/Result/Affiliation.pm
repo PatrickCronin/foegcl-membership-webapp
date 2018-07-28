@@ -72,7 +72,7 @@ __PACKAGE__->table("affiliation");
 =head2 membership_type
 
   data_type: 'enum'
-  extra: {custom_type_name => "membership_type",list => ["individual_membership","household_membership"]}
+  extra: {custom_type_name => "membership_type",list => ["individual_membership","household_membership","senior_student_individual_membership","senior_household_membership"]}
   is_foreign_key: 1
   is_nullable: 1
 
@@ -115,7 +115,12 @@ __PACKAGE__->add_columns(
     data_type => "enum",
     extra => {
       custom_type_name => "membership_type",
-      list => ["individual_membership", "household_membership"],
+      list => [
+        "individual_membership",
+        "household_membership",
+        "senior_student_individual_membership",
+        "senior_household_membership",
+      ],
     },
     is_foreign_key => 1,
     is_nullable => 1,
@@ -234,8 +239,8 @@ __PACKAGE__->belongs_to(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-03-03 21:15:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Dbl3WTx1Pw0Z6fpHHn4Zdg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2018-08-06 13:55:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4M0Ha/SPuHVF7FAUyBIXtA
 
 sub people ( $self ) {
     return $self->result_source->schema->resultset('Person')->search_rs(

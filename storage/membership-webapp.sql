@@ -218,7 +218,12 @@ CREATE TABLE participation_record (
 CREATE INDEX participation_record__person_id ON participation_record (person_id);
 CREATE INDEX participation_record__participation_role_id ON participation_record (person_id);
 
-CREATE TYPE membership_type AS ENUM ('individual_membership', 'household_membership');
+CREATE TYPE membership_type AS ENUM (
+    'individual_membership',
+    'household_membership',
+    'senior_student_individual_membership',
+    'senior_household_membership'
+);
 
 CREATE TABLE membership_type_parameters (
     year SMALLINT NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -247,8 +252,13 @@ VALUES
     (2016, 'household_membership', 2, 20),
     (2017, 'individual_membership', 1, 15),
     (2017, 'household_membership', 2, 25),
+    (2017, 'senior_student_individual_membership', 1, 10),
+    (2017, 'senior_household_membership', 2, 20),
     (2018, 'individual_membership', 1, 15),
-    (2018, 'household_membership', 2, 25);
+    (2018, 'household_membership', 2, 25),
+    (2018, 'senior_student_individual_membership', 1, 10),
+    (2018, 'senior_household_membership', 2, 20);
+
 
 CREATE TABLE affiliation (
     affiliation_id SERIAL PRIMARY KEY,

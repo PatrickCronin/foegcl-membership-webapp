@@ -71,7 +71,7 @@ __PACKAGE__->result_source_instance->view_definition(" SELECT affiliation.affili
 =head2 membership_type
 
   data_type: 'enum'
-  extra: {custom_type_name => "membership_type",list => ["individual_membership","household_membership"]}
+  extra: {custom_type_name => "membership_type",list => ["individual_membership","household_membership","senior_student_individual_membership","senior_household_membership"]}
   is_nullable: 1
 
 =head2 friend_id
@@ -102,7 +102,12 @@ __PACKAGE__->add_columns(
     data_type => "enum",
     extra => {
       custom_type_name => "membership_type",
-      list => ["individual_membership", "household_membership"],
+      list => [
+        "individual_membership",
+        "household_membership",
+        "senior_student_individual_membership",
+        "senior_household_membership",
+      ],
     },
     is_nullable => 1,
   },
@@ -115,8 +120,8 @@ __PACKAGE__->add_columns(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cAPNBTtG6tIqih9iNEe1AA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2018-08-06 13:55:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BApi6dJT1hjVaGgnRFYtPQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

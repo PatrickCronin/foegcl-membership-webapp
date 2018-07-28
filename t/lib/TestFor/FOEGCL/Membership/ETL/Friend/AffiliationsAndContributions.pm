@@ -6,6 +6,8 @@ use Const::Fast qw( const );
 use FOEGCL::Membership::Const qw(
     $HOUSEHOLD_MEMBERSHIP
     $INDIVIDUAL_MEMBERSHIP
+    $SENIOR_HOUSEHOLD_MEMBERSHIP
+    $SENIOR_STUDENT_INDIVIDUAL_MEMBERSHIP
 );
 use FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions;
 use Hash::Objectify qw( objectify );
@@ -26,6 +28,22 @@ has _household_mtp => (
         'FOEGCL::Membership::Schema::WebApp::Result::MembershipTypeParameter',
     lazy    => 1,
     builder => '_build_household_mtp',
+);
+
+has _senior_household_mtp => (
+    is => 'ro',
+    isa =>
+        'FOEGCL::Membership::Schema::WebApp::Result::MembershipTypeParameter',
+    lazy    => 1,
+    builder => '_build_senior_household_mtp',
+);
+
+has _senior_student_individual_mtp => (
+    is => 'ro',
+    isa =>
+        'FOEGCL::Membership::Schema::WebApp::Result::MembershipTypeParameter',
+    lazy    => 1,
+    builder => '_build_senior_student_individual_mtp',
 );
 
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
@@ -50,6 +68,24 @@ sub _build_household_mtp ( $self, @ ) {
     )->one_row;
 }
 
+sub _build_senior_household_mtp ( $self, @ ) {
+    return $self->_schema->resultset('MembershipTypeParameter')->search_rs(
+        {
+            year            => $YEAR,
+            membership_type => $SENIOR_HOUSEHOLD_MEMBERSHIP,
+        }
+    )->one_row;
+}
+
+sub _build_senior_student_individual_mtp ( $self, @ ) {
+    return $self->_schema->resultset('MembershipTypeParameter')->search_rs(
+        {
+            year            => $YEAR,
+            membership_type => $SENIOR_STUDENT_INDIVIDUAL_MEMBERSHIP,
+        }
+    )->one_row;
+}
+
 sub test_membership_donation_type_for ( $self, @ ) {
     my @test_cases = (
         {
@@ -69,6 +105,26 @@ sub test_membership_donation_type_for ( $self, @ ) {
                 donation_sum => $self->_individual_mtp->membership_amount,
             },
             expected => $INDIVIDUAL_MEMBERSHIP,
+        },
+        {
+            description => 'senior household membership',
+            in          => {
+                year       => $YEAR,
+                num_people => 2,
+                donation_sum =>
+                    $self->_senior_household_mtp->membership_amount,
+            },
+            expected => $SENIOR_HOUSEHOLD_MEMBERSHIP,
+        },
+        {
+            description => 'plain senior/student individual membership',
+            in          => {
+                year       => $YEAR,
+                num_people => 1,
+                donation_sum =>
+                    $self->_senior_student_individual_mtp->membership_amount,
+            },
+            expected => $SENIOR_STUDENT_INDIVIDUAL_MEMBERSHIP,
         },
         {
             description => 'one person paying enough for two',

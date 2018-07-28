@@ -4,6 +4,10 @@ package FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions;
 
 use FOEGCL::Membership::Moose;
 
+use FOEGCL::Membership::Const qw(
+    $INDIVIDUAL_MEMBERSHIP
+    $HOUSEHOLD_MEMBERSHIP
+);
 use FOEGCL::Membership::Types qw(
     AffiliationYear
     PositiveOrZeroInt
@@ -98,34 +102,57 @@ sub _qualifying_membership_type_for ( $self, @args ) {
     );
     my ( $year, $num_people, $donation_sum ) = $validator->(@args);
 
-    my @potential_membership_types
+    my @affordable_membership_types
         = $self->_schema->resultset('MembershipTypeParameter')->search_rs(
         {
             year              => $year,
             membership_amount => { '<=' => $donation_sum }
         },
-        { order_by => 'membership_max_people' },
+        { order_by => [ 'membership_max_people', 'membership_amount' ] },
     )->all;
 
-    return undef if @potential_membership_types == 0;
-    return $potential_membership_types[0]
-        if @potential_membership_types == 1;
+    return undef if @affordable_membership_types == 0;
+    return $affordable_membership_types[0]
+        if @affordable_membership_types == 1;
 
-    # At this point, we have multiple potential membership types.
-    # First check if there's one that meets our person requirement, and if so,
-    # return it.
+    # At this point, we have multiple affordable membership types. Let's
+    # narrow that list to see which one(s) support the number of people
+    # required.
+    my @qualifying_membership_types
+        = grep { $_->membership_max_people >= $num_people }
+        @affordable_membership_types;
 
-    my $smallest_qualifying_membership
-        = first { $_->membership_max_people >= $num_people }
-    @potential_membership_types;
-    return $smallest_qualifying_membership
-        if $smallest_qualifying_membership;
+    # ETL deficiency: We cannot determine memberships qualifying for senior
+    # or student rates with only data from the Legacy DB. So, if an affiliation
+    # has paid enough for the regular type of membership, we'll just assign
+    # that. If an affiliation has only paid enough for the reduced cost
+    # memberships, we'll assign that.
+    if ( $num_people == 1 ) {
+        my ($individual_membership)
+            = grep { $_->membership_type eq $INDIVIDUAL_MEMBERSHIP }
+            @qualifying_membership_types;
+        return $individual_membership if $individual_membership;
+    }
+    elsif ( $num_people == 2 ) {
+        my ($household_membership)
+            = grep { $_->membership_type eq $HOUSEHOLD_MEMBERSHIP }
+            @qualifying_membership_types;
+        return $household_membership if $household_membership;
+    }
 
-    # At this point, we have multiple potential membership types, and none of
-    # them meet our person requirement. Return the one that allows the most
+    # Next, we'll take the cheapest membership that matches our person
+    # requirement, if one exists. Note the caveat to this approach directly
+    # above.
+    my $cheapest_qualifying_membership = first {
+        $_->membership_max_people >= $num_people
+    }
+    @qualifying_membership_types;
+    return $cheapest_qualifying_membership if $cheapest_qualifying_membership;
+
+    # At this point, we have one or more potential membership types, but none
+    # of them meet our person requirement. Return the one that allows the most
     # people.
-
-    return $potential_membership_types[-1];
+    return $affordable_membership_types[-1];
 }
 
 __PACKAGE__->meta->make_immutable;
