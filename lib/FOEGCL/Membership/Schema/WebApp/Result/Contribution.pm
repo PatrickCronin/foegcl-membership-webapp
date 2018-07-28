@@ -75,6 +75,12 @@ __PACKAGE__->table("contribution");
   is_nullable: 0
   size: [11,2]
 
+=head2 received
+
+  data_type: 'date'
+  default_value: ('now'::text)::date
+  is_nullable: 0
+
 =head2 notes
 
   data_type: 'varchar'
@@ -109,6 +115,12 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "amount",
   { data_type => "numeric", is_nullable => 0, size => [11, 2] },
+  "received",
+  {
+    data_type     => "date",
+    default_value => \"('now'::text)::date",
+    is_nullable   => 0,
+  },
   "notes",
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "created_at",
@@ -157,8 +169,8 @@ __PACKAGE__->belongs_to(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-03-03 21:15:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:l9S1UggXGanLhnvmy0gVxQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2018-08-06 13:55:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7qd8YrVTKL8EVto8/r2jCQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

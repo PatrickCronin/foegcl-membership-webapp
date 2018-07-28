@@ -310,6 +310,7 @@ CREATE TABLE contribution (
     affiliation_id INTEGER NOT NULL REFERENCES affiliation (affiliation_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     amount NUMERIC(11,2) NOT NULL
         CONSTRAINT amount_is_not_negative CHECK (amount >= 0),
+    received DATE NOT NULL DEFAULT CURRENT_DATE,
     notes VARCHAR(128)
         CONSTRAINT notes_is_null_or_trimmed_and_not_empty CHECK (notes IS NULL OR (notes <> '' AND notes = trim(both from notes))),
     created_at timestamp with time zone DEFAULT NOW(),
