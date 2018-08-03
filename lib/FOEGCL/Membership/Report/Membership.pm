@@ -18,7 +18,7 @@ with 'FOEGCL::Membership::Role::HasWebAppSchema';
 my $data_row_number = 0;
 
 sub _build_report_writer ( $self, @ ) {
-    return PDF::ReportWriter->new(
+    my $report_writer = PDF::ReportWriter->new(
         {
             destination       => '/tmp/membership_report.pdf',
             paper             => 'Letter',
@@ -35,10 +35,8 @@ sub _build_report_writer ( $self, @ ) {
             },
         }
     );
-}
 
-sub run ($self) {
-    $self->_report_writer->render_data(
+    $report_writer->render_data(
         {
             page       => $self->_page_settings,
             headings   => $self->_field_headings,
@@ -46,7 +44,8 @@ sub run ($self) {
             data_array => $self->_report_data,
         }
     );
-    $self->_report_writer->save;
+
+    return $report_writer;
 }
 
 sub _page_settings ($self) {
