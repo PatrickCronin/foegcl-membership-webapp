@@ -22,10 +22,10 @@ Triggers are used to support the following business rules that are not naturally
 ### Contributions
 
 * UPDATE Triggers
-    * Updates that move a contribution to another affiliation are blocked. (If needed, users can delete and create.)
-    * Updates that disqualify a membership's contribution sum requirement are blocked.
+    * Updates that move a contribution to another affiliation are blocked. (If needed, users can delete and create.) (Implemented + tested)
+    * Updates that disqualify a membership's contribution sum requirement are blocked. (Implemented + tested)
 * DELETE Triggers
-    * Deletes that disqualify a membership's contribution sum requirement are blocked.
+    * Deletes that disqualify a membership's contribution sum requirement are blocked. (Implemented + tested)
 
 ### Affiliations
 
