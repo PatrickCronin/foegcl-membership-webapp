@@ -19,36 +19,36 @@
 
 Triggers are used to support the following business rules that are not naturally supported by the schema design.
 
-### Donations
+### Contributions
 
 * UPDATE Triggers
-    * Updates that move a donation to another affiliation are blocked. (If needed, users can delete and create.) (Done)
-    * Updates that disqualify a membership's donation sum requirement are blocked. (Done)
+    * Updates that move a contribution to another affiliation are blocked. (If needed, users can delete and create.)
+    * Updates that disqualify a membership's contribution sum requirement are blocked.
 * DELETE Triggers
-    * Deletes that disqualify a membership's donation sum requirement are blocked. (Done)
+    * Deletes that disqualify a membership's contribution sum requirement are blocked.
 
 ### Affiliations
 
 * INSERT Triggers
-    * Inserts including a NOT NULL membership_type will be blocked. (Done)
+    * Inserts with a membership type without sufficient contributions or too many people are blocked. (Implemented + tested)
 * UPDATE Triggers
-    * Updates changing the affiliation's membership type to something that would break the donation sum requirement or maximum person requirement are blocked (Done)
+    * Updates changing the affiliation's membership type to something that would break the contribution sum requirement or maximum person requirement are blocked. (Implemented + tested)
 
 ### Affiliation Persons
 
 * INSERT Triggers
-    * Inserts that would result in an affiliation having different addresses are blocked. (Done)
-    * Inserts that would result in an affiliation having too many people are blocked. (Done)
+    * Inserts that would result in an affiliation having different addresses are blocked.
+    * Inserts that would result in an affiliation having too many people are blocked.
 * UPDATE Triggers
-    * All updates are blocked. (If needed, users can delete and create.) (Done)
+    * All updates are blocked. (If needed, users can delete and create.)
 
 ### Physical and Mailing Address
 
 * INSERT Triggers
-    * Inserts for people that are in a current affiliation are blocked. (Users should use the affiliation address editor instead.) (Done)
+    * Inserts for people that are in a current affiliation are blocked. (Users should use the affiliation address editor instead.)
 * UPDATE Triggers
-    * Updates for people that are in a current affiliation are blocked. (Users should use the affiliation address editor instead.) (Done)
-    * Updates that move an address from one person to another are blocked. (Done)
-    * Updates that change any part of the address will automatically reset the in_library_special_voting_district field, unless that field is included with the update. (Physical addresses only.) (Done)
+    * Updates for people that are in a current affiliation are blocked. (Users should use the affiliation address editor instead.)
+    * Updates that move an address from one person to another are blocked.
+    * Updates that change any part of the address will automatically reset the in_library_special_voting_district field, unless that field is included with the update. (Physical addresses only.)
 * DELETE Triggers
-    * Deletes for people that are in a current affiliation are blocked. (Users should use the affiliation address editor instead.) (Done)
+    * Deletes for people that are in a current affiliation are blocked. (Users should use the affiliation address editor instead.)
