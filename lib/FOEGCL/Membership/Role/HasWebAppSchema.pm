@@ -7,6 +7,7 @@ use FOEGCL::Membership::Moose::Role;
 use FOEGCL::Membership::Config::WebAppDatabase ();
 use FOEGCL::Membership::Schema::WebApp         ();
 
+sub _schema;
 has _schema => (
     is      => 'ro',
     isa     => 'FOEGCL::Membership::Schema::WebApp',
@@ -14,6 +15,7 @@ has _schema => (
     builder => '_build_schema',
 );
 
+sub _dbh;
 has _dbh => (
     is      => 'ro',
     isa     => 'DBI::db',
