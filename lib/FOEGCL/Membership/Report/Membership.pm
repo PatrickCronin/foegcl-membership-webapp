@@ -11,6 +11,7 @@ has _report_writer => (
     isa     => 'PDF::ReportWriter',
     lazy    => 1,
     builder => '_build_report_writer',
+    handles => [qw(saveas stringify)],
 );
 
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
