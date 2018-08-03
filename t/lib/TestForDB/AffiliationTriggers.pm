@@ -10,46 +10,27 @@ with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
 const my $CURRENT_YEAR => [ gmtime(time) ]->[5] + 1900;
 
-sub test_membership_types_on_insert ( $self, @ ) {
-    like(
-        exception {
-            $self->_schema->resultset('Affiliation')->create(
-                {
-                    year            => $CURRENT_YEAR,
-                    membership_type => $INDIVIDUAL_MEMBERSHIP,
-                    friend_id       => 1000,
-                }
-                )
-        },
-        qr/You cannot create an affiliation with a NOT NULL membership type. It will not have requisite contributions at the time of creation[.]/,
-        'affiliations cannot be created with a membership type',
-    );
-
+sub test_affiliation_inserts ( $self, @ ) {
     is(
-        exception {
-            $self->_schema->resultset('Affiliation')->create(
-                {
-                    year      => $CURRENT_YEAR,
-                    friend_id => 1000,
-                }
-                )
-        },
+        exception { $self->_create_affiliation },
         undef,
         'affiliations can be created without a membership type'
     );
+
+    like(
+        exception {
+            $self->_create_affiliation(
+                membership_type => $INDIVIDUAL_MEMBERSHIP )
+        },
+        qr/The affiliation cannot be created because the total contribution sum is not sufficient to support its membership type[.]/,
+        'affiliations without contributions cannot be created',
+    );
 }
 
-sub test_membership_type_updates ( $self, @ ) {
+sub test_affiliation_updates ( $self, @ ) {
     my $affiliation;
     is(
-        exception {
-            $affiliation = $self->_schema->resultset('Affiliation')->create(
-                {
-                    year      => $CURRENT_YEAR,
-                    friend_id => 1001,
-                }
-                )
-        },
+        exception { $affiliation = $self->_create_affiliation },
         undef,
         'affiliation can be created in the current year'
     );
@@ -140,6 +121,17 @@ sub test_membership_type_updates ( $self, @ ) {
         },
         qr/This affiliation cannot accommodate another person because it has reached its maximum person limit[.]/,
         '2 people cannot be linked to an individual membership affiliation'
+    );
+}
+
+sub _create_affiliation ( $self, %args ) {
+    state $friend_id = 1000;
+    $self->_schema->resultset('Affiliation')->create(
+        {
+            year      => $CURRENT_YEAR,
+            friend_id => $friend_id++,
+            %args,
+        }
     );
 }
 

@@ -541,20 +541,7 @@ BEFORE DELETE ON contribution
 FOR EACH ROW
 EXECUTE PROCEDURE validate_contribution_delete();
 
-CREATE FUNCTION validate_affiliation_insert()
-RETURNS TRIGGER AS $$
-BEGIN
-    RAISE EXCEPTION 'You cannot create an affiliation with a NOT NULL membership type. It will not have requisite contributions at the time of creation.';
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER check_affiliation_insert
-BEFORE INSERT ON affiliation
-FOR EACH ROW
-WHEN ( NEW.membership_type IS NOT NULL )
-EXECUTE PROCEDURE validate_affiliation_insert();
-
-CREATE FUNCTION validate_affiliation_update()
+CREATE FUNCTION validate_affiliation_insert_or_update()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Check the membership contribution sum
@@ -568,7 +555,13 @@ BEGIN
         FROM contribution
         WHERE affiliation_id = NEW.affiliation_id
     ) THEN
-        RAISE EXCEPTION 'This change is prohibited because the total contribution sum is not sufficient to support the affiliation''s new membership type.';
+        IF (TG_OP = 'INSERT') THEN
+            RAISE EXCEPTION 'The affiliation cannot be created because the total contribution sum is not sufficient to support its membership type.';
+        ELSEIF (TG_OP = 'UPDATE') THEN
+            RAISE EXCEPTION 'This change is prohibited because the total contribution sum is not sufficient to support the affiliation''s new membership type.';
+        ELSE
+            RAISE EXCEPTION 'Not enough contributions for . Unexpected trigger opration %s', TG_OP;
+        END IF;
     END IF;
 
     -- Check the membership max person limit
@@ -582,21 +575,27 @@ BEGIN
         FROM affiliation_person
         WHERE affiliation_id = NEW.affiliation_id
     ) THEN
-        RAISE EXCEPTION 'This change is prohibited because it would result in too many members for the affiliation''s new membership type.';
+        IF (TG_OP = 'INSERT') THEN
+            RAISE EXCEPTION 'The affiliation cannot be created because it has too many people for its membership type.';
+        ELSEIF (TG_OP = 'UPDATE') THEN
+            RAISE EXCEPTION 'This change is prohibited because it would result in too many members for the affiliation''s new membership type.';
+        ELSE
+            RAISE EXCEPTION 'Too many people. Unexpected trigger opration %s', TG_OP;
+        END IF;
     END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER check_affiliation_update
-BEFORE UPDATE ON affiliation
+CREATE TRIGGER check_affiliation_insert_or_update
+BEFORE INSERT OR UPDATE ON affiliation
 FOR EACH ROW
 WHEN (
     NEW.affiliation_id IS NOT NULL
     AND NEW.year IS NOT NULL
 )
-EXECUTE PROCEDURE validate_affiliation_update();
+EXECUTE PROCEDURE validate_affiliation_insert_or_update();
 
 CREATE FUNCTION person_address_suitable_for_affiliation(
     v_person_id INTEGER,
