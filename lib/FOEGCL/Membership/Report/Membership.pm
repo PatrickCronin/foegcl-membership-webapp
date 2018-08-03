@@ -86,51 +86,40 @@ sub _field_headings ($self) {
 }
 
 sub _fields ($self) {
+    my %defaults = (
+        align           => 'left',
+        colour          => 'black',
+        font_size       => 10,
+        wrap_text       => 1,
+        background_func => \&_alternate_data_row_background,
+    );
+
     return [
         {
-            name            => 'Member',
-            percent         => 20,
-            align           => 'left',
-            colour          => 'black',
-            font_size       => 10,
-            wrap_text       => 1,
-            background_func => \&_alternate_data_row_background,
+            ## no critic (ValuesAndExpressions::ProhibitCommaSeparatedStatements)
+            %defaults,
+            name    => 'Member',
+            percent => 20,
         },
         {
-            name            => 'Street Address',
-            percent         => 22,
-            align           => 'left',
-            colour          => 'black',
-            font_size       => 10,
-            wrap_text       => 1,
-            background_func => \&_alternate_data_row_background,
+            %defaults,
+            name    => 'Street Address',
+            percent => 22,
         },
         {
-            name            => 'City, State and ZIP™',
-            percent         => 25,
-            align           => 'left',
-            colour          => 'black',
-            font_size       => 10,
-            wrap_text       => 1,
-            background_func => \&_alternate_data_row_background,
+            %defaults,
+            name    => 'City, State and ZIP™',
+            percent => 25,
         },
         {
-            name            => 'Email(s)',
-            percent         => 23,
-            align           => 'left',
-            colour          => 'black',
-            font_size       => 10,
-            wrap_text       => 1,
-            background_func => \&_alternate_data_row_background,
+            %defaults,
+            name    => 'Email(s)',
+            percent => 23,
         },
         {
-            name            => 'Phone(s)',
-            percent         => 10,
-            align           => 'left',
-            colour          => 'black',
-            font_size       => 10,
-            wrap_text       => 1,
-            background_func => \&_alternate_data_row_background,
+            %defaults,
+            name    => 'Phone(s)',
+            percent => 10,
         },
     ];
 }
