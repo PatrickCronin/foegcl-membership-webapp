@@ -2,13 +2,13 @@ package TestForDB::AffiliationTriggers;
 
 use FOEGCL::Membership::Test::Class::Moose;
 
-use Const::Fast qw( const );
 use FOEGCL::Membership::Const qw( $INDIVIDUAL_MEMBERSHIP );
 use Test::Fatal qw( exception );
 
-with 'FOEGCL::Membership::Role::HasWebAppSchema';
-
-const my $CURRENT_YEAR => [ gmtime(time) ]->[5] + 1900;
+with qw(
+    FOEGCL::Membership::Role::HasWebAppSchema
+    TestRole::GeneratesFixtures
+);
 
 sub test_affiliation_inserts ( $self, @ ) {
     is(
@@ -121,17 +121,6 @@ sub test_affiliation_updates ( $self, @ ) {
         },
         qr/This affiliation cannot accommodate another person because it has reached its maximum person limit[.]/,
         '2 people cannot be linked to an individual membership affiliation'
-    );
-}
-
-sub _create_affiliation ( $self, %args ) {
-    state $friend_id = 1000;
-    $self->_schema->resultset('Affiliation')->create(
-        {
-            year      => $CURRENT_YEAR,
-            friend_id => $friend_id++,
-            %args,
-        }
     );
 }
 
