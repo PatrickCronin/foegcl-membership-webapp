@@ -318,107 +318,6 @@ CREATE TABLE contribution (
 
 CREATE INDEX contribution__affiliation_id ON contribution (affiliation_id);
 
-CREATE FUNCTION person_is_in_current_affiliation(
-    v_person_id INTEGER
-)
-RETURNS BOOLEAN AS $$
-BEGIN
-    IF v_person_id IS NULL THEN
-        RAISE EXCEPTION 'v_person_id cannot be NULL';
-    END IF;
-
-    IF EXISTS (
-        SELECT 1
-        FROM affiliation_person
-        INNER JOIN affiliation USING (affiliation_id)
-        WHERE person_id = v_person_id
-        AND year = date_part('year', CURRENT_DATE)
-    ) THEN
-        RETURN TRUE;
-    END IF;
-
-    RETURN FALSE;
-END;
-$$ LANGUAGE plpgsql;
-
-COMMENT ON FUNCTION person_is_in_current_affiliation (INTEGER) IS 'Check if a person is associated with an affiliation in the current year.';
-
-CREATE FUNCTION validate_address_insert()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF person_is_in_current_affiliation(NEW.person_id) THEN
-        RAISE EXCEPTION 'Cannot add an address to a person in an affiliation. Change the affiliation''s address instead.';
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE FUNCTION validate_address_update()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF OLD.person_id <> NEW.person_id THEN
-        RAISE EXCEPTION 'Cannot reassign a person''s address to another person. Delete this address and create a new one.';
-    END IF;
-
-    IF person_is_in_current_affiliation(NEW.person_id) THEN
-        RAISE EXCEPTION 'Cannot update the address of a person in an affiliation. Change the affiliation''s address instead.';
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE FUNCTION validate_address_delete()
-RETURNS TRIGGER AS
-$$
-BEGIN
-    IF person_is_in_current_affiliation(NEW.person_id) THEN
-        IF TG_TABLE_NAME = 'physical_address' THEN
-            RAISE EXCEPTION 'Cannot delete the physical address of a person in an affiliation.';
-        ELSIF TG_TABLE_NAME = 'mailing_address' THEN
-            RAISE EXCEPTION 'Cannot delete the mailing address of a person in an affiliation. Please delete the mailing address of the person''s affiliation instead.';
-        END IF;
-    END IF;
-
-    RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER check_mailing_address_on_insert
-BEFORE INSERT ON mailing_address
-FOR EACH ROW
-WHEN (NEW.person_id IS NOT NULL)
-EXECUTE PROCEDURE validate_address_insert();
-
-CREATE TRIGGER check_mailing_address_on_update
-BEFORE UPDATE ON mailing_address
-FOR EACH ROW
-WHEN (NEW.person_id IS NOT NULL)
-EXECUTE PROCEDURE validate_address_update();
-
-CREATE TRIGGER check_mailing_address_on_delete
-BEFORE DELETE ON mailing_address
-FOR EACH ROW
-EXECUTE PROCEDURE validate_address_delete();
-
-CREATE TRIGGER check_physical_address_on_insert
-BEFORE INSERT ON physical_address
-FOR EACH ROW
-WHEN (NEW.person_id IS NOT NULL)
-EXECUTE PROCEDURE validate_address_insert();
-
-CREATE TRIGGER check_physical_address_on_update
-BEFORE UPDATE ON physical_address
-FOR EACH ROW
-WHEN (NEW.person_id IS NOT NULL)
-EXECUTE PROCEDURE validate_address_update();
-
-CREATE TRIGGER check_physical_address_on_delete
-BEFORE DELETE ON physical_address
-FOR EACH ROW
-EXECUTE PROCEDURE validate_address_delete();
-
 CREATE FUNCTION clear_library_special_voting_district_on_update_step1()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -482,256 +381,341 @@ WHEN (
 )
 EXECUTE PROCEDURE clear_library_special_voting_district_on_update_step3();
 
-CREATE FUNCTION validate_contribution_update()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF OLD.affiliation_id <> NEW.affiliation_id THEN
-        RAISE EXCEPTION 'You cannot move a contribution from one affiliation to another.';
-    END IF;
 
-    IF (
-        SELECT membership_amount
-        FROM affiliation
-        INNER JOIN membership_type_parameters USING (year, membership_type)
-        WHERE affiliation_id = NEW.affiliation_id
-    ) > (
-        SELECT COALESCE(SUM(amount), 0) - OLD.amount + NEW.amount
-        FROM contribution
-        WHERE affiliation_id = NEW.affiliation_id
-    ) THEN
-        RAISE EXCEPTION 'This update is prohibited because it would make the affiliation''s total contribution amount less than what''s required for its current membership type.';
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER check_contribution_update
-BEFORE UPDATE ON contribution
-FOR EACH ROW
-WHEN (
-    NEW.affiliation_id IS NOT NULL
-    AND NEW.amount IS NOT NULL
+CREATE FUNCTION verify_affiliation_person_integrity(
+    v_affiliation_id INTEGER
 )
-EXECUTE PROCEDURE validate_contribution_update();
-
-CREATE FUNCTION validate_contribution_delete()
-RETURNS TRIGGER AS $$
+RETURNS VOID AS $$
 BEGIN
     IF (
-        SELECT membership_amount
-        FROM affiliation
-        INNER JOIN membership_type_parameters USING (year, membership_type)
-        WHERE affiliation_id = OLD.affiliation_id
-    ) > (
-        SELECT COALESCE(SUM(amount), 0) - OLD.amount
-        FROM contribution
-        WHERE affiliation_id = OLD.affiliation_id
-    ) THEN
-        RAISE EXCEPTION 'This delete is prohibited because it would make the affiliation''s total contribution amount less than what''s required for its current membership type.';
+        SELECT COUNT(*)
+        FROM affiliation_person
+        WHERE affiliation_id = v_affiliation_id
+    ) = 0 THEN
+        RAISE EXCEPTION 'This change would leave affiliation % without any people', v_affiliation_id;
     END IF;
-    
-    RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER check_contribution_delete
-BEFORE DELETE ON contribution
-FOR EACH ROW
-EXECUTE PROCEDURE validate_contribution_delete();
-
-CREATE FUNCTION validate_affiliation_insert_or_update()
-RETURNS TRIGGER AS $$
+CREATE FUNCTION verify_affiliation_contribution_integrity(
+    v_affiliation_id INTEGER
+)
+RETURNS VOID AS $$
 BEGIN
-    -- Check the membership contribution sum
-    IF NEW.membership_type IS NOT NULL AND (
-        SELECT membership_amount
-        FROM membership_type_parameters
-        WHERE year = NEW.year
-        AND membership_type = NEW.membership_type
-    ) > (
-        SELECT COALESCE(SUM(amount), 0) affiliation_contribution_sum
+    IF (
+        SELECT COUNT(*)
         FROM contribution
-        WHERE affiliation_id = NEW.affiliation_id
-    ) THEN
-        IF (TG_OP = 'INSERT') THEN
-            RAISE EXCEPTION 'The affiliation cannot be created because the total contribution sum is not sufficient to support its membership type.';
-        ELSEIF (TG_OP = 'UPDATE') THEN
-            RAISE EXCEPTION 'This change is prohibited because the total contribution sum is not sufficient to support the affiliation''s new membership type.';
-        ELSE
-            RAISE EXCEPTION 'Not enough contributions for . Unexpected trigger opration %s', TG_OP;
-        END IF;
+        WHERE affiliation_id = v_affiliation_id
+    ) < 1 THEN
+        RAISE EXCEPTION 'This change would leave affiliation % without any contributions.', v_affiliation_id;
     END IF;
 
-    -- Check the membership max person limit
-    IF NEW.membership_type IS NOT NULL AND (
+    IF (
+        SELECT COUNT(*)
+        FROM contribution
+        INNER JOIN affiliation USING (affiliation_id)
+        WHERE affiliation_id = v_affiliation_id
+        AND DATE_PART('YEAR', received) <> affiliation.year
+    ) > 0 THEN
+        RAISE EXCEPTION 'This change would mean at least one contribution for affiliation % would have a recieved date in a different year.', v_affiliation_id;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION verify_cur_year_affiliation_person_mailing_address_integrity(
+    v_affiliation_id INTEGER
+)
+RETURNS VOID AS $$
+BEGIN
+    IF DATE_PART('YEAR', CURRENT_DATE) <> (
+        SELECT year
+        FROM affiliation
+        WHERE affiliation_id = v_affiliation_id
+    ) THEN
+        RETURN;
+    END IF;
+
+    IF (
+        SELECT COUNT(*)
+        FROM (
+            SELECT DISTINCT street_line_1, street_line_2, csz_id
+            FROM affiliation
+            INNER JOIN affiliation_person USING (affiliation_id)
+            LEFT JOIN mailing_address USING (person_id)
+            WHERE affiliation_id = v_affiliation_id
+        ) distinct_affiliation_addresses
+    ) <> 1 THEN
+        RAISE EXCEPTION 'This change would leave affiliation % with multiple mailing addresses', v_affiliation_id;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION verify_cur_year_affiliation_person_physical_address_integrity(
+    v_affiliation_id INTEGER
+)
+RETURNS VOID AS $$
+BEGIN
+    IF DATE_PART('YEAR', CURRENT_DATE) <> (
+        SELECT year
+        FROM affiliation
+        WHERE affiliation_id = v_affiliation_id
+    ) THEN
+        RETURN;
+    END IF;
+
+    IF (
+        SELECT COUNT(*)
+        FROM (
+            SELECT DISTINCT street_line_1, street_line_2, csz_id
+            FROM affiliation
+            INNER JOIN affiliation_person USING (affiliation_id)
+            LEFT JOIN physical_address USING (person_id)
+            WHERE affiliation_id = v_affiliation_id
+        ) distinct_affiliation_addresses
+    ) <> 1 THEN
+        RAISE EXCEPTION 'This change would leave affiliation % with multiple physical addresses', v_affiliation_id;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION verify_membership_maximum_person_integrity(
+    v_affiliation_id INTEGER
+)
+RETURNS VOID AS $$
+BEGIN
+    IF (
+        SELECT membership_type
+        FROM affiliation
+        WHERE affiliation_id = v_affiliation_id
+    ) IS NULL THEN
+        RETURN;
+    END IF;
+
+    IF (
+        SELECT COUNT(*)
+        FROM affiliation_person
+        WHERE affiliation_id = v_affiliation_id
+    ) > (
         SELECT membership_max_people
-        FROM membership_type_parameters
-        WHERE year = NEW.year
-        AND membership_type = NEW.membership_type
+        FROM affiliation
+        INNER JOIN membership_type_parameters USING (year, membership_type)
+        WHERE affiliation_id = v_affiliation_id
+    ) THEN
+        RAISE EXCEPTION 'This change would leave affiliation % with more people than the membership type supports', v_affiliation_id;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION verify_membership_minimum_contribution_integrity(
+    v_affiliation_id INTEGER
+)
+RETURNS VOID AS $$
+BEGIN
+    IF (
+        SELECT membership_type
+        FROM affiliation
+        WHERE affiliation_id = v_affiliation_id
+    ) IS NULL THEN
+        RETURN;
+    END IF;
+
+    IF (
+        SELECT COALESCE(SUM(amount), 0)
+        FROM contribution
+        WHERE affiliation_id = v_affiliation_id
     ) < (
-        SELECT COUNT(*) num_affiliation_members
-        FROM affiliation_person
-        WHERE affiliation_id = NEW.affiliation_id
-    ) THEN
-        IF (TG_OP = 'INSERT') THEN
-            RAISE EXCEPTION 'The affiliation cannot be created because it has too many people for its membership type.';
-        ELSEIF (TG_OP = 'UPDATE') THEN
-            RAISE EXCEPTION 'This change is prohibited because it would result in too many members for the affiliation''s new membership type.';
-        ELSE
-            RAISE EXCEPTION 'Too many people. Unexpected trigger opration %s', TG_OP;
-        END IF;
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER check_affiliation_insert_or_update
-BEFORE INSERT OR UPDATE ON affiliation
-FOR EACH ROW
-WHEN (
-    NEW.affiliation_id IS NOT NULL
-    AND NEW.year IS NOT NULL
-)
-EXECUTE PROCEDURE validate_affiliation_insert_or_update();
-
-CREATE FUNCTION person_address_suitable_for_affiliation(
-    v_person_id INTEGER,
-    v_affiliation_id INTEGER
-)
-RETURNS BOOLEAN AS $$
-BEGIN
-    IF v_person_id IS NULL THEN
-        RAISE EXCEPTION 'v_person_id cannot be NULL';
-    ELSIF v_affiliation_id IS NULL THEN
-        RAISE EXCEPTION 'v_affiliation_id cannot be NULL';
-    END IF;
-
-    -- 1. All people in an affiliation must have the same physical address (
-    --    or all people may have no physical address)
-    -- 2. All people in an membership must have the same mailing address (or
-    --    all people may have no mailing address)
-    IF person_address_matches_affiliation_address(v_person_id, 'physical', v_affiliation_id)
-    AND person_address_matches_affiliation_address(v_person_id, 'mailing', v_affiliation_id)
-        THEN
-        RETURN TRUE;
-    END IF;
-
-    RETURN FALSE;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE FUNCTION person_address_matches_affiliation_address (
-    v_person_id INTEGER,
-    v_address_type TEXT,
-    v_affiliation_id INTEGER
-)
-RETURNS BOOLEAN AS $$
-DECLARE
-    v_num_unique_addresses SMALLINT DEFAULT 0;
-    v_table_name text := v_address_type || '_address';
-BEGIN
-    IF v_person_id IS NULL THEN
-        RAISE EXCEPTION 'v_person_id cannot be NULL';
-    ELSIF v_address_type IS NULL THEN
-        RAISE EXCEPTION 'v_address_type cannot be NULL';
-    ELSIF v_affiliation_id IS NULL THEN
-        RAISE EXCEPTION 'v_affiliation_id cannot be NULL';
-    END IF;
-
-    IF v_address_type NOT IN ('mailing', 'physical') THEN
-        RAISE EXCEPTION 'Address type must be either "mailing" or "physical". Received %s.', v_address_type;
-    END IF;
-
-    -- If the affiliation has an address (being the address of current
-    -- membership), then then person being added must have the same address.
-    -- If the affiliation has no address (meaning existing membership have
-    -- no address), the person being added may or may not have an address.
-    EXECUTE FORMAT(
-        'WITH affiliation_addresses AS ( '
-            'SELECT DISTINCT street_line_1, street_line_2, csz_id '
-            'FROM affiliation '
-            'INNER JOIN affiliation_person USING (affiliation_id) '
-            'INNER JOIN %I USING (person_id) '
-            'WHERE affiliation_id = $1'
-        '), '
-        'new_person_address AS ( '
-            'SELECT street_line_1, street_line_2, csz_id '
-            'FROM %I '
-            'WHERE person_id = $2 '
-        ') '
-        'SELECT COUNT(*) '
-        'FROM ( '
-            'SELECT * FROM affiliation_addresses '
-            'UNION '
-            'SELECT * FROM new_person_address '
-        ') AS unique_addresses ',
-        v_table_name,
-        v_table_name
-    )
-    INTO v_num_unique_addresses
-    USING v_affiliation_id, v_person_id;
-
-    IF v_num_unique_addresses <= 1 THEN
-        RETURN TRUE;
-    END IF;
-
-    RETURN FALSE;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE FUNCTION validate_affiliation_person_insert()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Make sure the person's address is compatible with the affiliation's
-    IF NOT person_address_suitable_for_affiliation(NEW.person_id, NEW.affiliation_id) THEN
-        RAISE EXCEPTION 'Cannot add this person to this affiliation because one or more of the person''s addresses did not match those of the affiliation.';
-    END IF;
-
-    -- Make sure the affiliation can fit another person
-    -- IF current_people + 1 > membership_max_people THEN WHAMO!
-    IF (
-        SELECT COUNT(*) num_members
-        FROM affiliation_person
-        WHERE affiliation_id = NEW.affiliation_id
-    ) >= (
-        SELECT membership_max_people
+        SELECT membership_amount
         FROM affiliation
         INNER JOIN membership_type_parameters USING (year, membership_type)
-        WHERE affiliation_id = NEW.affiliation_id
+        WHERE affiliation_id = v_affiliation_id
     ) THEN
-        RAISE EXCEPTION 'This affiliation cannot accommodate another person because it has reached its maximum person limit.';
+        RAISE EXCEPTION 'This change would leave affiliation % without enough contributions to support it''s minimum contribution requirement.', v_affiliation_id;
     END IF;
+
+END;
+$$ LANGUAGE plpgsql;
+
+-- For INSERT, UPDATE and DELETE
+CREATE FUNCTION validate_contribution_change()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_affected_affiliation_ids INTEGER[];
+    affiliation_id INTEGER;
+BEGIN
+    IF TG_OP = ANY ( ARRAY['DELETE', 'UPDATE'] ) THEN
+        v_affected_affiliation_ids = v_affected_affiliation_ids || OLD.affiliation_id;
+    END IF;
+
+    IF TG_OP = ANY ( ARRAY['UPDATE', 'INSERT'] ) THEN
+        v_affected_affiliation_ids = v_affected_affiliation_ids || NEW.affiliation_id;
+    END IF;
+
+    FOREACH affiliation_id IN ARRAY v_affected_affiliation_ids LOOP
+        PERFORM verify_affiliation_contribution_integrity(affiliation_id);
+        PERFORM verify_membership_minimum_contribution_integrity(affiliation_id);
+    END LOOP;
+
+    IF TG_OP = ANY ( ARRAY['UPDATE', 'INSERT'] ) THEN
+        RETURN NEW;
+    ELSE
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE CONSTRAINT TRIGGER check_contribution_change
+AFTER INSERT OR UPDATE OR DELETE ON contribution
+DEFERRABLE INITIALLY IMMEDIATE
+FOR EACH ROW
+EXECUTE PROCEDURE validate_contribution_change();
+
+-- Only for INSERT and UPDATE
+-- Not necessary for DELETE
+CREATE FUNCTION validate_affiliation_change()
+RETURNS TRIGGER AS $$
+BEGIN
+    PERFORM verify_affiliation_person_integrity(NEW.affiliation_id);
+    PERFORM verify_affiliation_contribution_integrity(NEW.affiliation_id);
+    PERFORM verify_cur_year_affiliation_person_mailing_address_integrity(NEW.affiliation_id);
+    PERFORM verify_cur_year_affiliation_person_physical_address_integrity(NEW.affiliation_id);
+    PERFORM verify_membership_maximum_person_integrity(NEW.affiliation_id);
+    PERFORM verify_membership_minimum_contribution_integrity(NEW.affiliation_id);
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER check_affiliation_person_insert
-BEFORE INSERT ON affiliation_person
+CREATE CONSTRAINT TRIGGER check_affiliation_change
+AFTER INSERT OR UPDATE ON affiliation
+DEFERRABLE INITIALLY IMMEDIATE
 FOR EACH ROW
-WHEN (
-    NEW.affiliation_id IS NOT NULL
-    AND NEW.person_id IS NOT NULL
-)
-EXECUTE PROCEDURE validate_affiliation_person_insert();
+EXECUTE PROCEDURE validate_affiliation_change();
 
-CREATE FUNCTION validate_affiliation_person_update()
+-- For INSERT, UPDATE and DELETE
+CREATE FUNCTION validate_affiliation_person_change()
 RETURNS TRIGGER AS $$
+DECLARE
+    v_affected_affiliation_ids INTEGER[];
+    affiliation_id INTEGER;
 BEGIN
-    RAISE EXCEPTION 'Cannot update an affiliation person association. Try deleting and re-creating instead.';
+    IF TG_OP = ANY ( ARRAY['DELETE', 'UPDATE'] ) THEN
+        v_affected_affiliation_ids = v_affected_affiliation_ids || OLD.affiliation_id;
+    END IF;
+
+    IF TG_OP = ANY ( ARRAY['UPDATE', 'INSERT'] ) THEN
+        v_affected_affiliation_ids = v_affected_affiliation_ids || NEW.affiliation_id;
+    END IF;
+
+    FOREACH affiliation_id IN ARRAY v_affected_affiliation_ids LOOP
+        PERFORM verify_affiliation_person_integrity(affiliation_id);
+        PERFORM verify_cur_year_affiliation_person_mailing_address_integrity(affiliation_id);
+        PERFORM verify_cur_year_affiliation_person_physical_address_integrity(affiliation_id);
+        PERFORM verify_membership_maximum_person_integrity(affiliation_id);
+    END LOOP;
+
+    IF TG_OP = ANY ( ARRAY['UPDATE', 'INSERT'] ) THEN
+        RETURN NEW;
+    ELSE
+        RETURN OLD;
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER check_affiliation_person_update
-BEFORE UPDATE ON affiliation_person
+CREATE CONSTRAINT TRIGGER check_affiliation_person_change
+AFTER INSERT OR UPDATE OR DELETE ON affiliation_person
+DEFERRABLE INITIALLY IMMEDIATE
 FOR EACH ROW
-WHEN (
-    NEW.affiliation_id IS NOT NULL
-    AND NEW.person_id IS NOT NULL
-)
-EXECUTE PROCEDURE validate_affiliation_person_update();
+EXECUTE PROCEDURE validate_affiliation_person_change();
+
+-- For INSERT, UPDATE and DELETE
+CREATE FUNCTION validate_mailing_address_change()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_affected_person_ids INTEGER[];
+    v_affected_affiliation_ids INTEGER[];
+    v_affiliation_id INTEGER;
+BEGIN
+    IF TG_OP = ANY ( ARRAY['DELETE', 'UPDATE'] ) THEN
+        v_affected_person_ids = v_affected_person_ids || OLD.person_id;
+    END IF;
+
+    IF TG_OP = ANY ( ARRAY['UPDATE', 'INSERT'] ) THEN
+        v_affected_person_ids = v_affected_person_ids || NEW.person_id;
+    END IF;
+
+    v_affected_affiliation_ids = (
+        SELECT array_agg(affiliation_id)
+        FROM mailing_address
+        INNER JOIN person USING (person_id)
+        INNER JOIN affiliation_person USING (person_id)
+        INNER JOIN affiliation USING (affiliation_id)
+        WHERE person_id = ANY (v_affected_person_ids)
+    );
+
+    IF array_length(v_affected_affiliation_ids, 1) > 0 THEN
+        FOREACH v_affiliation_id IN ARRAY v_affected_affiliation_ids LOOP
+            PERFORM verify_cur_year_affiliation_person_mailing_address_integrity(v_affiliation_id);
+        END LOOP;
+    END IF;
+
+    IF TG_OP = ANY ( ARRAY['UPDATE', 'INSERT'] ) THEN
+        RETURN NEW;
+    ELSE
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE CONSTRAINT TRIGGER check_mailing_address_change
+AFTER INSERT OR UPDATE OR DELETE ON mailing_address
+DEFERRABLE INITIALLY IMMEDIATE
+FOR EACH ROW
+EXECUTE PROCEDURE validate_mailing_address_change();
+
+-- For INSERT, UPDATE and DELETE
+CREATE FUNCTION validate_physical_address_change()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_affected_person_ids INTEGER[];
+    v_affected_affiliation_ids INTEGER[];
+    v_affiliation_id INTEGER;
+BEGIN
+    IF TG_OP = ANY ( ARRAY['DELETE', 'UPDATE'] ) THEN
+        v_affected_person_ids = v_affected_person_ids || OLD.person_id;
+    END IF;
+
+    IF TG_OP = ANY ( ARRAY['UPDATE', 'INSERT'] ) THEN
+        v_affected_person_ids = v_affected_person_ids || NEW.person_id;
+    END IF;
+
+    v_affected_affiliation_ids = (
+        SELECT array_agg(affiliation_id)
+        FROM physical_address
+        INNER JOIN person USING (person_id)
+        INNER JOIN affiliation_person USING (person_id)
+        INNER JOIN affiliation USING (affiliation_id)
+        WHERE person_id = ANY (v_affected_person_ids)
+    );
+
+    IF array_length(v_affected_affiliation_ids, 1) > 0 THEN
+        FOREACH v_affiliation_id IN ARRAY v_affected_affiliation_ids LOOP
+            PERFORM verify_cur_year_affiliation_person_physical_address_integrity(v_affiliation_id);
+        END LOOP;
+    END IF;
+
+    IF TG_OP = ANY ( ARRAY['UPDATE', 'INSERT'] ) THEN
+        RETURN NEW;
+    ELSE
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE CONSTRAINT TRIGGER check_physical_address_change
+AFTER INSERT OR UPDATE OR DELETE ON physical_address
+DEFERRABLE INITIALLY IMMEDIATE
+FOR EACH ROW
+EXECUTE PROCEDURE validate_physical_address_change();
 
 CREATE TABLE voter_registration (
     year SMALLINT NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,

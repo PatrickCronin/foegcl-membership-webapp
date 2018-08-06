@@ -39,53 +39,58 @@ sub etl ( $self, $legacy_friend, @people ) {
             }
         );
 
-        # Create the affiliation
-        my $affiliation = $self->_schema->resultset('Affiliation')->create(
-            {
-                year      => $year,
-                friend_id => $legacy_friend->friend_id,
+        $self->_schema->storage->txn_do(
+            sub {
+                $self->_defer_constraints;
+
+                # Create the affiliation
+                my $affiliation
+                    = $self->_schema->resultset('Affiliation')->create(
+                    {
+                        year            => $year,
+                        friend_id       => $legacy_friend->friend_id,
+                        membership_type => $membership_type->membership_type,
+                    }
+                    );
+
+                # Relate the contributions to the affiliation
+                foreach my $amount (@donation_amounts) {
+                    $affiliation->create_related(
+                        'contributions',
+                        {
+                            amount   => $amount,
+                            received => "$year-01-01",
+                        }
+                    );
+                }
+
+                # Relate the people to the affiliation
+                my $max_people;
+                $max_people = $membership_type->membership_max_people
+                    if $membership_type;
+
+                my $count = 0;
+                foreach my $person (@people) {
+                    $count++;
+
+                    if ( $max_people && $count > $max_people ) {
+                        warn sprintf(
+                            "Not adding %s to the %s affiliation because the membership is full.\n",
+                            $person->first_name . q{ } . $person->last_name,
+                            $year
+                        );
+                        next;
+                    }
+
+                    $affiliation->create_related(
+                        'affiliation_people',
+                        { person_id => $person->id }
+                    );
+                }
+
+                $self->_restore_constraints;
             }
         );
-
-        # Relate the contributions to the membership
-        my $contribution_rs = $self->_schema->resultset('Contribution');
-        foreach my $amount (@donation_amounts) {
-            $contribution_rs->create(
-                {
-                    affiliation_id => $affiliation->id,
-                    amount         => $amount,
-                }
-            );
-        }
-
-        # We are now safe to apply the membership type
-        $affiliation->update(
-            { membership_type => $membership_type->membership_type } )
-            if $membership_type;
-
-        # Relate the people to the affiliation
-        my $max_people;
-        $max_people = $membership_type->membership_max_people
-            if $membership_type;
-
-        my $count = 0;
-        foreach my $person (@people) {
-            $count++;
-
-            if ( $max_people && $count > $max_people ) {
-                warn sprintf(
-                    "Not adding %s to the %s affiliation because the membership is full.\n",
-                    $person->first_name . q{ } . $person->last_name,
-                    $year
-                );
-                next;
-            }
-
-            $person->create_related(
-                'affiliation_people',
-                { affiliation_id => $affiliation->id }
-            );
-        }
     }
 }
 
