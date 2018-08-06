@@ -53,6 +53,12 @@ around 'run_test_method' =>
     }
     finally {
         diag "Finished testing $test_method...";
+
+        if ( $test_instance->can('_reset_schema') ) {
+            note 'Resetting schema attributes in the instance under test...';
+            $test_instance->_reset_schema;
+        }
+
         FOEGCL::Membership::Storage::WebAppSchemaMigrator->new(
             quiet   => 1,
             verbose => 0,
