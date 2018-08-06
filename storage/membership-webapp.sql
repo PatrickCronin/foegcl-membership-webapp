@@ -259,7 +259,6 @@ VALUES
     (2018, 'senior_student_individual_membership', 1, 10),
     (2018, 'senior_household_membership', 2, 20);
 
-
 CREATE TABLE affiliation (
     affiliation_id SERIAL PRIMARY KEY,
     year SMALLINT NOT NULL REFERENCES affiliation_year (year) ON DELETE CASCADE ON UPDATE CASCADE,
