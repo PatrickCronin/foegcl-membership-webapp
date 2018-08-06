@@ -293,7 +293,7 @@ FOR EACH ROW
 EXECUTE PROCEDURE next_friend_id();
 
 CREATE VIEW membership AS
-SELECT * FROM affiliation WHERE membership_TYPE IS NOT NULL;
+SELECT * FROM affiliation WHERE membership_type IS NOT NULL;
 
 CREATE TABLE affiliation_person (
     affiliation_id INTEGER NOT NULL REFERENCES affiliation (affiliation_id) ON DELETE RESTRICT ON UPDATE CASCADE,
