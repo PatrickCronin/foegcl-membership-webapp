@@ -19,7 +19,7 @@ CREATE TABLE person (
     last_name VARCHAR(64) NOT NULL
         CONSTRAINT last_name_is_trimmed_and_not_empty CHECK(last_name <> '' AND last_name = trim(both from last_name)),
     opted_out boolean NOT NULL DEFAULT false,
-    source_friend_id NUMERIC(11) NOT NULL,
+    source_friend_id NUMERIC(11),
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW()
 );

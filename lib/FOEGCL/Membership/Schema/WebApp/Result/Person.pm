@@ -84,7 +84,7 @@ __PACKAGE__->table("person");
 =head2 source_friend_id
 
   data_type: 'numeric'
-  is_nullable: 0
+  is_nullable: 1
   size: [11,0]
 
 =head2 created_at
@@ -118,7 +118,7 @@ __PACKAGE__->add_columns(
   "opted_out",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "source_friend_id",
-  { data_type => "numeric", is_nullable => 0, size => [11, 0] },
+  { data_type => "numeric", is_nullable => 1, size => [11, 0] },
   "created_at",
   {
     data_type     => "timestamp with time zone",
@@ -270,8 +270,8 @@ __PACKAGE__->has_many(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3Cs5mQ7bxCzcD56lj1qSpQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2018-08-06 18:10:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LMHv/Y3SQO5t6kyimoO7uw
 
 sub name_as_text ($self) {
     my @names = ( $self->first_name, $self->last_name );
