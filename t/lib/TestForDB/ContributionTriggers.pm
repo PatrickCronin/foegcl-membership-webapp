@@ -11,27 +11,82 @@ with qw(
     TestRole::GeneratesFixtures
 );
 
-const my $CURRENT_YEAR => [ gmtime(time) ]->[5] + 1900;
-
-# Updates that move a contribution to another affiliation are blocked. (If
-# needed, users can delete and create.) Updates that disqualify a membership's
-# contribution sum requirement are blocked.
-sub test_contribution_updates ( $self, @ ) {
-    my ( $a1, $a2 ) = map { $self->_create_individual_membership } ( 1 .. 2 );
-
-    like(
+sub test_contribution_inserts ( $self, @ ) {
+    my $affiliation = $self->_create_basic_affiliation;
+    is(
         exception {
-            $a1->contributions->first->update(
-                { affiliation_id => $a2->id } );
+            $self->_new_contribution(
+                affiliation_id => $self->_create_basic_affiliation->id,
+                amount         => 200
+                )
         },
-        qr/You cannot move a contribution from one affiliation to another[.]/,
-        'cannot move a contribution to a different affiliation',
+        undef,
+        'can add a contribution to an affiliation'
     );
 
     is(
         exception {
-            $a1->contributions->first->update(
-                { amount => $a1->contributions->first->amount * 2 } );
+            $self->_new_contribution(
+                affiliation_id => $affiliation->id,
+                amount         => 10,
+                received       => $affiliation->year->year . '-01-01',
+                )
+        },
+        undef,
+        q{contribution received date can be the same as the affiliations'},
+    );
+
+    like(
+        exception {
+            $self->_new_contribution(
+                affiliation_id => $affiliation->id,
+                amount         => 10,
+                received       => ( $affiliation->year->year - 1 ) . '-01-01',
+                )
+        },
+        qr/recieved date in a different year/,
+        q{contribution received date cannot be different than the affiliations'},
+    );
+}
+
+sub test_affiliation_contribution_updates ( $self, @ ) {
+    my $affiliation = $self->_create_basic_affiliation;
+
+    is(
+        exception {
+            $affiliation->contributions->first->update(
+                { amount => $affiliation->contributions->first->amount / 2 } )
+        },
+        undef,
+        'can update affiliation contribution amounts'
+    );
+
+    is(
+        exception {
+            $affiliation->contributions->first->update(
+                { received => $affiliation->year->year . '-01-01' } ),
+        },
+        undef,
+        q{contribution received date can be the same as the affiliations'},
+    );
+
+    like(
+        exception {
+            $affiliation->contributions->first->update(
+                { received => ( $affiliation->year->year - 1 ) . '-01-01' } ),
+        },
+        qr/recieved date in a different year/,
+        q{contribution received date cannot differ from the affiliations'},
+    );
+}
+
+sub test_membership_contribution_updates ( $self, @ ) {
+    my $membership = $self->_create_individual_membership;
+
+    is(
+        exception {
+            $membership->contributions->first->update(
+                { amount => $membership->contributions->first->amount * 2 } );
         },
         undef,
         'can update contribution amounts if it does not affect membership eligibility',
@@ -39,66 +94,54 @@ sub test_contribution_updates ( $self, @ ) {
 
     like(
         exception {
-            $a1->contributions->first->update(
-                { amount => $a1->contributions->first->amount / 3 } );
+            $membership->contributions->first->update(
+                { amount => $membership->contributions->first->amount / 3 } );
         },
-        qr/This update is prohibited because it would make the affiliation's total contribution amount less than what's required for its current membership type[.]/,
+        qr/without enough contributions/,
         'cannot update contribution amounts if it would affect membership eligibility',
     );
 }
 
-# Deletes that disqualify a membership's contribution sum requirement are blocked.
-sub test_contribution_deletes ( $self, @ ) {
-    my $a1 = $self->_create_individual_membership;
+sub test_affiliation_contribution_deletes ( $self, @ ) {
+    my $affiliation = $self->_create_basic_affiliation;
 
-    $a1->create_related(
+    like(
+        exception { $affiliation->contributions->first->delete },
+        qr/without any contributions/,
+        q{cannot delete an affiliation's last contribution},
+    );
+
+    $affiliation->create_related(
         'contributions',
-        { amount => $a1->contributions->first->amount }
+        { amount => $affiliation->contributions->first->amount }
     );
 
     is(
-        exception { $a1->contributions->first->delete },
+        exception { $affiliation->contributions->first->delete },
         undef,
-        'can delete a contribution if it does not affect membership eligibility',
-    );
-
-    like(
-        exception { $a1->contributions->first->delete },
-        qr/This delete is prohibited because it would make the affiliation's total contribution amount less than what's required for its current membership type[.]/,
-        'cannot delete a contribution if it would affect membership eligibility',
+        q{can delete a contribution if it is not the affiliation's last},
     );
 }
 
-sub _create_individual_membership ( $self, @ ) {
-    my $affiliation = $self->_create_affiliation;
+# Deletes that disqualify a membership's contribution sum requirement are blocked.
+sub test_membership_contribution_deletes ( $self, @ ) {
+    my $membership = $self->_create_individual_membership;
 
-    my $mtp
-        = $self->_schema->resultset('MembershipTypeParameter')->search_rs(
-        {
-            year            => $CURRENT_YEAR,
-            membership_type => $INDIVIDUAL_MEMBERSHIP,
-        }
-    )->one_row;
-
-    $affiliation->create_related(
-        'contributions',
-        {
-            amount => $mtp->membership_amount,
-        }
+    like(
+        exception {
+            my $amount
+                = $membership->membership_type_parameter->membership_amount
+                / 2;
+            $membership->create_related(
+                'contributions',
+                { amount => $amount }
+            );
+            $membership->contributions->search_rs(
+                { amount => { '!=' => $amount } } )->delete;
+        },
+        qr/without enough contributions/,
+        'cannot remove a necessary contribution from a membership'
     );
-
-    my $person = $self->_create_person;
-
-    $affiliation->create_related(
-        'affiliation_people',
-        {
-            person_id => $person->id,
-        }
-    );
-
-    $affiliation->update( { membership_type => $INDIVIDUAL_MEMBERSHIP } );
-
-    return $affiliation;
 }
 
 __PACKAGE__->meta->make_immutable;
