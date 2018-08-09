@@ -10,7 +10,7 @@ use List::MoreUtils qw( part );
 
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
-sub etl ( $self, $legacy_friend, @people ) {
+sub run ( $self, $legacy_friend, @people ) {
     return if !defined $legacy_friend->city_state_zip;
 
     my $new_csz

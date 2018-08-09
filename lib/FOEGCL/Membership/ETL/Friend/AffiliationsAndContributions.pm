@@ -19,7 +19,7 @@ use Params::ValidationCompiler 'validation_for';
 
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
-sub etl ( $self, $legacy_friend, @people ) {
+sub run ( $self, $legacy_friend, @people ) {
     my %donations_by_year
         = partition_by { $_->year } $legacy_friend->donations->all;
 

@@ -8,7 +8,7 @@ use FOEGCL::Membership::DataUtil qw( trim );
 
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
-sub etl ( $self, $legacy_friend ) {
+sub run ( $self, $legacy_friend ) {
     my @people;
     push @people,
         $self->_schema->resultset('Person')->create(

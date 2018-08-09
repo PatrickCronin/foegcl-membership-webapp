@@ -54,12 +54,12 @@ sub _etl_roletypes ($self) {
 }
 
 sub _etl_friends ($self) {
+    my $friend_etl = FOEGCL::Membership::ETL::Friend->new;
+
     my $legacy_friend_rs = $self->_legacy_schema->resultset('Friend')
         ->search_rs( undef, { order_by => 'FriendID' } );
     while ( my $legacy_friend = $legacy_friend_rs->next ) {
-        FOEGCL::Membership::ETL::Friend->new(
-            legacy_friend => $legacy_friend,
-        )->etl;
+        $friend_etl->run($legacy_friend);
     }
 }
 

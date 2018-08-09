@@ -10,34 +10,51 @@ use FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions ();
 use FOEGCL::Membership::ETL::Friend::Participation                ();
 use FOEGCL::Membership::ETL::Friend::People                       ();
 
-has legacy_friend => (
-    is       => 'ro',
-    isa      => 'FOEGCL::Membership::Schema::Legacy::Result::Friend',
-    required => 1,
+has _person_etl => (
+    is      => 'ro',
+    isa     => 'FOEGCL::Membership::ETL::Friend::People',
+    lazy    => 1,
+    default => sub { FOEGCL::Membership::ETL::Friend::People->new },
 );
 
-sub etl ( $self ) {
-    my @people = FOEGCL::Membership::ETL::Friend::People->new->etl(
-        $self->legacy_friend );
+has _addresses_etl => (
+    is      => 'ro',
+    isa     => 'FOEGCL::Membership::ETL::Friend::Addresses',
+    lazy    => 1,
+    default => sub { FOEGCL::Membership::ETL::Friend::Addresses->new },
+);
 
-    FOEGCL::Membership::ETL::Friend::Addresses->new->etl(
-        $self->legacy_friend,
+has _contact_details_etl => (
+    is      => 'ro',
+    isa     => 'FOEGCL::Membership::ETL::Friend::ContactDetails',
+    lazy    => 1,
+    default => sub { FOEGCL::Membership::ETL::Friend::ContactDetails->new },
+);
+
+has _participation_etl => (
+    is      => 'ro',
+    isa     => 'FOEGCL::Membership::ETL::Friend::Participation',
+    lazy    => 1,
+    default => sub { FOEGCL::Membership::ETL::Friend::Participation->new },
+);
+
+has _affiliations_and_contributions_etl => (
+    is   => 'ro',
+    isa  => 'FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions',
+    lazy => 1,
+    default => sub {
+        FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions->new;
+    },
+);
+
+sub run ( $self, $legacy_friend ) {
+    my @people = $self->_person_etl->run($legacy_friend);
+    $self->_addresses_etl->run( $legacy_friend, @people );
+    $self->_contact_details_etl->run( $legacy_friend, @people );
+    $self->_participation_etl->run( $legacy_friend, @people );
+    $self->_affiliations_and_contributions_etl->run(
+        $legacy_friend,
         @people
-    );
-
-    FOEGCL::Membership::ETL::Friend::ContactDetails->new->etl(
-        $self->legacy_friend,
-        @people
-    );
-
-    FOEGCL::Membership::ETL::Friend::Participation->new->etl(
-        $self->legacy_friend,
-        @people,
-    );
-
-    FOEGCL::Membership::ETL::Friend::AffiliationsAndContributions->new->etl(
-        $self->legacy_friend,
-        @people,
     );
 }
 

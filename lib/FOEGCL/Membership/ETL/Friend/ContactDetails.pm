@@ -9,20 +9,20 @@ use FOEGCL::Membership::Types qw( ArrayRef );
 
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
-sub etl ( $self, $legacy_friend, @people ) {
-    $self->_etl_friend_emails( $legacy_friend, @people );
-    $self->_etl_friend_phones( $legacy_friend, @people );
+sub run ( $self, $legacy_friend, @people ) {
+    _etl_friend_emails( $legacy_friend, @people );
+    _etl_friend_phones( $legacy_friend, @people );
 }
 
-sub _etl_friend_emails ( $self, $legacy_friend, @people ) {
-    my $friend_email_rs = $legacy_friend->contact_infos->search(
+sub _etl_friend_emails ( $legacy_friend, @people ) {
+    my $friend_email_rs = $legacy_friend->contact_infos->search_rs(
         { email_address => { '!=' => undef } } );
 
     while ( my $friend_email = $friend_email_rs->next ) {
         foreach my $person (@people) {
-            $self->_schema->resultset('PersonEmail')->create(
+            $person->create_related(
+                'person_emails',
                 {
-                    person_id     => $person->id,
                     email_address => trim( $friend_email->email_address ),
                     is_preferred  => $friend_email->preferred,
                 }
@@ -31,8 +31,8 @@ sub _etl_friend_emails ( $self, $legacy_friend, @people ) {
     }
 }
 
-sub _etl_friend_phones ( $self, $legacy_friend, @people ) {
-    my $friend_phone_rs = $legacy_friend->contact_infos->search(
+sub _etl_friend_phones ( $legacy_friend, @people ) {
+    my $friend_phone_rs = $legacy_friend->contact_infos->search_rs(
         {
             'Phone Number' => { '!=' => undef },
         }
@@ -44,9 +44,9 @@ sub _etl_friend_phones ( $self, $legacy_friend, @people ) {
                 . trim( $friend_phone->phone_number );
             $phone_number =~ s/\D//g;
 
-            $self->_schema->resultset('PersonPhone')->create(
+            $person->create_related(
+                'person_phones',
                 {
-                    person_id    => $person->id,
                     phone_number => $phone_number,
                     is_preferred => $friend_phone->preferred,
                 }

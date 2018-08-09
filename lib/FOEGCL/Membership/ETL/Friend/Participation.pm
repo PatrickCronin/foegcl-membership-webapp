@@ -9,7 +9,7 @@ use FOEGCL::Membership::Types qw( ArrayRef );
 
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
-sub etl ( $self, $legacy_friend, @people ) {
+sub run ( $self, $legacy_friend, @people ) {
     my $friend_roles        = $legacy_friend->roles;
     my $participation_roles = $self->_schema->resultset('ParticipationRole');
     while ( my $friend_role = $friend_roles->next ) {
