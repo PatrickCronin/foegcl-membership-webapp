@@ -74,7 +74,7 @@ sub _build_dbh ( $self, @ ) {
 
 around 'create_or_update_database' => sub ( $orig, $self, @args ) {
     if ( $self->drop_first ) {
-        $self->drop_database
+        $self->_drop_database
             if prompt(
             'Are you sure you want to drop the existing database? ',
             -default => 'n',
