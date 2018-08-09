@@ -29,7 +29,7 @@ sub test_contribution_inserts ( $self, @ ) {
             $self->_new_contribution(
                 affiliation_id => $affiliation->id,
                 amount         => 10,
-                received       => $affiliation->year->year . '-01-01',
+                received       => $affiliation->year . '-01-01',
                 )
         },
         undef,
@@ -41,7 +41,7 @@ sub test_contribution_inserts ( $self, @ ) {
             $self->_new_contribution(
                 affiliation_id => $affiliation->id,
                 amount         => 10,
-                received       => ( $affiliation->year->year - 1 ) . '-01-01',
+                received       => ( $affiliation->year - 1 ) . '-01-01',
                 )
         },
         qr/recieved date in a different year/,
@@ -64,7 +64,7 @@ sub test_affiliation_contribution_updates ( $self, @ ) {
     is(
         exception {
             $affiliation->contributions->first->update(
-                { received => $affiliation->year->year . '-01-01' } ),
+                { received => $affiliation->year . '-01-01' } ),
         },
         undef,
         q{contribution received date can be the same as the affiliations'},
@@ -73,7 +73,7 @@ sub test_affiliation_contribution_updates ( $self, @ ) {
     like(
         exception {
             $affiliation->contributions->first->update(
-                { received => ( $affiliation->year->year - 1 ) . '-01-01' } ),
+                { received => ( $affiliation->year - 1 ) . '-01-01' } ),
         },
         qr/recieved date in a different year/,
         q{contribution received date cannot differ from the affiliations'},

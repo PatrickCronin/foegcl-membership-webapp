@@ -72,7 +72,7 @@ sub test_affiliation_updates ( $self, @ ) {
 
     like(
         exception {
-            $affiliation->update( { year => $affiliation->year->year - 1 } );
+            $affiliation->update( { year => $affiliation->year - 1 } );
         },
         qr/recieved date in a different year/,
         'cannot update an affiliiation year without contribution dates received',
@@ -84,7 +84,7 @@ sub test_affiliation_updates ( $self, @ ) {
         exception {
             $self->_schema->storage->txn_do(
                 sub {
-                    my $previous_year = $affiliation->year->year - 1;
+                    my $previous_year = $affiliation->year - 1;
                     $self->_defer_constraints;
                     $affiliation->contributions->update(
                         { received => "${previous_year}-01-01" } );
@@ -114,7 +114,7 @@ sub test_affiliation_updates ( $self, @ ) {
             $self->_membership_type_parameter($INDIVIDUAL_MEMBERSHIP)
             ->membership_amount
             - $affiliation->contributions->get_column('amount')->sum,
-        received => $affiliation->year->year . '-01-01',
+        received => $affiliation->year . '-01-01',
     );
 
     # Attempt to upgrade an affiliation with too many people to an
@@ -272,7 +272,7 @@ sub test_membership_inserts ( $self, @ ) {
                     sub {
                         $self->_defer_constraints;
                         my $membership    = $required_steps->();
-                        my $previous_year = $membership->year->year - 1;
+                        my $previous_year = $membership->year - 1;
                         $membership->update( { year => $previous_year } );
                         $membership->contributions->update(
                             {
@@ -296,7 +296,7 @@ sub test_membership_inserts ( $self, @ ) {
                     sub {
                         $self->_defer_constraints;
                         my $membership    = $required_steps->();
-                        my $previous_year = $membership->year->year - 1;
+                        my $previous_year = $membership->year - 1;
                         $membership->update( { year => $previous_year } );
                         $membership->contributions->update(
                             {

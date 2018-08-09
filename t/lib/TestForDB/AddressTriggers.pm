@@ -127,7 +127,7 @@ sub test_multi_member_affiliation_person_address_inserts ( $self, @ ) {
     # Now, test a past year
     $self->_schema->storage->txn_do(
         sub {
-            my $previous_year = $affiliation->year->year - 1;
+            my $previous_year = $affiliation->year - 1;
             $self->_defer_constraints;
             $affiliation->update( { year => $previous_year } );
             $affiliation->contributions->update(

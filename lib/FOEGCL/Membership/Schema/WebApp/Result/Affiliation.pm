@@ -188,6 +188,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 affiliation_year
+
+Type: belongs_to
+
+Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "affiliation_year",
+  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear",
+  { year => "year" },
+  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
 =head2 contributions
 
 Type: has_many
@@ -222,25 +237,10 @@ __PACKAGE__->belongs_to(
     on_update     => "CASCADE",
   },
 );
-
-=head2 year
-
-Type: belongs_to
-
-Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "year",
-  "FOEGCL::Membership::Schema::WebApp::Result::AffiliationYear",
-  { year => "year" },
-  { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
-);
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2018-08-06 13:55:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4M0Ha/SPuHVF7FAUyBIXtA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2018-08-07 22:58:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:T47qvjkSCGIue4/dqxqxpQ
 
 sub people ( $self ) {
     return $self->result_source->schema->resultset('Person')->search_rs(

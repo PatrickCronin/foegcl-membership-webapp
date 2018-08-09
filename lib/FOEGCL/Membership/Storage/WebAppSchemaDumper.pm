@@ -29,9 +29,12 @@ sub _build_loader_options ( $self, @ ) {
         /x,
         ## use critic
         rel_name_map => {
+            Affiliation => {
+                year => 'affiliation_year',
+            },
             CityStateZip => {
                 state_abbr => 'state',    # CityStateZip.state => State
-            }
+            },
         },
     };
 }
