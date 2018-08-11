@@ -57,8 +57,14 @@ has class => (
             . ( join q{,}, $etl_enum->values->@* )
             . ". Defaults to $ETL_IGNORE. Setting is ignored when a specific class is given.",
     );
-
 }
+
+has method => (
+    is            => 'ro',
+    isa           => ArrayRef,
+    default       => sub { [] },
+    documentation => 'A specific test method to run.',
+);
 
 has _selected_classes => (
     is      => 'ro',
@@ -131,12 +137,19 @@ sub run ($self) {
 
         diag 'Starting tests...';
 
+        my $method_options = join '|', map { "\Q$_\E" } $self->method->@*;
+
         Test::Class::Moose::Runner->new(
             executor_roles   => $self->_executor_roles,
             jobs             => 1,
             set_process_name => 1,
             test_classes     => $self->_selected_classes,
             use_environment  => 1,
+            (
+                $self->method->@*
+                ? ( include => qr/$method_options/ )
+                : ()
+            )
         )->runtests;
     }
     catch {
