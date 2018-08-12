@@ -2,5 +2,6 @@
 .tidyall.d
 ._*
 *~
+etc/foegcl-membership.conf
 FOEGCL-Membership-[0-9].[0-9][0-9][0-9].tar.gz
 FOEGCL-Membership-[0-9].[0-9][0-9][0-9]/
