@@ -9,13 +9,13 @@ use FOEGCL::Membership::Types qw( HashRef );
 
 has _config => (
     is      => 'ro',
-    isa     => HashRef,
+    isa     => 'FOEGCL::Membership::Config',
     lazy    => 1,
     builder => '_build_config',
 );
 
 sub _build_config ( $self, @ ) {
-    return FOEGCL::Membership::Config->instance->config;
+    return FOEGCL::Membership::Config->instance;
 }
 
 1;

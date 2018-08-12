@@ -2,7 +2,6 @@ package FOEGCL::Membership::Config::WebAppDatabase;
 
 use FOEGCL::Membership::Moose;
 
-use Const::Fast qw( const );
 use FOEGCL::Membership::Types qw( HashRef NonEmptySimpleStr PortNumber );
 
 has database => (
@@ -38,8 +37,6 @@ with qw(
     FOEGCL::Membership::Role::HasConfig
 );
 
-const my $WEBAPP_DB_CONFIG_KEY => 'WebApp Database';
-
 # Note that the complete database name in Postgres should be 63 characters or
 # less.
 sub _build_database ( $self, @ ) {
@@ -47,15 +44,15 @@ sub _build_database ( $self, @ ) {
 }
 
 sub _build_db_config ( $self, @ ) {
-    return $self->_config->{$WEBAPP_DB_CONFIG_KEY};
+    return $self->_config->webapp_database_config;
 }
 
 sub _build_host ( $self, @ ) {
-    return $self->_db_config->{host} // '127.0.0.1';
+    return $self->_db_config->{host};
 }
 
 sub _build_port ( $self, @ ) {
-    return $self->_db_config->{port} // 5432;
+    return $self->_db_config->{port};
 }
 
 sub _build_dsn ( $self, @ ) {
