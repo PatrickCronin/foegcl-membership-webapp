@@ -8,7 +8,7 @@ extends 'Database::Migrator::Pg';
 use DBI                                        ();
 use FOEGCL::Membership::Config::WebAppDatabase ();
 use FOEGCL::Membership::Types qw(Bool);
-use IO::Prompt 'prompt';
+use IO::Prompt::Tiny 'prompt';
 use Try::Tiny 'try';
 
 # Don't use the role here as we need the config available before creating
@@ -74,13 +74,13 @@ sub _build_dbh ( $self, @ ) {
 
 around 'create_or_update_database' => sub ( $orig, $self, @args ) {
     if ( $self->drop_first ) {
-        $self->_drop_database
-            if prompt(
-            'Are you sure you want to drop the existing database? ',
-            -default => 'n',
-            -until   => qr/yn/i,
-            -yn,
-            );
+        my $answer;
+        do {
+            $answer = prompt(
+                'Are you sure you want to drop the existing database?', 'n' );
+        } while $answer !~ m/\A (?:y(?:es)?|no?)  \z/ix;
+
+        $self->_drop_database if $answer =~ m/\A y(?:es)? \z/ix;
     }
 
     $self->$orig(@args);
