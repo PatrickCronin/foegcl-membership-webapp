@@ -2,149 +2,94 @@ package FOEGCL::Membership::Report::ContributingFriends;
 
 use FOEGCL::Membership::Moose;
 
-use DateTime          ();
-use PDF::ReportWriter ();
+use FOEGCL::Membership::Report::PDFReportCreator;
 use POSIX 'strftime';
 
-has _report_writer => (
+has _pdf_report_creator => (
     is      => 'ro',
-    isa     => 'PDF::ReportWriter',
+    isa     => 'FOEGCL::Membership::Report::PDFReportCreator',
     lazy    => 1,
-    builder => '_build_report_writer',
+    builder => '_build_pdf_report_creator',
+    handles => [qw( save saveas stringify )],
 );
-
 with 'FOEGCL::Membership::Role::HasWebAppSchema';
 
-my $data_row_number = 0;
-
-sub _build_report_writer ( $self, @ ) {
-    return PDF::ReportWriter->new(
-        {
-            destination       => '/tmp/contributing_friends_report.pdf',
-            paper             => 'Letter',
-            orientation       => 'landscape',
-            font_list         => [qw( Times )],
-            default_font      => 'Times',
-            default_font_size => 10,
-            x_margin => 30,    # in points; 72 pt = 1 in
-            y_margin => 30,
-            info     => {
-                Author  => 'FOEGCL::Membership Report Generator',
-                Subject => 'Contributing Friends Report',
-                Title   => 'Contributing Friends Report',
-            },
-        }
+sub _build_pdf_report_creator ( $self, @ ) {
+    return FOEGCL::Membership::Report::PDFReportCreator->new(
+        name                 => 'Contributing Friends Report',
+        orientation          => 'landscape',
+        default_font_size    => 10,
+        page_header_cells    => $self->_page_header_cells(),
+        page_footer_cells    => $self->_page_footer_cells(),
+        data_header_settings => $self->_data_header_settings(),
+        data_field_settings  => $self->_data_field_settings(),
+        data                 => $self->_data(),
     );
 }
 
-sub run ($self) {
-    $self->_report_writer->render_data(
+sub _page_header_cells {
+    [
         {
-            page       => $self->_page_settings,
-            headings   => $self->_field_headings,
-            fields     => $self->_fields,
-            data_array => $self->_report_data,
+            percent   => 100,
+            font_size => 20,
+            align     => 'left',
+            text => 'Contributing Friends - ' . strftime( '%Y', localtime ),
         }
-    );
-    $self->_report_writer->save;
-}
-
-sub _page_settings ($self) {
-    return {
-        header => [
-            {
-                percent   => 100,
-                font_size => 20,
-                align     => 'left',
-                text      => 'Contributing Friends - ' . DateTime->now->year,
-            }
-        ],
-        footer => [
-            {
-                percent   => 60,
-                font_size => 10,
-                align     => 'left',
-                text      => 'Created on ' . strftime( '%d %b %Y', localtime )
-            },
-            {
-                percent   => 40,
-                font_size => 10,
-                align     => 'right',
-                text      => 'Page %PAGE% of %PAGES%',
-            },
-        ],
-    };
-}
-
-sub _field_headings ($self) {
-    return {
-        background => {
-            shape  => 'box',
-            colour => 'darkgray',
-        }
-    };
-}
-
-sub _fields ($self) {
-    return [
-        _standard_cell( { name => 'Year',                  percent => 6, } ),
-        _standard_cell( { name => "Contributing\nFriends", percent => 12, } ),
-        _standard_cell( { name => 'Renewees',              percent => 10, } ),
-        _standard_cell( { name => 'Refreshees',            percent => 10, } ),
-        _standard_cell( { name => 'First Timers',          percent => 10, } ),
-        _standard_cell( { name => "Total\nContributed",    percent => 12, } ),
-        _standard_cell( { name => "Membership\nPortion",   percent => 12, } ),
-        _standard_cell( { name => "Donation\nPortion",     percent => 10, } ),
-        _standard_cell(
-            { name => "Number of\nContributions", percent => 12, }
-        ),
     ];
 }
 
-sub _report_data ($self) {
+sub _page_footer_cells {
+    [
+        {
+            percent => 60,
+            align   => 'left',
+            text    => 'Created on ' . strftime( '%d %b %Y', localtime )
+        },
+        {
+            percent => 40,
+            align   => 'right',
+            text    => 'Page %PAGE% of %PAGES%',
+        },
+    ];
+}
+
+sub _data_header_settings {
+    {
+        background => {
+            shape  => 'box',
+            colour => 'darkgray',
+        },
+    };
+}
+
+sub _data_field_settings {
+    [
+        { name => 'Year',                     percent => 6, },
+        { name => "Contributing\nFriends",    percent => 12, },
+        { name => 'Renewees',                 percent => 10, },
+        { name => 'Refreshees',               percent => 10, },
+        { name => 'First Timers',             percent => 10, },
+        { name => "Total\nContributed",       percent => 12, },
+        { name => "Membership\nPortion",      percent => 12, },
+        { name => "Donation\nPortion",        percent => 10, },
+        { name => "Number of\nContributions", percent => 12, },
+    ];
+}
+
+sub _data ($self) {
     my $rs = $self->_schema->resultset('ReportContributingFriend')->hri;
 
     my @data;
     while ( my $person = $rs->next ) {
-        push @data, [
-            $person->{Year},
-            $person->{'Contributing Friends'} // q{},
-            $person->{Renewees} // q{},
-            $person->{Refreshees} // q{},
-            $person->{'First Timers'} // q{},
-            $person->{'Total Contributed'} // q{},
-            $person->{'Membership Portion'} // q{},
-            $person->{'Donation Portion'} // q{},
-            $person->{'Number of Contributions'} // q{},
-        ];
+        push @data,
+            [
+            map     { $person->{$_} // q{} }
+                map { $_->{name} =~ s/\n/ /gr }
+                $self->_data_field_settings->@*
+            ];
     }
 
     return \@data;
-}
-
-sub _standard_cell ( $args ) {
-    return {
-        align           => 'left',
-        background_func => \&_alternate_data_row_background,
-        colour          => 'black',
-        font_size       => 10,
-        name            => 'Unnamed',
-        percent         => 10,
-        wrap_text       => 1,
-        $args->%*
-    };
-}
-
-sub _alternate_data_row_background ( $value, $row, $options ) {
-    $data_row_number++
-        if $options->{row_type} eq 'data' && !$options->{cell_counter};
-
-    return {
-        shape  => 'box',
-        colour => $data_row_number % 2 == 0
-        ? 'white'
-        : 'lightgray'
-    };
 }
 
 __PACKAGE__->meta->make_immutable;
