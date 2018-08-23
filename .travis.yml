@@ -1,0 +1,23 @@
+language: perl
+perl:
+    - "5.26"
+services:
+    - postgresql
+before_script:
+    # Create a non-admin DB user
+    - psql -c 'CREATE ROLE foegcl WITH option CREATEDB LOGIN PASSWORD foegcl' -U postgres
+    # Create a configuration file
+    - mkdir etc
+    - echo '[WebApp Database]' >> etc/foegcl-membership.conf
+    - echo 'host = 127.0.0.1'  >> etc/foegcl-membership.conf
+    - echo 'port = 5432'       >> etc/foegcl-membership.conf
+    - echo 'database = foegcl' >> etc/foegcl-membership.conf
+    - echo 'username = foegcl' >> etc/foegcl-membership.conf
+    - echo 'password = foegcl' >> etc/foegcl-membership.conf
+script: prove -lvm
+notifications:
+    recipients:
+        - patrick@cronin-tech.com
+    email:
+        on_success: change
+        on_failure: always
