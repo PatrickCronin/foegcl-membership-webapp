@@ -54,9 +54,27 @@ __PACKAGE__->table_class("DBIx::Class::ResultSource::View");
 =cut
 
 __PACKAGE__->table("report_current_membership_list");
-__PACKAGE__->result_source_instance->view_definition(" WITH member_person AS (\n         SELECT person_1.person_id\n           FROM ((person person_1\n             JOIN affiliation_person USING (person_id))\n             JOIN membership USING (affiliation_id))\n          WHERE ((membership.year)::double precision = date_part('year'::text, ('now'::text)::date))\n        ), aggregated_email AS (\n         SELECT person_email.person_id,\n            string_agg((person_email.email_address)::text, '\n'::text ORDER BY person_email.is_preferred DESC, (person_email.email_address)::text) AS emails\n           FROM (person_email\n             JOIN member_person member_person_1 USING (person_id))\n          GROUP BY person_email.person_id\n        ), aggregated_phone AS (\n         SELECT person_formatted_phone.person_id,\n            string_agg((person_formatted_phone.phone_number)::text, '\n'::text ORDER BY person_formatted_phone.is_preferred DESC, (person_formatted_phone.phone_number)::text) AS phones\n           FROM ( SELECT person_phone.person_id,\n                    person_phone.is_preferred,\n                    format_phone_number(person_phone.phone_number) AS phone_number\n                   FROM (person_phone\n                     JOIN member_person member_person_1 USING (person_id))) person_formatted_phone\n          GROUP BY person_formatted_phone.person_id\n        )\n SELECT (((person.last_name)::text || ', '::text) || (person.first_name)::text) AS name,\n    ((COALESCE(physical_address.street_line_1))::text || COALESCE(('\n'::text || (physical_address.street_line_2)::text), ''::text)) AS street_lines,\n    ((((((city_state_zip.city)::text || ', '::text) || (city_state_zip.state_abbr)::text) || ' '::text) || (city_state_zip.zip)::text) || COALESCE(('-'::text || (physical_address.plus_four)::text), ''::text)) AS csz,\n    aggregated_email.emails,\n    aggregated_phone.phones\n   FROM (((((person\n     JOIN member_person USING (person_id))\n     LEFT JOIN physical_address USING (person_id))\n     LEFT JOIN city_state_zip USING (csz_id))\n     LEFT JOIN aggregated_email USING (person_id))\n     LEFT JOIN aggregated_phone USING (person_id))\n  ORDER BY person.last_name, person.first_name");
+__PACKAGE__->result_source_instance->view_definition(" SELECT membership.friend_id,\n    person.first_name,\n    person.last_name,\n    (((person.last_name)::text || ', '::text) || (person.first_name)::text) AS name,\n    ((COALESCE(physical_address.street_line_1))::text || COALESCE(('\n'::text || (physical_address.street_line_2)::text), ''::text)) AS street_lines,\n    ((((((city_state_zip.city)::text || ', '::text) || (city_state_zip.state_abbr)::text) || ' '::text) || (city_state_zip.zip)::text) || COALESCE(('-'::text || (physical_address.plus_four)::text), ''::text)) AS city_state_zip,\n    aggregated_email.emails,\n    aggregated_phone.phones\n   FROM ((((((person\n     JOIN affiliation_person USING (person_id))\n     JOIN membership USING (affiliation_id))\n     LEFT JOIN physical_address USING (person_id))\n     LEFT JOIN city_state_zip USING (csz_id))\n     LEFT JOIN ( SELECT person_email.person_id,\n            string_agg((person_email.email_address)::text, '\n'::text ORDER BY person_email.is_preferred DESC, (person_email.email_address)::text) AS emails\n           FROM person_email\n          GROUP BY person_email.person_id) aggregated_email USING (person_id))\n     LEFT JOIN ( SELECT person_phone.person_id,\n            string_agg((format_phone_number(person_phone.phone_number))::text, '\n'::text ORDER BY person_phone.is_preferred DESC, (format_phone_number(person_phone.phone_number))::text) AS phones\n           FROM person_phone\n          GROUP BY person_phone.person_id) aggregated_phone USING (person_id))\n  WHERE ((membership.year)::double precision = date_part('year'::text, ('now'::text)::date))\n  ORDER BY person.last_name, person.first_name");
 
 =head1 ACCESSORS
+
+=head2 friend_id
+
+  data_type: 'numeric'
+  is_nullable: 1
+  size: [11,0]
+
+=head2 first_name
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 64
+
+=head2 last_name
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 64
 
 =head2 name
 
@@ -68,7 +86,7 @@ __PACKAGE__->result_source_instance->view_definition(" WITH member_person AS (\n
   data_type: 'text'
   is_nullable: 1
 
-=head2 csz
+=head2 city_state_zip
 
   data_type: 'text'
   is_nullable: 1
@@ -86,11 +104,17 @@ __PACKAGE__->result_source_instance->view_definition(" WITH member_person AS (\n
 =cut
 
 __PACKAGE__->add_columns(
+  "friend_id",
+  { data_type => "numeric", is_nullable => 1, size => [11, 0] },
+  "first_name",
+  { data_type => "varchar", is_nullable => 1, size => 64 },
+  "last_name",
+  { data_type => "varchar", is_nullable => 1, size => 64 },
   "name",
   { data_type => "text", is_nullable => 1 },
   "street_lines",
   { data_type => "text", is_nullable => 1 },
-  "csz",
+  "city_state_zip",
   { data_type => "text", is_nullable => 1 },
   "emails",
   { data_type => "text", is_nullable => 1 },
@@ -99,8 +123,8 @@ __PACKAGE__->add_columns(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gU97RhI+t6LM0V4SO6jZLw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2018-08-20 23:59:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xvw5pP/FXaxkvizryVZFJw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
