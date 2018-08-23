@@ -842,40 +842,31 @@ END;
 $$;
 
 CREATE VIEW report_current_membership_list AS
-WITH member_person AS (
-    SELECT person_id
-    FROM person
-    INNER JOIN affiliation_person USING (person_id)
-    INNER JOIN membership USING (affiliation_id)
-    WHERE year = date_part('year', CURRENT_DATE)
-),
-aggregated_email AS (
-    SELECT person_id, string_agg(email_address, E'\n' ORDER BY is_preferred DESC, email_address) emails
-    FROM person_email
-    INNER JOIN member_person USING (person_id)
-    GROUP BY person_id
-),
-aggregated_phone AS (
-    SELECT person_id, string_agg(phone_number, E'\n' ORDER BY is_preferred DESC, phone_number) phones
-    FROM (
-        SELECT person_id, is_preferred, format_phone_number(phone_number) AS phone_number
-        FROM person_phone
-        INNER JOIN member_person USING (person_id)
-    ) person_formatted_phone
-    GROUP BY person_id
-)
 SELECT
+    friend_id,
+    first_name as first_name,
+    last_name as last_name,
     last_name || ', ' || first_name AS name,
     COALESCE(street_line_1) || COALESCE( E'\n' || street_line_2, '') street_lines,
-    city || ', ' || state_abbr || ' ' || zip || COALESCE( '-' || plus_four, '') csz,
+    city || ', ' || state_abbr || ' ' || zip || COALESCE( '-' || plus_four, '') city_state_zip,
     emails,
     phones
 FROM person
-INNER JOIN member_person USING (person_id)
+INNER JOIN affiliation_person USING (person_id)
+INNER JOIN membership USING (affiliation_id)
 LEFT JOIN physical_address USING (person_id)
 LEFT JOIN city_state_zip USING (csz_id)
-LEFT JOIN aggregated_email USING (person_id)
-LEFT JOIN aggregated_phone USING (person_id)
+LEFT JOIN (
+    SELECT person_id, string_agg(email_address, E'\n' ORDER BY is_preferred DESC, email_address) emails
+    FROM person_email
+    GROUP BY person_id
+) aggregated_email USING (person_id)
+LEFT JOIN (
+    SELECT person_id, string_agg(format_phone_number(phone_number), E'\n' ORDER BY is_preferred DESC, format_phone_number(phone_number)) phones
+    FROM person_phone
+    GROUP BY person_id
+) aggregated_phone USING (person_id)
+WHERE year = date_part('year', CURRENT_DATE)
 ORDER BY last_name, first_name;
 
 CREATE VIEW report_contributing_friends_annual_friend_contribution_agg AS
