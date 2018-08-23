@@ -162,6 +162,7 @@ sub run ($self) {
         },
         [ $self->_db_config->connect_info ],
     );
+
     $schema->storage->disconnect;
 }
 
