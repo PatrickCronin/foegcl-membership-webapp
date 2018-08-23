@@ -87,9 +87,9 @@ sub _default_csz ( $self, %args ) {
 }
 
 sub _new_mailing_address_for_person ( $self, $person, %args ) {
-    $self->_schema->resultset('MailingAddress')->create(
+    $person->create_related(
+        'mailing_address',
         {
-            person_id     => $person->id,
             street_line_1 => 'PO Box 4',
             csz_id        => $self->_default_csz->id,
             %args,
@@ -98,9 +98,9 @@ sub _new_mailing_address_for_person ( $self, $person, %args ) {
 }
 
 sub _new_physical_address_for_person ( $self, $person, %args ) {
-    $self->_schema->resultset('PhysicalAddress')->create(
+    $person->create_related(
+        'physical_address',
         {
-            person_id     => $person->id,
             street_line_1 => '2 Main St',
             csz_id        => $self->_default_csz->id,
             %args,
