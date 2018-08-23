@@ -108,6 +108,26 @@ sub _new_physical_address_for_person ( $self, $person, %args ) {
     );
 }
 
+sub _new_phone_number_for_person ( $self, $person, %args ) {
+    $person->create_related(
+        'person_phones',
+        {
+            phone_number => '5185551234',
+            %args,
+        },
+    );
+}
+
+sub _new_email_address_for_person ( $self, $person, %args ) {
+    $person->create_related(
+        'person_emails',
+        {
+            email_address => 'test@fixture.com',
+            %args,
+        }
+    );
+}
+
 sub _membership_type_parameter ( $self, $membership_type ) {
     $self->_schema->resultset('MembershipTypeParameter')->search_rs(
         {
