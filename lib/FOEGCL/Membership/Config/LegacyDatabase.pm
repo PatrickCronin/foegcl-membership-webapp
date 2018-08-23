@@ -10,7 +10,7 @@ with qw(
 sub _build_dsn ( $self, @ ) {
     return sprintf(
         'dbi:ADO:Provider=Microsoft.Jet.OLEDB.4.0;Data Source=%s',
-        $self->_config->legacy_db_config->{filepath}
+        $self->_config->legacy_database_config->{filepath}
     );
 }
 
