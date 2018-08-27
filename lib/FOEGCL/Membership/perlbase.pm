@@ -1,6 +1,7 @@
 ## no critic (NamingConventions::Capitalization)
 package FOEGCL::Membership::perlbase;
 ## use critic (NamingConventions::Capitalization)
+# ABSTRACT: Distribution-specific language defaults
 
 use strict;
 use warnings;

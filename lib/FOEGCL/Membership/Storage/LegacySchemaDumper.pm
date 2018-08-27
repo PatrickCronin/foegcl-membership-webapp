@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Storage::LegacySchemaDumper;
 
+# ABSTRACT: Dumps the Legacy DBIC schema classes
+
 use FOEGCL::Membership::Moose;
 
 use FOEGCL::Membership::Config::LegacyDatabase ();

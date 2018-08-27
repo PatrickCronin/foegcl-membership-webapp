@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Config::LegacyDatabase;
 
+# ABSTRACT: Access configuration singleton for the Legacy DB
+
 use FOEGCL::Membership::Moose;
 
 with qw(

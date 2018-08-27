@@ -2,6 +2,8 @@
 
 package FOEGCL::Membership::Moose;
 
+# ABSTRACT: Moose with distribution-specific defaults
+
 use FOEGCL::Membership::perlbase;
 
 use Import::Into;

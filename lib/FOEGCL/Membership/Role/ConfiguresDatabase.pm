@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Role::ConfiguresDatabase;
 
+# ABSTRACT: Common attributes for database config singletons
+
 use FOEGCL::Membership::Moose::Role;
 
 use FOEGCL::Membership::Types

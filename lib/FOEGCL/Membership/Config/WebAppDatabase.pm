@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Config::WebAppDatabase;
 
+# ABSTRACT: Access configuration singleton for the WebApp DB
+
 use FOEGCL::Membership::Moose;
 
 use FOEGCL::Membership::Types qw( HashRef NonEmptySimpleStr PortNumber );
