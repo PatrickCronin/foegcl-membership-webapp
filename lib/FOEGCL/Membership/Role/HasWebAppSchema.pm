@@ -34,7 +34,9 @@ sub _build_dbh ( $self, @ ) {
     return $self->_schema->storage->dbh;
 }
 
+## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
 sub _reset_schema( $self ) {
+    ## use critic
     $self->_clear_dbh;
     $self->_clear_schema;
 }
