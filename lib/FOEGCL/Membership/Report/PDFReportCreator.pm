@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Report::PDFReportCreator;
 
+# ABSTRACT: A wrapper around PDF::ReportWriter for simplified MS Access-like report specification
+
 use FOEGCL::Membership::Moose;
 
 use DateTime          ();

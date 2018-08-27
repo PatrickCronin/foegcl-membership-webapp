@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Report::Membership;
 
+# ABSTRACT: The Current Membership report
+
 use FOEGCL::Membership::Moose;
 
 use POSIX 'strftime';

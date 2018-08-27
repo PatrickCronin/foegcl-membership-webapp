@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Role::VersionedSingleton;
 
+# ABSTRACT: Make an instance a version of a singleton
+
 use FOEGCL::Membership::Moose::Role;
 
 use Const::Fast 'const';

@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Types;
 
+# ABSTRACT: Distribution-specific types combined
+
 use FOEGCL::Membership::perlbase;
 
 use base 'MooseX::Types::Combine';

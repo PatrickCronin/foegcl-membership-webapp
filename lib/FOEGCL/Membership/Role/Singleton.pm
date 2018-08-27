@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Role::Singleton;
 
+# ABSTRACT: Make an instance a singleton instance
+
 use FOEGCL::Membership::Moose::Role;
 
 my %singleton;

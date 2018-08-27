@@ -1,5 +1,5 @@
 #!perl
-
+# ABSTRACT: Dump the Legacy DBIC schema classes
 # PODNAME: dump-legacy-schema.pl
 
 use FOEGCL::Membership::perlbase;

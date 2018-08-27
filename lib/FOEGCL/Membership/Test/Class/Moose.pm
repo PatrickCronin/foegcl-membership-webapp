@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Test::Class::Moose;
 
+# ABSTRACT: Test::Class::Moose with distribution-specific defaults
+
 use Moose::Exporter;
 use MooseX::SemiAffordanceAccessor ();
 use MooseX::StrictConstructor      ();

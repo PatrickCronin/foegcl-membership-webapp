@@ -1,5 +1,5 @@
 #!perl
-
+# ABSTRACT: Dump the WebApp DBIC schema classes
 # PODNAME: dump-webapp-schema.pl
 
 use FOEGCL::Membership::perlbase;
