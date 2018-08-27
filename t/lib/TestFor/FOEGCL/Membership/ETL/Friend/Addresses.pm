@@ -157,8 +157,7 @@ sub test_single_street_line_to_multiple_lines ( $self, @ ) {
         [
             ## no critic (Subroutines::ProtectPrivateSubs)
             FOEGCL::Membership::ETL::Friend::Addresses::_single_street_line_to_multiple_lines(
-                ' 1 Main Street '
-            )
+                ' 1 Main Street ')
         ],
         ['1 Main Street'],
         'single line addresses are trimmed'
@@ -169,8 +168,7 @@ sub test_single_street_line_to_multiple_lines ( $self, @ ) {
             [
                 ## no critic (Subroutines::ProtectPrivateSubs)
                 FOEGCL::Membership::ETL::Friend::Addresses::_single_street_line_to_multiple_lines(
-                    " 1 Main Street   $line_ending  Apt B  "
-                )
+                    " 1 Main Street   $line_ending  Apt B  ")
             ],
             [ '1 Main Street', 'Apt B', ],
             'multi-line addresses formed with line endings `'
