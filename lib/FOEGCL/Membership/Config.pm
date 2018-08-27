@@ -19,6 +19,16 @@ has project_root => (
     default => sub { path(__FILE__)->parent(4) },
 );
 
+has infrastructure_dir => (
+    is => 'ro',
+    isa => Path,
+    lazy => 1,
+    default => sub ($self) {
+        $self->project_root->child('infrastructure')
+            ->make_path( { mode => 0755 } )
+    },
+);
+
 has storage_dir => (
     is      => 'ro',
     isa     => Path,
