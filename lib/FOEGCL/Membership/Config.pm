@@ -9,13 +9,26 @@ use FOEGCL::Membership::Types qw( HashRef Path );
 use List::Util 'first';
 use Path::Tiny 'path';
 
-has _dist_root => (
+#
+# Paths
+#
+has project_root => (
     is      => 'ro',
     isa     => Path,
     lazy    => 1,
     default => sub { path(__FILE__)->parent(4) },
 );
 
+has storage_dir => (
+    is      => 'ro',
+    isa     => Path,
+    lazy    => 1,
+    default => sub ($self) { $self->project_root->child('storage') },
+);
+
+#
+# File-based config
+#
 has _config_file => (
     is      => 'ro',
     isa     => Path,
@@ -30,6 +43,9 @@ has _config => (
     builder => '_build_config',
 );
 
+#
+# DB config
+#
 has webapp_database_config => (
     is      => 'ro',
     isa     => HashRef,
@@ -44,18 +60,11 @@ has legacy_database_config => (
     builder => '_build_legacy_database_config',
 );
 
-has storage_dir => (
-    is      => 'ro',
-    isa     => Path,
-    lazy    => 1,
-    builder => '_build_storage_dir',
-);
-
 with 'FOEGCL::Membership::Role::Singleton';
 
 sub _build_config_file ( $self, @ ) {
     my @prioritized_paths = (
-        $self->_dist_root->child( 'etc', 'foegcl-membership.conf' ),
+        $self->project_root->child( 'etc', 'foegcl-membership.conf' ),
         Path::Tiny::rootdir->child( 'etc', 'foegcl-membership.conf' ),
     );
 
@@ -85,10 +94,6 @@ sub _ensure_all_truthy ( $self, $type, $config ) {
         die "Could not find a value for the $type Config key $key!\n"
             if !$config->{$key};
     }
-}
-
-sub _build_storage_dir ( $self, @ ) {
-    return $self->_dist_root->child('storage');
 }
 
 __PACKAGE__->meta->make_immutable( inline_constructor => 0 );
