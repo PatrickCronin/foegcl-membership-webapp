@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Const;
 
+# ABSTRACT: Establish distribution-wide constants
+
 use FOEGCL::Membership::perlbase;
 
 use Const::Fast 'const';

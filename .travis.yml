@@ -1,0 +1,55 @@
+language: perl
+perl:
+    - "5.26"
+services:
+    - postgresql
+git:
+    depth: false
+before_install:
+    # cpanm is pre-installed on Travis CI
+    - cpanm --notest Module::CPANfile
+    # We pin to 0.95 to enable dependencies to be found in test .pms
+    - cpanm --notest Perl::PrereqScanner::NotQuiteLite@0.95
+    - scan-perl-prereqs-nqlite --save-cpanfile --base-dir .
+before_script:
+    # Create a SUPERUSER role. SUPERUSERs are needed for creating new
+    # databases, which happens when running the test suite. It is not required
+    # for production.
+    - psql -c "CREATE ROLE foegcl WITH SUPERUSER CREATEDB LOGIN PASSWORD 'foegcl'" -U postgres
+    # Create the database so that we can assign permissions to the public schema
+    - psql -c "CREATE DATABASE foegcl OWNER foegcl" -U postgres
+    - psql -c "GRANT ALL PRIVILEGES ON DATABASE foegcl TO foegcl" -U postgres
+    - psql -c "ALTER SCHEMA public OWNER TO foegcl" -U postgres -d foegcl
+    # - psql -c "CREATE EXTENSION pg_trgm with schema pg_catalog" -U postgres -d foegcl
+    # Create a configuration file
+    - mkdir etc
+    - echo '[WebApp Database]' >> etc/foegcl-membership.conf
+    - echo 'host = 127.0.0.1'  >> etc/foegcl-membership.conf
+    - echo 'port = 5432'       >> etc/foegcl-membership.conf
+    - echo 'database = foegcl' >> etc/foegcl-membership.conf
+    - echo 'username = foegcl' >> etc/foegcl-membership.conf
+    - echo 'password = foegcl' >> etc/foegcl-membership.conf
+    - cat etc/foegcl-membership.conf
+    # Install module that seems to be required "for Fatalised/autodying system()"
+    - cpanm --notest IPC::System::Simple
+    # Install modules that scan-perl-prereqs-nqlite doesn't find
+    - cpanm --notest MooseX::Types::Common::Numeric
+    - cpanm --notest MooseX::Types::Common::String
+    - cpanm --notest MooseX::Types::Moose
+    - cpanm --notest MooseX::Types::Path::Tiny
+    - cpanm --notest MooseX::Types::Perl
+    - cpanm --notest MooseX::Types::PortNumber
+    - cpanm --notest DBIx::Class::InflateColumn::DateTime
+    - cpanm --notest DBIx::Class::InflateColumn::Serializer
+    - cpanm --notest DBIx::Class::TimeStamp
+    - cpanm --notest DBIx::Class::Helper::ResultSet::OneRow
+    - cpanm --notest DBD::Pg
+addons:
+    postgresql: "9.6"
+script: prove -lvm
+notifications:
+    recipients:
+        - patrick@cronin-tech.com
+    email:
+        on_success: change
+        on_failure: always

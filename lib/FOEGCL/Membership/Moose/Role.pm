@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Moose::Role;
 
+# ABSTRACT: Moose::Role with distribution-specific defaults
+
 use FOEGCL::Membership::perlbase;
 
 use Import::Into;

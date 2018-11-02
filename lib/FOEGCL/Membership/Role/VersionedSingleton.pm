@@ -1,8 +1,11 @@
 package FOEGCL::Membership::Role::VersionedSingleton;
 
+# ABSTRACT: Make an instance a version of a singleton
+
 use FOEGCL::Membership::Moose::Role;
 
 use Const::Fast 'const';
+use Data::Printer;
 
 const my $VERSIONS_KEY         => 'versions';
 const my $CURRENT_VERSION_KEY  => 'current';
@@ -69,8 +72,6 @@ sub version_exists ( $class, $name ) {
 
 sub set_current ( $class, $name ) {
     die 'set_current is a class operation' if ref $class;
-
-    use DDP;
     die "$class does not have a $name version"
         . np $versioned_singleton{$class}{$VERSIONS_KEY}
         if !$versioned_singleton{$class}

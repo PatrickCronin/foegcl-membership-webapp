@@ -1,6 +1,6 @@
 package FOEGCL::Membership::Role::DumpsDBICSchema;
 
-# ABSTRACT: Dump the DBIC Schema to disk
+# ABSTRACT: Dump a DBIC Schema to disk
 
 use FOEGCL::Membership::Moose::Role;
 

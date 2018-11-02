@@ -16,7 +16,6 @@ to do that.
 
 use lib 't/lib';    # Find the TestHelper dir
 
-use Class::Load qw( load_class );
 use Const::Fast 'const';
 use FOEGCL::Membership::Config::WebAppDatabase ();
 use FOEGCL::Membership::Const qw(
@@ -26,6 +25,7 @@ use FOEGCL::Membership::Const qw(
 use FOEGCL::Membership::Storage::WebAppSchemaMigrator ();
 use FOEGCL::Membership::Types qw(ArrayRef HashRef);
 use List::Util 'any';
+use Module::Runtime 'require_module';
 use Test::Class::Moose::Runner ();
 use Test::More;    # for diag
 use TestHelper::TestLoader ();
@@ -163,7 +163,7 @@ sub run ($self) {
 
 sub _load_executor_roles ( $self ) {
     foreach my $role ( $self->_executor_roles->@* ) {
-        load_class $role;
+        require_module $role;
     }
 }
 

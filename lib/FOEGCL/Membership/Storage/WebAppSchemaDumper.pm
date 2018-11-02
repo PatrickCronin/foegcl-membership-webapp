@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Storage::WebAppSchemaDumper;
 
+# ABSTRACT: Dumps the WebApp DBIC schema classes
+
 use FOEGCL::Membership::Moose;
 
 use FOEGCL::Membership::Config::WebAppDatabase ();

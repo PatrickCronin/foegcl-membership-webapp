@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Types::Internal;
 
+# ABSTRACT: Distribution-specific types
+
 use FOEGCL::Membership::perlbase;
 
 use MooseX::Types -declare => [

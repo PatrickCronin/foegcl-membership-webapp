@@ -1,84 +1,89 @@
 package FOEGCL::Membership::Report::PDFReportCreator;
 
+# ABSTRACT: A wrapper around PDF::ReportWriter for simplified MS Access-like report specification
+
 use FOEGCL::Membership::Moose;
 
-use DateTime          ();
-use FOEGCL::Membership::Types qw( ArrayRef HashRef NonEmptySimpleStr PositiveInt );
-use Path::Tiny ();
+use DateTime ();
+use FOEGCL::Membership::Types
+    qw( ArrayRef HashRef NonEmptySimpleStr PositiveInt );
+use Path::Tiny        ();
 use PDF::ReportWriter ();
 use POSIX 'strftime';
 
 has name => (
-    is => 'ro',
-    isa => NonEmptySimpleStr,
+    is       => 'ro',
+    isa      => NonEmptySimpleStr,
     required => 1,
 );
 
 {
     use Moose::Util::TypeConstraints 'enum';
-    
-    my $orientation_enum = enum( [ qw( portrait landscape ) ]);
+
+    my $orientation_enum = enum( [qw( portrait landscape )] );
     has orientation => (
-        is => 'ro',
-        isa => $orientation_enum,
-        lazy => 1,
+        is      => 'ro',
+        isa     => $orientation_enum,
+        lazy    => 1,
         default => sub { 'portrait' },
     );
+
+    no Moose::Util::TypeConstraints;
 }
 
 has default_font_size => (
-    is => 'ro',
-    isa => PositiveInt,
-    lazy => 1,
+    is      => 'ro',
+    isa     => PositiveInt,
+    lazy    => 1,
     default => sub { 12 },
 );
 
 has page_header_cells => (
-    is => 'ro',
-    isa => ArrayRef[ HashRef ],
-    lazy => 1,
+    is      => 'ro',
+    isa     => ArrayRef [HashRef],
+    lazy    => 1,
     default => sub { {} },
 );
 
 has page_footer_cells => (
-    is => 'ro',
-    isa => ArrayRef[ HashRef ],
-    lazy => 1,
+    is      => 'ro',
+    isa     => ArrayRef [HashRef],
+    lazy    => 1,
     default => sub { {} },
 );
 
 has data_header_settings => (
-    is => 'ro',
-    isa => HashRef,
-    lazy => 1,
+    is      => 'ro',
+    isa     => HashRef,
+    lazy    => 1,
     default => sub { {} },
 );
 
 has data_field_settings => (
-    is => 'ro',
-    isa => ArrayRef[ HashRef ],
-    lazy => 1,
+    is      => 'ro',
+    isa     => ArrayRef [HashRef],
+    lazy    => 1,
     default => sub { {} },
 );
 
 has _data_field_settings_with_defaults => (
-    is => 'ro',
-    isa => ArrayRef[ HashRef ],
-    lazy => 1,
+    is      => 'ro',
+    isa     => ArrayRef [HashRef],
+    lazy    => 1,
     builder => '_build_data_field_settings_with_defaults',
 );
 
 has data => (
-    is => 'ro',
-    isa => ArrayRef[ ArrayRef ],
-    lazy => 1,
+    is      => 'ro',
+    isa     => ArrayRef [ArrayRef],
+    lazy    => 1,
     default => sub { {} },
 );
 
 has _pdf_report_writer => (
-    is => 'ro',
-    isa => 'PDF::ReportWriter',
-    lazy => 1,
+    is      => 'ro',
+    isa     => 'PDF::ReportWriter',
+    lazy    => 1,
     builder => '_build_pdf_report_writer',
     handles => [qw( save saveas stringify )],
 );
@@ -91,15 +96,14 @@ sub _build_data_field_settings_with_defaults ( $self, @ ) {
         background_func => \&_alternate_data_row_bgcolor,
     );
 
-    [ map { { %defaults, $_->%* } } $self->data_field_settings->@* ];
+    [ %defaults, map { $_->%* } $self->data_field_settings->@* ];
 }
 
 sub _build_pdf_report_writer ( $self, @ ) {
     my $pdf_report_writer = PDF::ReportWriter->new(
         {
-            destination       => Path::Tiny->cwd->child(
-                $self->_report_basename
-            )->stringify,
+            destination =>
+                Path::Tiny->cwd->child( $self->_report_basename )->stringify,
             paper             => 'Letter',
             orientation       => $self->orientation,
             font_list         => [qw( Times )],
@@ -117,13 +121,13 @@ sub _build_pdf_report_writer ( $self, @ ) {
 
     $pdf_report_writer->render_data(
         {
-            page       => {
+            page => {
                 $self->page_header_cells->@*
                 ? ( header => $self->page_header_cells )
                 : (),
                 $self->page_footer_cells->@*
                 ? ( footer => $self->page_footer_cells )
-                : (),                
+                : (),
             },
             headings   => $self->data_header_settings,
             fields     => $self->_data_field_settings_with_defaults,
@@ -140,7 +144,7 @@ sub _report_basename ( $self ) {
 
 sub _alternate_data_row_bgcolor ( $value, $row, $options ) {
     state $row_number = 0;
-    
+
     $row_number++
         if $options->{row_type} eq 'data' && !$options->{cell_counter};
 

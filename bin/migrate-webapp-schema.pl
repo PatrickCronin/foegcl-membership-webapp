@@ -1,5 +1,5 @@
 #!perl
-
+# ABSTRACT: Update the WebApp database from source and unapplied migrations
 # PODNAME: migrate-webapp-schema.pl
 
 use FOEGCL::Membership::perlbase;

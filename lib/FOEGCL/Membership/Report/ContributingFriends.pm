@@ -1,5 +1,7 @@
 package FOEGCL::Membership::Report::ContributingFriends;
 
+# ABSTRACT: The Contributing Friends report
+
 use FOEGCL::Membership::Moose;
 
 use FOEGCL::Membership::Report::PDFReportCreator;
