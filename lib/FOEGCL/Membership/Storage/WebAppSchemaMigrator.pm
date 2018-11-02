@@ -7,7 +7,7 @@ extends 'Database::Migrator::Pg';
 
 use DBI                                        ();
 use FOEGCL::Membership::Config::WebAppDatabase ();
-use FOEGCL::Membership::Types qw(Bool);
+use FOEGCL::Membership::Types 'Bool';
 use IO::Prompt::Tiny 'prompt';
 use Try::Tiny 'try';
 
@@ -33,8 +33,8 @@ for my $attr (qw( database host username password port )) {
 # Create the attribute defaults for the migration
 my $storage_dir = FOEGCL::Membership::Config->instance->storage_dir;
 has '+migration_table' => ( default => sub { 'applied_migration' } );
-has '+migrations_dir' => ( builder => '_build_migrations_dir' );
-has '+schema_file' => (
+has '+migrations_dir'  => ( builder => '_build_migrations_dir' );
+has '+schema_file'     => (
     default => sub { $storage_dir->child('membership-webapp.sql')->stringify }
 );
 
@@ -73,7 +73,7 @@ sub _build_dbh ( $self, @ ) {
 
 sub _build_migrations_dir ( $self, @ ) {
     my $migrations_dir = $storage_dir->child('migrations');
-    $migrations_dir->mkpath if ! $migrations_dir->exists;
+    $migrations_dir->mkpath if !$migrations_dir->exists;
     return $migrations_dir->stringify;
 }
 
