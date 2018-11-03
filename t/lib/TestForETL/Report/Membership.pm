@@ -10,8 +10,8 @@ use FOEGCL::Membership::Const qw(
 use Test::Differences qw(eq_or_diff);
 
 with(
-    'FOEGCL::Membership::Role::HasLegacySchema',
-    'FOEGCL::Membership::Role::HasWebAppSchema',
+    'FOEGCL::Membership::Role::UsesLegacyDatabase',
+    'FOEGCL::Membership::Role::UsesWebAppDatabase',
 );
 
 const my $CURRENT_YEAR => (localtime)[5] + 1900;

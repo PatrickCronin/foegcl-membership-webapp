@@ -6,7 +6,7 @@ use FOEGCL::Membership::Moose;
 
 use FOEGCL::Membership::DataUtil qw( trim );
 
-with 'FOEGCL::Membership::Role::HasWebAppSchema';
+with 'FOEGCL::Membership::Role::UsesWebAppDatabase';
 
 sub run ( $self, $legacy_friend ) {
     my @people;

@@ -17,7 +17,7 @@ use List::Util qw(first sum0);
 use List::UtilsBy qw(partition_by);
 use Params::ValidationCompiler 'validation_for';
 
-with 'FOEGCL::Membership::Role::HasWebAppSchema';
+with 'FOEGCL::Membership::Role::UsesWebAppDatabase';
 
 sub run ( $self, $legacy_friend, @people ) {
     my %donations_by_year

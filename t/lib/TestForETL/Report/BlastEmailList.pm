@@ -5,8 +5,8 @@ use FOEGCL::Membership::Test::Class::Moose;
 use Test::Differences qw(eq_or_diff);
 
 with(
-    'FOEGCL::Membership::Role::HasLegacySchema',
-    'FOEGCL::Membership::Role::HasWebAppSchema',
+    'FOEGCL::Membership::Role::UsesLegacyDatabase',
+    'FOEGCL::Membership::Role::UsesWebAppDatabase',
 );
 
 sub test_blast_email_list ( $self, @ ) {

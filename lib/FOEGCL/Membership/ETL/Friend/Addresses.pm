@@ -8,7 +8,7 @@ use FOEGCL::Membership::DataUtil qw( trim );
 use FOEGCL::Membership::Types qw( ArrayRef );
 use List::MoreUtils qw( part );
 
-with 'FOEGCL::Membership::Role::HasWebAppSchema';
+with 'FOEGCL::Membership::Role::UsesWebAppDatabase';
 
 sub run ( $self, $legacy_friend, @people ) {
     return if !defined $legacy_friend->city_state_zip;

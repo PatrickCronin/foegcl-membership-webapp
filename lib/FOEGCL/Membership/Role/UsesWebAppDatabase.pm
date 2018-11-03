@@ -1,4 +1,4 @@
-package FOEGCL::Membership::Role::HasWebAppSchema;
+package FOEGCL::Membership::Role::UsesWebAppDatabase;
 
 # ABSTRACT: Provides the WebApp schema to Moose objects
 

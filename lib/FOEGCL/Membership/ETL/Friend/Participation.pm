@@ -7,7 +7,7 @@ use FOEGCL::Membership::Moose;
 use FOEGCL::Membership::DataUtil qw( trim );
 use FOEGCL::Membership::Types qw( ArrayRef );
 
-with 'FOEGCL::Membership::Role::HasWebAppSchema';
+with 'FOEGCL::Membership::Role::UsesWebAppDatabase';
 
 sub run ( $self, $legacy_friend, @people ) {
     my $friend_roles        = $legacy_friend->roles;
