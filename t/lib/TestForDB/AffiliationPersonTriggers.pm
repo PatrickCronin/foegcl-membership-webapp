@@ -5,7 +5,7 @@ use FOEGCL::Membership::Test::Class::Moose;
 use Test::Fatal 'exception';
 
 with qw(
-    FOEGCL::Membership::Role::HasWebAppSchema
+    FOEGCL::Membership::Role::UsesWebAppDatabase
     TestRole::GeneratesFixtures
 );
 
@@ -13,7 +13,7 @@ sub test_affiliation_person_inserts ( $self, @ ) {
     is(
         exception {
             $self->_new_person_for_affiliation(
-                $self->_create_basic_affiliation )
+                $self->_create_basic_affiliation );
         },
         undef,
         'can add a person to an affiliation'
@@ -33,7 +33,7 @@ sub test_affiliation_person_inserts ( $self, @ ) {
 sub test_affiliation_person_deletes ( $self, @ ) {
     like(
         exception {
-            $self->_create_basic_affiliation->affiliation_people->delete
+            $self->_create_basic_affiliation->affiliation_people->delete;
         },
         qr/without any people/,
         'Removing all people from an affiliation raises an exception'
@@ -42,7 +42,7 @@ sub test_affiliation_person_deletes ( $self, @ ) {
     is(
         exception {
             $self->_create_household_membership->affiliation_people->first
-                ->delete
+                ->delete;
         },
         undef,
         'can remove a person from a full household membership'

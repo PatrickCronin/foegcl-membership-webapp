@@ -4,16 +4,16 @@ package FOEGCL::Membership::Storage::WebAppSchemaDumper;
 
 use FOEGCL::Membership::Moose;
 
-use FOEGCL::Membership::Config::WebAppDatabase ();
+use FOEGCL::Membership::Storage::WebAppDatabaseConnectionConfig ();
 
 with 'FOEGCL::Membership::Role::DumpsDBICSchema';
 
 sub _build_db_config ( $self, @ ) {
-    return FOEGCL::Membership::Config::WebAppDatabase->instance;
+    FOEGCL::Membership::Storage::WebAppDatabaseConnectionConfig->new;
 }
 
 sub _build_loader_options ( $self, @ ) {
-    return {
+    +{
         db_schema => 'public',
         ## no critic (RegularExpressions::ProhibitComplexRegexes)
         exclude => qr/

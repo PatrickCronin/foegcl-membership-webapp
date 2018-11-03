@@ -13,7 +13,6 @@ __PACKAGE__->provide_types_from(
         MooseX::Types::Common::String
         MooseX::Types::Moose
         MooseX::Types::Path::Tiny
-        MooseX::Types::Perl
         MooseX::Types::PortNumber
         )
 );

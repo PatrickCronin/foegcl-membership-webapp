@@ -62,7 +62,7 @@ has quiet => (
 
 has _db_config => (
     is      => 'ro',
-    does    => 'FOEGCL::Membership::Role::ConfiguresDatabase',
+    does    => 'FOEGCL::Membership::Role::ConfiguresDatabaseConnection',
     lazy    => 1,
     builder => '_build_db_config',
 );
@@ -157,10 +157,11 @@ sub run ($self) {
     my $schema = make_schema_at(
         $self->_db_config->schema_class_name,
         {
-            $self->_default_loader_options->%*, $self->_loader_options->%*,
+            $self->_default_loader_options->%*,
+            $self->_loader_options->%*,
             $self->_command_line_options->%*,
         },
-        [ $self->_db_config->connect_info ],
+        $self->_db_config->connect_info,
     );
 
     $schema->storage->disconnect;

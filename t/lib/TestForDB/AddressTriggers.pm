@@ -5,7 +5,7 @@ use FOEGCL::Membership::Test::Class::Moose;
 use Test::Fatal 'exception';
 
 with qw(
-    FOEGCL::Membership::Role::HasWebAppSchema
+    FOEGCL::Membership::Role::UsesWebAppDatabase
     TestRole::GeneratesFixtures
 );
 

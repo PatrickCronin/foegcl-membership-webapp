@@ -9,7 +9,7 @@ use FOEGCL::Membership::Const qw(
     $INDIVIDUAL_MEMBERSHIP
 );
 
-requires '_schema';
+requires qw(_defer_constraints _schema);
 
 const my $CURRENT_YEAR => [ gmtime(time) ]->[5] + 1900;
 

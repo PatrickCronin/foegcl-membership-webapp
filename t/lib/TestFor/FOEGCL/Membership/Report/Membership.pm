@@ -5,7 +5,7 @@ use FOEGCL::Membership::Test::Class::Moose;
 use Test::Differences 'eq_or_diff';
 
 with qw(
-    FOEGCL::Membership::Role::HasWebAppSchema
+    FOEGCL::Membership::Role::UsesWebAppDatabase
     TestRole::GeneratesFixtures
 );
 
@@ -15,6 +15,12 @@ with qw(
 # are correct.
 
 sub test_person_inclusion_and_details ( $self, @ ) {
+    is_deeply(
+        [ map { $_->id } $self->_schema->resultset('Person')->all ],
+        [],
+        'no people',
+    );
+
     $self->_new_person;
     $self->_create_basic_affiliation;
     my $membership = $self->_create_individual_membership;

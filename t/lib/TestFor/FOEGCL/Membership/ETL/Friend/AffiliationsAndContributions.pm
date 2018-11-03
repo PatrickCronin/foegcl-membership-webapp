@@ -46,7 +46,7 @@ has _senior_student_individual_mtp => (
     builder => '_build_senior_student_individual_mtp',
 );
 
-with 'FOEGCL::Membership::Role::HasWebAppSchema';
+with 'FOEGCL::Membership::Role::UsesWebAppDatabase';
 
 const my $YEAR => 2017;
 

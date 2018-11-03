@@ -4,12 +4,12 @@ package FOEGCL::Membership::Storage::LegacySchemaDumper;
 
 use FOEGCL::Membership::Moose;
 
-use FOEGCL::Membership::Config::LegacyDatabase ();
+use FOEGCL::Membership::Storage::LegacyDatabaseConnectionConfig ();
 
 with 'FOEGCL::Membership::Role::DumpsDBICSchema';
 
 sub _build_db_config ( $self, @ ) {
-    return FOEGCL::Membership::Config::LegacyDatabase->instance;
+    FOEGCL::Membership::Storage::LegacyDatabaseConnectionConfig->new;
 }
 
 sub _build_loader_options ( $self, @ ) {

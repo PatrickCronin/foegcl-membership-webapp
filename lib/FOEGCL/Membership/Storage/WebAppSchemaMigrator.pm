@@ -1,12 +1,12 @@
 package FOEGCL::Membership::Storage::WebAppSchemaMigrator;
 
-# ABSTRACT: Create and/or update full copies of the database from the schema file
+# ABSTRACT: Create and/or update full copies of the database from the schema file and migrations
 
 use FOEGCL::Membership::Moose;
 extends 'Database::Migrator::Pg';
 
-use DBI                                        ();
-use FOEGCL::Membership::Config::WebAppDatabase ();
+use DBI                                                         ();
+use FOEGCL::Membership::Storage::WebAppDatabaseConnectionConfig ();
 use FOEGCL::Membership::Types 'Bool';
 use IO::Prompt::Tiny 'prompt';
 use Try::Tiny 'try';
@@ -15,11 +15,13 @@ use Try::Tiny 'try';
 # object attributes
 use FOEGCL::Membership::Config ();
 
-has 'db_config' => (
+has db_config => (
     is      => 'ro',
-    isa     => 'FOEGCL::Membership::Config::WebAppDatabase',
+    isa     => 'FOEGCL::Membership::Storage::WebAppDatabaseConnectionConfig',
     lazy    => 1,
-    default => sub { FOEGCL::Membership::Config::WebAppDatabase->instance },
+    default => sub {
+        FOEGCL::Membership::Storage::WebAppDatabaseConnectionConfig->new;
+    },
 );
 
 # Setup the attribute defaults for the WebApp database
@@ -43,7 +45,7 @@ has '+dbh'     => ( clearer => '_clear_dbh' );
 has '+verbose' => ( default => 1 );
 
 # Allow the schema to be dropped first
-has 'drop_first' => (
+has drop_first => (
     is            => 'ro',
     isa           => Bool,
     default       => 0,
@@ -55,18 +57,9 @@ sub DEMOLISH ( $self, @ ) {
 }
 
 sub _build_dbh ( $self, @ ) {
-    my @dbh_config = (
-        $self->db_config->dsn,
-        $self->db_config->username,
-        $self->db_config->password,
-        {
-            $self->db_config->dbi_attributes->%*,
-            ShowErrorStatement => 1,
-        },
-    );
-
-    my $dbh = DBI->connect(@dbh_config);
-    $dbh->do('SET CLIENT_MIN_MESSAGES = ERROR');
+    my $dbh = DBI->connect( $self->db_config->connect_info->@[ 0 .. 3 ] )
+        or die DBI->errstr;
+    $dbh->do('SET CLIENT_MIN_MESSAGES = NOTICE');
 
     return $dbh;
 }
@@ -99,7 +92,12 @@ sub copy_to ( $self, $to ) {
 SQL
 }
 
-sub database_exists ($self) { $self->_database_exists }
+sub database_exists ($self) {
+
+    # SUPER has _database_exists as an attribute
+    # We don't want stale information
+    $self->_build_database_exists;
+}
 
 sub drop_database ($self) {
     if ( $self->database_exists ) {

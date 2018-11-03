@@ -1,62 +1,45 @@
 package FOEGCL::Membership::Role::UsesWebAppDatabase;
 
-# ABSTRACT: Provides the WebApp schema to Moose objects
+# ABSTRACT: Provides the "current" WebApp database connection
 
 use FOEGCL::Membership::Moose::Role;
 
-use FOEGCL::Membership::Config::WebAppDatabase ();
-use FOEGCL::Membership::Schema::WebApp         ();
+use FOEGCL::Membership::Storage::WebAppDatabaseConnection      ();
+use FOEGCL::Membership::Storage::WebAppDatabaseConnectionCache ();
 
-sub _schema;
-has _schema => (
-    is      => 'ro',
-    isa     => 'FOEGCL::Membership::Schema::WebApp',
-    lazy    => 1,
-    builder => '_build_schema',
-    clearer => '_clear_schema',
-);
-
+sub _cxn;
+sub _db_config;
 sub _dbh;
-has _dbh => (
+sub _schema;
+sub _defer_constraints;
+sub _restore_constraints;
+has _cxn => (
     is      => 'ro',
-    isa     => 'DBI::db',
+    isa     => 'FOEGCL::Membership::Storage::WebAppDatabaseConnection',
     lazy    => 1,
-    builder => '_build_dbh',
-    clearer => '_clear_dbh',
+    builder => '_build_cxn',
+    handles => {
+        _db_config           => 'db_config',
+        _dbh                 => 'dbh',
+        _schema              => 'schema',
+        _defer_constraints   => 'defer_constraints',
+        _restore_constraints => 'restore_constraints',
+    },
+    clearer => 'reset_connection',    # supports per-test-method databases
 );
 
-sub _build_schema ( $self, @ ) {
-    return FOEGCL::Membership::Schema::WebApp->connect(
-        FOEGCL::Membership::Config::WebAppDatabase->instance->connect_info );
-}
+sub _build_cxn ( $self, @ ) {
+    my $cache = FOEGCL::Membership::Storage::WebAppDatabaseConnectionCache
+        ->instance;
 
-sub _build_dbh ( $self, @ ) {
-    return $self->_schema->storage->dbh;
-}
+    my $current = $cache->get_current;
+    return $current if $current;
 
-## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
-sub _reset_schema( $self ) {
-    ## use critic
-    $self->_clear_dbh;
-    $self->_clear_schema;
-}
+    my $default = FOEGCL::Membership::Storage::WebAppDatabaseConnection->new;
+    $cache->set( $default->db_config->database, $default );
+    $cache->set_current( $default->db_config->database );
 
-# TODO: protect the constraint names!
-## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
-sub _defer_constraints ( $self, @constraints ) {
-    ## use critic
-    push @constraints, qw(ALL) if !@constraints;
-    my $constraint_string = join ', ', @constraints;
-    $self->_dbh->do("SET CONSTRAINTS $constraint_string DEFERRED");
-}
-
-# TODO: protect the constraint names!
-## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
-sub _restore_constraints ( $self, @constraints ) {
-    ## use critic
-    push @constraints, qw(ALL) if !@constraints;
-    my $constraint_string = join ', ', @constraints;
-    $self->_dbh->do("SET CONSTRAINTS $constraint_string IMMEDIATE");
+    return $default;
 }
 
 1;
