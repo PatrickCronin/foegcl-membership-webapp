@@ -23,8 +23,8 @@ use FOEGCL::Membership::Const qw(
     $ETL_TEST_DB_NAME
 );
 use FOEGCL::Membership::Storage::WebAppSchemaMigrator ();
-use FOEGCL::Membership::Types qw(ArrayRef HashRef);
-use List::Util 'any';
+use FOEGCL::Membership::Types qw(ArrayRef Bool HashRef);
+use List::Util qw(any shuffle);
 use Module::Runtime 'require_module';
 use Test::Class::Moose::Runner ();
 use Test::More;    # for diag
@@ -66,6 +66,20 @@ has method => (
     documentation => 'A specific test method to run.',
 );
 
+has randomize_classes => (
+    is            => 'ro',
+    isa           => Bool,
+    default       => sub { 0 },
+    documentation => 'Run classes in a random order. Defaults to 0.',
+);
+
+has randomize_methods => (
+    is            => 'ro',
+    isa           => Bool,
+    default       => sub { 0 },
+    documentation => 'Run methods in a random order. Defaults to 0.',
+);
+
 has _selected_classes => (
     is      => 'ro',
     isa     => ArrayRef,
@@ -87,7 +101,7 @@ has _executor_roles => (
 );
 
 sub _build_selected_classes ( $self, @ ) {
-    return TestHelper::TestLoader->new(
+    my $selected_classes = TestHelper::TestLoader->new(
         specific_classes => $self->class,
         (
               $self->etl eq $ETL_IGNORE ? ( skip_dirs   => ['TestForETL'] )
@@ -95,6 +109,10 @@ sub _build_selected_classes ( $self, @ ) {
             :                             ()
         ),
     )->test_class_packages;
+
+    return $self->randomize_classes
+        ? [ shuffle $selected_classes->@* ]
+        : $selected_classes;
 }
 
 sub _build_test_db_config ( $self, @ ) {
@@ -142,6 +160,7 @@ sub run ($self) {
         Test::Class::Moose::Runner->new(
             executor_roles   => $self->_executor_roles,
             jobs             => 1,
+            randomize        => $self->randomize_methods,
             set_process_name => 1,
             test_classes     => $self->_selected_classes,
             use_environment  => 1,
