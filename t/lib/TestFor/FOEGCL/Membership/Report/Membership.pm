@@ -61,7 +61,7 @@ sub test_person_inclusion_and_details ( $self, @ ) {
         ],
         [
             {
-                friend_id      => 1001,
+                friend_id      => $membership->friend_id,
                 first_name     => 'Sam',
                 last_name      => 'Samples',
                 name           => 'Samples, Sam',
