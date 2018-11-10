@@ -3,21 +3,24 @@ argv = --profile $ROOT/.perlcriticrc --program-extensions .pl
 select = **/*.{t,pl,pm}
 ignore = lib/FOEGCL/Membership/Schema/**/*.pm
 ignore = FOEGCL-Membership-*/**/*.{t,pl,pm}
-ignore = .build/**
+ignore = .build/**/*.{t,pl,pm}
+ignore = infrastructure/**/*.{t,pl,pm}
 
 [PerlTidy]
 diff_on_tidy_error = 1
 select = **/*.{t,pl,pm}
 ignore = lib/FOEGCL/Membership/Schema/**/*.pm
 ignore = FOEGCL-Membership-*/**/*.{t,pl,pm}
-ignore = .build/**
+ignore = .build/**/*.{t,pl,pm}
+ignore = infrastructure/**/*.{t,pl,pm}
 
 [PodSpell]
 select = **/*.{t,pl,pm}
 ispell_argv = -p $ROOT/.project_dictionary
 ignore = lib/FOEGCL/Membership/Schema/**/*.pm
-ignore = FOEGCL-Membership-*/**/*.{t,pm,pod}
-ignore = .build/**
+ignore = FOEGCL-Membership-*/**/*.{t,pl,pm}
+ignore = .build/**/*.{t,pl,pm}
+ignore = infrastructure/**/*.{t,pl,pm}
 
 [SortLines]
 diff_on_tidy_error = 1

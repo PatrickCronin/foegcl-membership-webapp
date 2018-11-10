@@ -197,7 +197,7 @@ sub _drop_test_dbs( $self ) {
         my $cxn = $self->_connections->get($test_db);
         if ($cxn) {
             diag "Dropping $test_db...";
-            $cxn->reset;
+            $cxn->reset_connection;
             $cxn->migrator->drop_database;
             $self->_connections->delete($test_db);
         }

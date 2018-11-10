@@ -61,7 +61,7 @@ around 'run_test_method' =>
         my $cxn = $self->_connections->get($temp_db);
         if ($cxn) {
             diag "Dropping $temp_db...";
-            $cxn->reset;
+            $cxn->reset_connection;
             $cxn->migrator->drop_database;
             $self->_connections->delete($temp_db);
         }
