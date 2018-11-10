@@ -44,8 +44,19 @@ before_script:
     - cpanm --notest DBIx::Class::TimeStamp
     - cpanm --notest DBIx::Class::Helper::ResultSet::OneRow
     - cpanm --notest DBD::Pg
+    - cpanm --notest Perl::Tidy
+    - cpanm --notest Code::TidyAll::Plugin::PerlTidy
+    - cpanm --notest Perl::Critic
+    - cpanm --notest Code::TidyAll::Plugin::PerlCritic
+    - cpanm --notest Code::TidyAll::Plugin::PodSpell
+    - cpanm --notest Code::TidyAll::Plugin::SortLines
     - cpanm --notest Code::TidyAll::Plugin::SortLines::Naturally
+
 addons:
+    apt:
+        packages:
+            - ispell
+            - iamerican
     postgresql: "9.6"
 script: prove -lvm
 notifications:
