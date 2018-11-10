@@ -9,8 +9,8 @@ use FOEGCL::Membership::ETL::Friend ();
 
 with(
     qw(
-        FOEGCL::Membership::Role::HasLegacySchema
-        FOEGCL::Membership::Role::HasWebAppSchema
+        FOEGCL::Membership::Role::UsesLegacyDatabase
+        FOEGCL::Membership::Role::UsesWebAppDatabase
         MooseX::Getopt::Dashes
         )
 );

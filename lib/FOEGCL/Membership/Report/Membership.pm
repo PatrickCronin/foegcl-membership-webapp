@@ -15,7 +15,7 @@ has _pdf_report_creator => (
     handles => [qw( save saveas stringify )],
 );
 
-with 'FOEGCL::Membership::Role::HasWebAppSchema';
+with 'FOEGCL::Membership::Role::UsesWebAppDatabase';
 
 sub _build_pdf_report_creator ( $self, @ ) {
     return FOEGCL::Membership::Report::PDFReportCreator->new(

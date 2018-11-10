@@ -7,8 +7,8 @@ use FOEGCL::Membership::ETL::Friend::Addresses ();
 use Test::Differences qw(eq_or_diff);
 
 with(
-    'FOEGCL::Membership::Role::HasLegacySchema',
-    'FOEGCL::Membership::Role::HasWebAppSchema',
+    'FOEGCL::Membership::Role::UsesLegacyDatabase',
+    'FOEGCL::Membership::Role::UsesWebAppDatabase',
 );
 
 # For each person in the legacy database, make sure they're in the WebApp

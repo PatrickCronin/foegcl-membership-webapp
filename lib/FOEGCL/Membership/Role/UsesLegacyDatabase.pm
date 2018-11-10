@@ -1,12 +1,12 @@
-package FOEGCL::Membership::Role::HasLegacySchema;
+package FOEGCL::Membership::Role::UsesLegacyDatabase;
 
-# ABSTRACT: Provides the Legacy schema to Moose objects
+# ABSTRACT: Facilitates Legacy database access
 
 use FOEGCL::Membership::Moose::Role;
 
 use English qw(-no_match_vars);
-use FOEGCL::Membership::Config::LegacyDatabase ();
-use FOEGCL::Membership::Schema::Legacy         ();
+use FOEGCL::Membership::Schema::Legacy                    ();
+use FOEGCL::Membership::Storage::LegacyDatabaseConnection ();
 
 has _legacy_schema => (
     is      => 'ro',
@@ -27,7 +27,8 @@ sub _build_legacy_schema ( $self, @ ) {
         if $OSNAME !~ m/MSWin32/;
 
     return FOEGCL::Membership::Schema::Legacy->connect(
-        FOEGCL::Membership::Config::LegacyDatabase->instance->connect_info );
+        FOEGCL::Membership::Storage::LegacyDatabaseConnection->instance
+            ->connect_info->@* );
 }
 
 sub _build_legacy_dbh ( $self, @ ) {

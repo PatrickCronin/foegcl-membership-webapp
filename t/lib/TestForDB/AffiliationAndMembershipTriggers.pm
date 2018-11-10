@@ -7,7 +7,7 @@ use FOEGCL::Membership::Const
 use Test::Fatal 'exception';
 
 with qw(
-    FOEGCL::Membership::Role::HasWebAppSchema
+    FOEGCL::Membership::Role::UsesWebAppDatabase
     TestRole::GeneratesFixtures
 );
 

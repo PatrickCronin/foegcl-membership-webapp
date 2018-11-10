@@ -17,14 +17,15 @@ to do that.
 use lib 't/lib';    # Find the TestHelper dir
 
 use Const::Fast 'const';
-use FOEGCL::Membership::Config::WebAppDatabase ();
 use FOEGCL::Membership::Const qw(
     $STANDARD_TEST_DB_NAME
     $ETL_TEST_DB_NAME
 );
-use FOEGCL::Membership::Storage::WebAppSchemaMigrator ();
-use FOEGCL::Membership::Types qw(ArrayRef HashRef);
-use List::Util 'any';
+use FOEGCL::Membership::Storage::WebAppDatabaseConnection      ();
+use FOEGCL::Membership::Storage::WebAppDatabaseConnectionCache ();
+use FOEGCL::Membership::Storage::WebAppSchemaMigrator          ();
+use FOEGCL::Membership::Types qw(ArrayRef Bool HashRef);
+use List::Util qw(any shuffle);
 use Module::Runtime 'require_module';
 use Test::Class::Moose::Runner ();
 use Test::More;    # for diag
@@ -57,6 +58,7 @@ has class => (
             . ( join q{,}, $etl_enum->values->@* )
             . ". Defaults to $ETL_IGNORE. Setting is ignored when a specific class is given.",
     );
+    no Moose::Util::TypeConstraints;
 }
 
 has method => (
@@ -66,18 +68,25 @@ has method => (
     documentation => 'A specific test method to run.',
 );
 
+has randomize_classes => (
+    is            => 'ro',
+    isa           => Bool,
+    default       => sub { 0 },
+    documentation => 'Run classes in a random order. Defaults to 0.',
+);
+
+has randomize_methods => (
+    is            => 'ro',
+    isa           => Bool,
+    default       => sub { 0 },
+    documentation => 'Run methods in a random order. Defaults to 0.',
+);
+
 has _selected_classes => (
     is      => 'ro',
     isa     => ArrayRef,
     lazy    => 1,
     builder => '_build_selected_classes',
-);
-
-has _test_db_config => (
-    is      => 'ro',
-    isa     => HashRef,
-    lazy    => 1,
-    builder => '_build_test_db_config',
 );
 
 has _executor_roles => (
@@ -86,8 +95,17 @@ has _executor_roles => (
     default => sub { ['TestRole::ManageDB'] },
 );
 
+has _connections => (
+    is      => 'ro',
+    isa     => 'FOEGCL::Membership::Storage::WebAppDatabaseConnectionCache',
+    lazy    => 1,
+    default => sub {
+        FOEGCL::Membership::Storage::WebAppDatabaseConnectionCache->instance;
+    },
+);
+
 sub _build_selected_classes ( $self, @ ) {
-    return TestHelper::TestLoader->new(
+    my $selected_classes = TestHelper::TestLoader->new(
         specific_classes => $self->class,
         (
               $self->etl eq $ETL_IGNORE ? ( skip_dirs   => ['TestForETL'] )
@@ -95,46 +113,18 @@ sub _build_selected_classes ( $self, @ ) {
             :                             ()
         ),
     )->test_class_packages;
-}
 
-sub _build_test_db_config ( $self, @ ) {
-    my $is_etl_test = qr/ \A TestForETL:: /x;
-    my %required_db = (
-        $STANDARD_TEST_DB_NAME =>
-            ( any { $_ !~ m/$is_etl_test/ } $self->_selected_classes->@* )
-        ? 1
-        : 0,
-        $ETL_TEST_DB_NAME => (
-            (
-                any { $_ =~ m/$is_etl_test/ }
-                $self->_selected_classes->@*
-            ) ? 1 : 0,
-        ),
-    );
-
-    my %db_config;
-    my $prod_db_config = FOEGCL::Membership::Config::WebAppDatabase->instance;
-    foreach my $db_name ( keys %required_db ) {
-        next if !$required_db{$db_name};
-
-        $db_config{$db_name} = $prod_db_config->clone( database => $db_name );
-
-        die
-            'Failed to change database name when cloning the production db config'
-            if $db_config{$db_name}->database eq $prod_db_config->database;
-    }
-
-    return \%db_config;
+    return $self->randomize_classes
+        ? [ shuffle $selected_classes->@* ]
+        : $selected_classes;
 }
 
 sub run ($self) {
-    $self->_test_db_config;
+    $self->_setup_standard_test_db if $self->_requires_standard_test_db;
+    $self->_setup_etl_test_db      if $self->_requires_etl_test_db;
     $self->_load_executor_roles;
 
     try {
-        $self->_maybe_setup_standard_test_db;
-        $self->_maybe_setup_etl_test_db;
-
         diag 'Starting tests...';
 
         my $method_options = join '|', map { "\Q$_\E" } $self->method->@*;
@@ -142,6 +132,7 @@ sub run ($self) {
         Test::Class::Moose::Runner->new(
             executor_roles   => $self->_executor_roles,
             jobs             => 1,
+            randomize        => $self->randomize_methods,
             set_process_name => 1,
             test_classes     => $self->_selected_classes,
             use_environment  => 1,
@@ -161,66 +152,69 @@ sub run ($self) {
     };
 }
 
+sub _setup_standard_test_db ( $self ) {
+    diag 'Creating the standard test database from source...';
+
+    my $cxn = FOEGCL::Membership::Storage::WebAppDatabaseConnection->new(
+        db_config =>
+            FOEGCL::Membership::Storage::WebAppDatabaseConnectionConfig->new(
+            database => $STANDARD_TEST_DB_NAME,
+            ),
+    );
+    $self->_connections->set( $STANDARD_TEST_DB_NAME, $cxn );
+    $cxn->migrator->create_or_update_database;
+
+    # Don't clear the migrator connections here; we'll need them for each test
+}
+
+sub _setup_etl_test_db ( $self ) {
+    diag
+        'Creating the ETL test database as a copy of the production database...';
+
+    my $prod_cxn = FOEGCL::Membership::Storage::WebAppDatabaseConnection->new;
+    $prod_cxn->migrator->copy_to($ETL_TEST_DB_NAME);
+    $prod_cxn->migrator->clear_connection;
+
+    my $cxn = FOEGCL::Membership::Storage::WebAppDatabaseConnection->new(
+        db_config =>
+            FOEGCL::Membership::Storage::WebAppDatabaseConnectionConfig->new(
+            database => $ETL_TEST_DB_NAME,
+            ),
+    );
+    $self->_connections->set( $ETL_TEST_DB_NAME, $cxn );
+
+    # Don't clear the migrator connections here; we'll need them for each test
+}
+
 sub _load_executor_roles ( $self ) {
     foreach my $role ( $self->_executor_roles->@* ) {
         require_module $role;
     }
 }
 
-sub _maybe_setup_standard_test_db( $self ) {
-    return if !exists $self->_test_db_config->{$STANDARD_TEST_DB_NAME};
-
-    diag 'Creating the standard test database from source...';
-
-    my $migrator = FOEGCL::Membership::Storage::WebAppSchemaMigrator->new(
-        quiet     => 1,
-        verbose   => 0,
-        db_config => $self->_test_db_config->{$STANDARD_TEST_DB_NAME}
-    );
-    $migrator->create_or_update_database;
-    $migrator->clear_connection;
-
-    FOEGCL::Membership::Config::WebAppDatabase->add_version(
-        $STANDARD_TEST_DB_NAME,
-        $self->_test_db_config->{$STANDARD_TEST_DB_NAME},
-    );
-}
-
-sub _maybe_setup_etl_test_db( $self ) {
-    return if !exists $self->_test_db_config->{$ETL_TEST_DB_NAME};
-
-    diag
-        'Creating the ETL test database as a copy of the production database...';
-
-    my $migrator = FOEGCL::Membership::Storage::WebAppSchemaMigrator->new(
-        quiet   => 1,
-        verbose => 0,
-    );
-    $migrator->copy_to($ETL_TEST_DB_NAME);
-    $migrator->clear_connection;
-
-    FOEGCL::Membership::Config::WebAppDatabase->add_version(
-        $ETL_TEST_DB_NAME,
-        $self->_test_db_config->{$ETL_TEST_DB_NAME},
-    );
-}
-
 sub _drop_test_dbs( $self ) {
-    foreach my $test_db ( keys $self->_test_db_config->%* ) {
-        $self->_drop_db_if_exists($test_db);
+    foreach my $test_db ( $STANDARD_TEST_DB_NAME, $ETL_TEST_DB_NAME ) {
+        my $cxn = $self->_connections->get($test_db);
+        if ($cxn) {
+            diag "Dropping $test_db...";
+            $cxn->reset;
+            $cxn->migrator->drop_database;
+            $self->_connections->delete($test_db);
+        }
     }
 }
 
-sub _drop_db_if_exists ( $self, $db_name ) {
-    FOEGCL::Membership::Storage::WebAppSchemaMigrator->new(
-        quiet   => 1,
-        verbose => 0,
-        db_config =>
-            FOEGCL::Membership::Config::WebAppDatabase->version($db_name),
-    )->drop_database;
-}
+{
+    my $is_etl_test = qr/ \A TestForETL:: /x;
 
-no Moose::Util::TypeConstraints;
+    sub _requires_standard_test_db ( $self ) {
+        return any { $_ !~ m/$is_etl_test/ } $self->_selected_classes->@*;
+    }
+
+    sub _requires_etl_test_db ( $self ) {
+        return any { $_ =~ m/$is_etl_test/ } $self->_selected_classes->@*;
+    }
+}
 
 __PACKAGE__->meta->make_immutable;
 

@@ -48,9 +48,9 @@ sub import {
     autodie->import::into( $caller_level, ':all' );
 }
 
-## no critic (RequireLocalizedPunctuationVars)
+## no critic (Variables::RequireLocalizedPunctuationVars)
 $SIG{__DIE__} = sub {
-## use critic
+    ## use critic
     my $message = $_[0];
 
     # Scalar
