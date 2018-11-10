@@ -44,6 +44,7 @@ before_script:
     - cpanm --notest DBIx::Class::TimeStamp
     - cpanm --notest DBIx::Class::Helper::ResultSet::OneRow
     - cpanm --notest DBD::Pg
+    - cpanm --notest Code::TidyAll::Plugin::SortLines::Naturally
 addons:
     postgresql: "9.6"
 script: prove -lvm
