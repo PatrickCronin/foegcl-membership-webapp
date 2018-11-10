@@ -11,41 +11,41 @@ use FOEGCL::Membership::Types
 use Module::Runtime 'require_module';
 
 has db_config => (
-    is        => 'ro',
-    does      => 'FOEGCL::Membership::Role::ConfiguresDatabaseConnection',
-    lazy => 1,
+    is      => 'ro',
+    does    => 'FOEGCL::Membership::Role::ConfiguresDatabaseConnection',
+    lazy    => 1,
     default => sub {
-        FOEGCL::Membership::Storage::WebAppDatabaseConnectionConfig->new
+        FOEGCL::Membership::Storage::WebAppDatabaseConnectionConfig->new;
     },
 );
 
 has schema => (
-    init_arg => undef,
-    is       => 'ro',
-    isa      => 'DBIx::Class::Schema',
-    lazy     => 1,
-    builder  => '_build_schema',
-    clearer  => '_clear_schema',
+    init_arg  => undef,
+    is        => 'ro',
+    isa       => 'DBIx::Class::Schema',
+    lazy      => 1,
+    builder   => '_build_schema',
+    clearer   => '_clear_schema',
     predicate => '_has_schema',
 );
 
 has dbh => (
-    init_arg => undef,
-    is       => 'ro',
-    isa      => 'DBI::db',
-    lazy     => 1,
-    builder  => '_build_dbh',
-    clearer  => '_clear_dbh',
+    init_arg  => undef,
+    is        => 'ro',
+    isa       => 'DBI::db',
+    lazy      => 1,
+    builder   => '_build_dbh',
+    clearer   => '_clear_dbh',
     predicate => '_has_dbh',
 );
 
 has migrator => (
-    init_arg => undef,
-    is => 'ro',
-    isa => 'FOEGCL::Membership::Storage::WebAppSchemaMigrator',
-    lazy => 1,
-    builder => '_build_migrator',
-    clearer => '_clear_migrator',
+    init_arg  => undef,
+    is        => 'ro',
+    isa       => 'FOEGCL::Membership::Storage::WebAppSchemaMigrator',
+    lazy      => 1,
+    builder   => '_build_migrator',
+    clearer   => '_clear_migrator',
     predicate => '_has_migrator',
 );
 
@@ -69,10 +69,10 @@ sub _build_migrator ( $self, @ ) {
 }
 
 ## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
-sub reset( $self ) {
+sub reset_connection ( $self ) {
     ## use critic
-    $self->_clear_dbh if $self->_has_dbh;
-    $self->_clear_schema if $self->_has_schema;
+    $self->_clear_dbh                 if $self->_has_dbh;
+    $self->_clear_schema              if $self->_has_schema;
     $self->migrator->clear_connection if $self->_has_migrator;
 }
 
