@@ -60,7 +60,7 @@ has quiet => (
         "Whether or not to print status messages. Defaults to $ARG_CONSTANT{quiet}.",
 );
 
-has _db_config => (
+has db_config => (
     is      => 'ro',
     does    => 'FOEGCL::Membership::Role::ConfiguresDatabaseConnection',
     lazy    => 1,
@@ -155,13 +155,13 @@ sub _build_default_loader_options ( $self, @ ) {
 
 sub run ($self) {
     my $schema = make_schema_at(
-        $self->_db_config->schema_class_name,
+        $self->db_config->schema_class_name,
         {
             $self->_default_loader_options->%*,
             $self->_loader_options->%*,
             $self->_command_line_options->%*,
         },
-        $self->_db_config->connect_info,
+        $self->db_config->connect_info,
     );
 
     $schema->storage->disconnect;
