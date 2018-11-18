@@ -64,8 +64,9 @@ __PACKAGE__->table("app_user");
 
 =head2 password_hash
 
-  data_type: 'bytea'
+  data_type: 'varchar'
   is_nullable: 0
+  size: 137
 
 =head2 first_name
 
@@ -105,7 +106,7 @@ __PACKAGE__->add_columns(
   "username",
   { data_type => "varchar", is_nullable => 0, size => 128 },
   "password_hash",
-  { data_type => "bytea", is_nullable => 0 },
+  { data_type => "varchar", is_nullable => 0, size => 137 },
   "first_name",
   { data_type => "varchar", is_nullable => 0, size => 32 },
   "last_name",
@@ -158,8 +159,8 @@ __PACKAGE__->has_many(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eGN/rpsIr2Za5/ZUGO3qAw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2018-11-16 22:33:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pfsp8X38XcltCAVecxMLIw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

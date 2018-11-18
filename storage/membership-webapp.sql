@@ -725,7 +725,7 @@ CREATE INDEX voter_registration__person_id ON voter_registration (person_id);
 CREATE TABLE app_user (
     username VARCHAR(128) NOT NULL PRIMARY KEY
         CONSTRAINT username_is_trimmed_and_not_empty CHECK (username <> '' AND username = trim(both from username)),
-    password_hash bytea NOT NULL CHECK(length(password_hash) = 64),
+    password_hash VARCHAR(137) NOT NULL,
     first_name VARCHAR(32) NOT NULL
         CONSTRAINT first_name_is_trimmed_and_not_empty CHECK (first_name <> '' AND first_name = trim(both from first_name)),
     last_name VARCHAR(32) NOT NULL
