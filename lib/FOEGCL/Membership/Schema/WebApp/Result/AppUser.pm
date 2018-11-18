@@ -56,18 +56,11 @@ __PACKAGE__->table("app_user");
 
 =head1 ACCESSORS
 
-=head2 user_id
-
-  data_type: 'integer'
-  is_auto_increment: 1
-  is_nullable: 0
-  sequence: 'app_user_user_id_seq'
-
 =head2 username
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 32
+  size: 128
 
 =head2 password_hash
 
@@ -109,15 +102,8 @@ __PACKAGE__->table("app_user");
 =cut
 
 __PACKAGE__->add_columns(
-  "user_id",
-  {
-    data_type         => "integer",
-    is_auto_increment => 1,
-    is_nullable       => 0,
-    sequence          => "app_user_user_id_seq",
-  },
   "username",
-  { data_type => "varchar", is_nullable => 0, size => 32 },
+  { data_type => "varchar", is_nullable => 0, size => 128 },
   "password_hash",
   { data_type => "bytea", is_nullable => 0 },
   "first_name",
@@ -146,27 +132,13 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</user_id>
-
-=back
-
-=cut
-
-__PACKAGE__->set_primary_key("user_id");
-
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<username_is_unique>
-
-=over 4
-
 =item * L</username>
 
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("username_is_unique", ["username"]);
+__PACKAGE__->set_primary_key("username");
 
 =head1 RELATIONS
 
@@ -181,7 +153,7 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AppUserHasRole>
 __PACKAGE__->has_many(
   "app_user_has_roles",
   "FOEGCL::Membership::Schema::WebApp::Result::AppUserHasRole",
-  { "foreign.user_id" => "self.user_id" },
+  { "foreign.username" => "self.username" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 #>>>
