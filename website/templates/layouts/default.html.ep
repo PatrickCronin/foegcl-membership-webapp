@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        %= t 'meta', charset => 'utf-8'
+        %= t 'meta', name => 'viewport', content => 'width=device-width, initial-scale=1, shrink-to-fit=no'
+
+        %= stylesheet '/css/bootstrap.css'
+        %= stylesheet '/css/style.css'
+        %= stylesheet 'https://fonts.googleapis.com/css?family=Crimson+Text|Francois+One|Libre+Baskerville'
+        
+        %= t title => 'FOEGCL Membership'
+    </head>
+    <body>
+        <header>
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        %= image '/img/friendslogo_sm.jpg'
+                        <h6>FOEGCL<br>Membership</h6>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <nav>
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        % if (session('username')) {
+                            <%= link_to Logout => 'logout' %>
+                        % }
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <section id="content" class="<%= stash('content_class') // q{} %>">
+            % if (! stash('no_notifications')) {
+                %= include 'shared/notification_area'
+            % }
+            <%= content %>
+        </section>
+        
+        <footer>
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        Hmmm, I'm not really sure we need a footer on this site.
+                    </div>
+                </div>
+            </div>
+        </footer>
+        
+        %= javascript '/js/jquery-3.3.1.js'
+        %= javascript '/js/bootstrap.bundle.js'
+    </body>
+</html>
