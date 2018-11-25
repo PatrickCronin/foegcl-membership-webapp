@@ -94,10 +94,10 @@ severity = 3
 add_packages = Test::Builder
 
 [TestingAndDebugging::RequireUseStrict]
-equivalent_modules = FOEGCL::Membership::perlbase FOEGCL::Membership::Moose FOEGCL::Membership::Moose::Role FOEGCL::Membership::Test::Class::Moose
+equivalent_modules = FOEGCL::Membership::perlbase FOEGCL::Membership::Moose FOEGCL::Membership::Moose::Role FOEGCL::Membership::Test::Class::Moose FOEGCL::Membership::Moose::Mojo
 
 [TestingAndDebugging::RequireUseWarnings]
-equivalent_modules = FOEGCL::Membership::perlbase FOEGCL::Membership::Moose FOEGCL::Membership::Moose::Role FOEGCL::Membership::Test::Class::Moose
+equivalent_modules = FOEGCL::Membership::perlbase FOEGCL::Membership::Moose FOEGCL::Membership::Moose::Role FOEGCL::Membership::Test::Class::Moose FOEGCL::Membership::Moose::Mojo
 
 [-ControlStructures::ProhibitCascadingIfElse]
 
