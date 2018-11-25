@@ -32,7 +32,7 @@ sub test_affiliation_inserts ( $self, @ ) {
                         $self->_defer_constraints;
                         $required_steps->();
                     }
-                    )
+                )
             },
             undef,
             'affiliations can be created when constraints are deferred'
@@ -91,7 +91,7 @@ sub test_affiliation_updates ( $self, @ ) {
                     $affiliation->update( { year => $previous_year } );
                     $self->_restore_constraints;
                 }
-                )
+            )
         },
         undef,
         'can update an affiliation year when contribution dates received are also updated',
@@ -173,7 +173,7 @@ sub test_membership_inserts ( $self, @ ) {
                         $self->_defer_constraints;
                         $required_steps->();
                     }
-                    )
+                )
             },
             undef,
             'memberships can be created when constraints are deferred'
@@ -199,7 +199,7 @@ sub test_membership_inserts ( $self, @ ) {
                     $create_contribution_for_membership->($membership);
                     $self->_restore_constraints;
                 }
-                )
+            )
         },
         qr/with more people/,
         'memberships cannot be created with too many people'
@@ -218,7 +218,7 @@ sub test_membership_inserts ( $self, @ ) {
                     );
                     $self->_restore_constraints;
                 }
-                )
+            )
         },
         qr/without enough contributions/,
         'memberships cannot be created without sufficient contributions'
@@ -243,7 +243,7 @@ sub test_membership_inserts ( $self, @ ) {
                         );
                         $self->_restore_constraints;
                     }
-                    )
+                )
             },
             qr/multiple physical addresses/,
             'memberships of the current year cannot be created when the members have different physical addresses'
@@ -260,7 +260,7 @@ sub test_membership_inserts ( $self, @ ) {
                         );
                         $self->_restore_constraints;
                     }
-                    )
+                )
             },
             qr/multiple mailing addresses/,
             'memberships of the current year cannot be created when the members have different mailing addresses'
@@ -284,7 +284,7 @@ sub test_membership_inserts ( $self, @ ) {
                         );
                         $self->_restore_constraints;
                     }
-                    )
+                )
             },
             undef,
             'memberships of previous years can be created when the members have different physical addresses'
@@ -308,7 +308,7 @@ sub test_membership_inserts ( $self, @ ) {
                         );
                         $self->_restore_constraints;
                     }
-                    )
+                )
             },
             undef,
             'memberships of previous years can be created when the members have different mailing addresses'
@@ -348,7 +348,7 @@ sub test_membership_updates ( $self, @ ) {
                         { membership_type => $HOUSEHOLD_MEMBERSHIP } );
                     $self->_restore_constraints;
                 }
-                )
+            )
         },
         undef,
         'can promote an individual membership'

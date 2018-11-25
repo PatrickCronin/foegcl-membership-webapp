@@ -27,9 +27,9 @@ has storage_dir => (
 );
 
 has website_dir => (
-    is => 'ro',
-    isa => Path,
-    lazy => 1,
+    is      => 'ro',
+    isa     => Path,
+    lazy    => 1,
     default => sub ($self) { $self->project_root->child('website') },
 );
 

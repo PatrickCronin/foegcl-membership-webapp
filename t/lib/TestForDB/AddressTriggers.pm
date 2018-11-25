@@ -103,7 +103,7 @@ sub test_multi_member_affiliation_person_address_inserts ( $self, @ ) {
                         for $affiliation->affiliation_people;
                     $self->_restore_constraints;
                 }
-                )
+            )
         },
         undef,
         q{an affiliation's physical addresses can be changed as long as all members' addresses are updated together}
@@ -118,7 +118,7 @@ sub test_multi_member_affiliation_person_address_inserts ( $self, @ ) {
                         for $affiliation->affiliation_people;
                     $self->_restore_constraints;
                 }
-                )
+            )
         },
         undef,
         q{an affiliation's mailing addresses can be changed as long as all members' addresses are updated together}

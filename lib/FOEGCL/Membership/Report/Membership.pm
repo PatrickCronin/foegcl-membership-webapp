@@ -86,9 +86,9 @@ sub _data ($self) {
         push @data, [
             $person->{name},
             $person->{street_lines} // q{},
-            $person->{csz} // q{},
-            $person->{emails} // q{},
-            $person->{phones} // q{},
+            $person->{csz}          // q{},
+            $person->{emails}       // q{},
+            $person->{phones}       // q{},
         ];
     }
 

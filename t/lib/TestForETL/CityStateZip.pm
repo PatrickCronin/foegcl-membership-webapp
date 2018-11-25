@@ -18,7 +18,7 @@ sub test_csz ( $self, @ ) {
                     city  => $_->{city},
                     state => $_->{state_abbr},
                     zip   => $_->{zip},
-                    }
+                }
             } $self->_schema->resultset('CityStateZip')->hri->all
         ],
         [
@@ -27,7 +27,7 @@ sub test_csz ( $self, @ ) {
                     city  => trim( $_->{City} ),
                     state => trim( $_->{State} ),
                     zip   => trim( $_->{PostalCode} ),
-                    }
+                }
             } $self->_legacy_schema->resultset('CityStateZip')->hri->all
         ],
         'City, State and Zip transferred successfully'

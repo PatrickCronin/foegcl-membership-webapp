@@ -85,7 +85,7 @@ sub _data ($self) {
     while ( my $person = $rs->next ) {
         push @data,
             [
-            map     { $person->{$_} // q{} }
+            map { $person->{$_} // q{} }
                 map { $_->{name} =~ s/\n/ /gr }
                 $self->_data_field_settings->@*
             ];
