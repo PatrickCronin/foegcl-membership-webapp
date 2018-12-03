@@ -7,9 +7,9 @@ use File::Copy::Recursive 'dircopy';
 use FOEGCL::Membership::Storage::WebAppSchemaDumper ();
 use List::Compare                                   ();
 use List::Util                                      ();
-use Path::Iterator::Rule                            ();
-use Path::Tiny qw(tempdir path);
 use Module::Runtime 'module_notional_filename';
+use Path::Iterator::Rule ();
+use Path::Tiny qw(tempdir path);
 
 with qw(
     FOEGCL::Membership::Role::HasConfig
@@ -37,7 +37,7 @@ sub test_dbic_classes_match_schema ( $self, @ ) {
     );
     $webapp_schema_path->copy($temp_schema_path);
 
-    # We dump the DBIC classes for the test database, which is fresh copy
+    # We dump the DBIC classes for the test database, which is a fresh copy
     # of the DDL, and compare those classes with the existing DBIC classes
     # in the repo.
     diag 'Dumping DBIC classes for the current WebApp schema...';

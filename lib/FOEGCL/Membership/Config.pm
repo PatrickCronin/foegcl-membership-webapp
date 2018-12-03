@@ -26,6 +26,13 @@ has storage_dir => (
     default => sub ($self) { $self->project_root->child('storage') },
 );
 
+has website_dir => (
+    is      => 'ro',
+    isa     => Path,
+    lazy    => 1,
+    default => sub ($self) { $self->project_root->child('website') },
+);
+
 #
 # File-based config
 #
@@ -60,6 +67,16 @@ has legacy_database_config => (
     builder => '_build_legacy_database_config',
 );
 
+#
+# Misc
+#
+has webapp_config => (
+    is      => 'ro',
+    isa     => HashRef,
+    lazy    => 1,
+    builder => '_build_webapp_config',
+);
+
 with 'FOEGCL::Membership::Role::Singleton';
 
 sub _build_config_file ( $self, @ ) {
@@ -86,6 +103,12 @@ sub _build_webapp_database_config ( $self, @ ) {
 sub _build_legacy_database_config ( $self, @ ) {
     my $config = $self->_config->{'Legacy Database'};
     $self->_ensure_all_truthy( 'Legacy DB', $config );
+    return $config;
+}
+
+sub _build_webapp_config ( $self, @ ) {
+    my $config = $self->_config->{'WebApp'};
+    $self->_ensure_all_truthy( 'WebApp', $config );
     return $config;
 }
 

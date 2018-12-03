@@ -56,11 +56,12 @@ __PACKAGE__->table("app_user_has_role");
 
 =head1 ACCESSORS
 
-=head2 user_id
+=head2 username
 
-  data_type: 'integer'
+  data_type: 'varchar'
   is_foreign_key: 1
   is_nullable: 0
+  size: 128
 
 =head2 role_id
 
@@ -85,8 +86,8 @@ __PACKAGE__->table("app_user_has_role");
 =cut
 
 __PACKAGE__->add_columns(
-  "user_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "username",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 128 },
   "role_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "created_at",
@@ -109,7 +110,7 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</user_id>
+=item * L</username>
 
 =item * L</role_id>
 
@@ -117,7 +118,7 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key("user_id", "role_id");
+__PACKAGE__->set_primary_key("username", "role_id");
 
 =head1 RELATIONS
 
@@ -136,7 +137,7 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 user
+=head2 username
 
 Type: belongs_to
 
@@ -145,15 +146,15 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AppUser>
 =cut
 
 __PACKAGE__->belongs_to(
-  "user",
+  "username",
   "FOEGCL::Membership::Schema::WebApp::Result::AppUser",
-  { user_id => "user_id" },
+  { username => "username" },
   { is_deferrable => 0, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Cv3UQxg6eAEqt2ExZHyKTw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2018-11-16 22:30:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cvb0ngF26coN7N/5AkGJtg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

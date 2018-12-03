@@ -14,8 +14,8 @@ use FOEGCL::Membership::Types qw(
 );
 
 sub test_affiliation_year ( $self, @ ) {
-    my $good = [ 1980, 1999, 2000, 2001, 2018, 2030 ];
-    my $bad = [ undef, 1979, 2031, q{} ];
+    my $good = [ 1980,  1999, 2000, 2001, 2018, 2030 ];
+    my $bad  = [ undef, 1979, 2031, q{} ];
     _check_type_values( AffiliationYear, $good, $bad );
 }
 

@@ -94,10 +94,10 @@ severity = 3
 add_packages = Test::Builder
 
 [TestingAndDebugging::RequireUseStrict]
-equivalent_modules = FOEGCL::Membership::perlbase FOEGCL::Membership::Moose FOEGCL::Membership::Moose::Role FOEGCL::Membership::Test::Class::Moose
+equivalent_modules = FOEGCL::Membership::perlbase FOEGCL::Membership::Moose FOEGCL::Membership::Moose::Role FOEGCL::Membership::Test::Class::Moose FOEGCL::Membership::Moose::Mojo
 
 [TestingAndDebugging::RequireUseWarnings]
-equivalent_modules = FOEGCL::Membership::perlbase FOEGCL::Membership::Moose FOEGCL::Membership::Moose::Role FOEGCL::Membership::Test::Class::Moose
+equivalent_modules = FOEGCL::Membership::perlbase FOEGCL::Membership::Moose FOEGCL::Membership::Moose::Role FOEGCL::Membership::Test::Class::Moose FOEGCL::Membership::Moose::Mojo
 
 [-ControlStructures::ProhibitCascadingIfElse]
 
@@ -106,23 +106,13 @@ equivalent_modules = FOEGCL::Membership::perlbase FOEGCL::Membership::Moose FOEG
 
 [-ValuesAndExpressions::ProhibitConstantPragma]
 
-# No need for /xsm everywhere
 [-RegularExpressions::RequireDotMatchAnything]
 [-RegularExpressions::RequireExtendedFormatting]
 [-RegularExpressions::RequireLineBoundaryMatching]
 
-# by concensus in standup 2015-05-12 we decided to allow return undef
-# this is mainly so bar can be written to return undef so that
-# foo( bar => bar(), bazz => baz() ) won't cause problems
 [-Subroutines::ProhibitExplicitReturnUndef]
-
-# This incorrectly thinks signatures are prototypes.
 [-Subroutines::ProhibitSubroutinePrototypes]
-
-# http://stackoverflow.com/questions/2275317/why-does-perlcritic-dislike-using-shift-to-populate-subroutine-variables
 [-Subroutines::RequireArgUnpacking]
-
 [-Subroutines::RequireFinalReturn]
 
-# "use v5.14" is more readable than "use 5.014"
 [-ValuesAndExpressions::ProhibitVersionStrings]

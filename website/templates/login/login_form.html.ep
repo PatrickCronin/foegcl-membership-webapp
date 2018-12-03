@@ -1,0 +1,28 @@
+% layout 'default', content_class => 'center-contents-vertically', no_notifications => 1;
+
+% if (param('logged_out') && !session('username')) {
+    % add_stash_success('You have been logged out successfully.');
+% }
+
+%= include 'shared/notification_area', col_class => 'col-8 offset-2'
+<div class="container">
+    <div class="row">
+        <div class="col-4 offset-2">
+            %= image '/img/friendslogo.jpg', alt => 'Friends Logo', height => '270px'
+        </div>
+        <div class="col-4">
+            <h1>Welcome!</h1>
+            %= form_for login_form => ( method => 'POST' ) => begin
+                %= t div => (class => 'form-group') => begin
+                    %= label_for username => 'Username'
+                    %= text_field 'username', (id => 'username', class => 'form-control')
+                % end
+                %= t div => (class => 'form-group') => begin
+                    %= label_for password => 'Password'
+                    %= password_field 'password', (id => 'password', class => 'form-control')
+                % end
+                %= submit_button 'Login', (class => 'btn btn-primary')
+            % end
+        </div>
+    </div>
+</div>

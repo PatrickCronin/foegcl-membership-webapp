@@ -1,0 +1,36 @@
+% use Const::Fast 'const';
+% use List::Util 'pairkeys';
+%
+% const my @TYPE_CLASSES => ( # ORDER IS IMPORTANT
+%     error   => 'danger',
+%     warning => 'warning',
+%     info    => 'info',
+%     success => 'success',
+% );
+% const my %TYPES => @TYPE_CLASSES;
+%
+% my @rendered_notifications;
+% foreach my $type (pairkeys @TYPE_CLASSES) {
+%     if (flash $type) {
+%         push @rendered_notifications, map {
+%             sprintf('<div class="alert alert-%s">%s</div>', $TYPES{$type}, $_)
+%         } flash($type)->@*;
+%     }
+%     if (stash $type) {
+%         push @rendered_notifications, map {
+%             sprintf('<div class="alert alert-%s">%s</div>', $TYPES{$type}, $_)
+%         } stash($type)->@*;
+%     }
+% }
+%
+% if (@rendered_notifications) {
+    <div class="container">
+        % foreach my $rendered_notification (@rendered_notifications) {
+        <div class="row">
+            <div class="<%= stash('col_class') // 'col' %>">
+                <%== $rendered_notification %>
+            </div>
+        </div>
+        % }
+    </div>
+% }

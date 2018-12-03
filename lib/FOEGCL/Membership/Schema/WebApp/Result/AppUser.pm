@@ -56,23 +56,17 @@ __PACKAGE__->table("app_user");
 
 =head1 ACCESSORS
 
-=head2 user_id
-
-  data_type: 'integer'
-  is_auto_increment: 1
-  is_nullable: 0
-  sequence: 'app_user_user_id_seq'
-
 =head2 username
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 32
+  size: 128
 
 =head2 password_hash
 
-  data_type: 'bytea'
+  data_type: 'varchar'
   is_nullable: 0
+  size: 137
 
 =head2 first_name
 
@@ -109,17 +103,10 @@ __PACKAGE__->table("app_user");
 =cut
 
 __PACKAGE__->add_columns(
-  "user_id",
-  {
-    data_type         => "integer",
-    is_auto_increment => 1,
-    is_nullable       => 0,
-    sequence          => "app_user_user_id_seq",
-  },
   "username",
-  { data_type => "varchar", is_nullable => 0, size => 32 },
+  { data_type => "varchar", is_nullable => 0, size => 128 },
   "password_hash",
-  { data_type => "bytea", is_nullable => 0 },
+  { data_type => "varchar", is_nullable => 0, size => 137 },
   "first_name",
   { data_type => "varchar", is_nullable => 0, size => 32 },
   "last_name",
@@ -146,27 +133,13 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</user_id>
-
-=back
-
-=cut
-
-__PACKAGE__->set_primary_key("user_id");
-
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<username_is_unique>
-
-=over 4
-
 =item * L</username>
 
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("username_is_unique", ["username"]);
+__PACKAGE__->set_primary_key("username");
 
 =head1 RELATIONS
 
@@ -181,13 +154,13 @@ Related object: L<FOEGCL::Membership::Schema::WebApp::Result::AppUserHasRole>
 __PACKAGE__->has_many(
   "app_user_has_roles",
   "FOEGCL::Membership::Schema::WebApp::Result::AppUserHasRole",
-  { "foreign.user_id" => "self.user_id" },
+  { "foreign.username" => "self.username" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-02-24 23:46:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eGN/rpsIr2Za5/ZUGO3qAw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2018-11-16 22:33:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pfsp8X38XcltCAVecxMLIw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

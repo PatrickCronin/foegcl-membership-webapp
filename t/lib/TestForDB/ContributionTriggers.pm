@@ -18,7 +18,7 @@ sub test_contribution_inserts ( $self, @ ) {
             $self->_new_contribution(
                 affiliation_id => $self->_create_basic_affiliation->id,
                 amount         => 200
-                )
+            )
         },
         undef,
         'can add a contribution to an affiliation'
@@ -30,7 +30,7 @@ sub test_contribution_inserts ( $self, @ ) {
                 affiliation_id => $affiliation->id,
                 amount         => 10,
                 received       => $affiliation->year . '-01-01',
-                )
+            )
         },
         undef,
         q{contribution received date can be the same as the affiliations'},
@@ -42,7 +42,7 @@ sub test_contribution_inserts ( $self, @ ) {
                 affiliation_id => $affiliation->id,
                 amount         => 10,
                 received       => ( $affiliation->year - 1 ) . '-01-01',
-                )
+            )
         },
         qr/recieved date in a different year/,
         q{contribution received date cannot be different than the affiliations'},

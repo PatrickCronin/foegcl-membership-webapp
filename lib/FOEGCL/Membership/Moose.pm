@@ -6,39 +6,35 @@ package FOEGCL::Membership::Moose;
 
 use FOEGCL::Membership::perlbase;
 
-use Import::Into;
-use Moose ();
 use Moose::Exporter;
-use MooseX::SemiAffordanceAccessor ();
-use MooseX::StrictConstructor      ();
-use namespace::autoclean           ();
+use Moose                                               ();
+use MooseX::SemiAffordanceAccessor                      ();
+use MooseX::StrictConstructor                           ();
+use MooseX::TraitFor::Meta::Class::BetterAnonClassNames ();
+use namespace::autoclean                                ();
 
 use FOEGCL::Membership::perlbase;
 
-my ($import) = Moose::Exporter->setup_import_methods(
-    install => [ 'unimport', 'init_meta' ],
-    also    => ['Moose'],
+my ( undef, undef, $init_meta ) = Moose::Exporter->setup_import_methods(
+    install => [qw( import unimport init_meta )],
+    also    => [
+        qw(
+            Moose
+            MooseX::SemiAffordanceAccessor
+            MooseX::StrictConstructor
+            ),
+    ],
+    class_metaroles => {
+        class => ['MooseX::TraitFor::Meta::Class::BetterAnonClassNames'],
+    },
 );
 
-sub import ( $class, @ ) {
-    my $for_class = caller();
+sub init_meta {
+    namespace::autoclean->import::into(2);
+    FOEGCL::Membership::perlbase->import::into(2);
 
-    $import->( undef, { into => $for_class } );
-    $class->import_extras( $for_class, 2 );
-
-    return;
-}
-
-sub import_extras ( $class, $for_class, $level ) {
-
-    MooseX::SemiAffordanceAccessor->import( { into => $for_class } );
-    MooseX::StrictConstructor->import( { into => $for_class } );
-
-    # note that we need to use a level here rather than a classname
-    # so that importing autodie works
-    FOEGCL::Membership::perlbase->import::into($level);
-    namespace::autoclean->import::into($level);
-
+    goto \&$init_meta
+        if !!$init_meta;
     return;
 }
 

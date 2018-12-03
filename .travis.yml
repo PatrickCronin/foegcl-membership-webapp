@@ -23,12 +23,14 @@ before_script:
     # - psql -c "CREATE EXTENSION pg_trgm with schema pg_catalog" -U postgres -d foegcl
     # Create a configuration file
     - mkdir etc
-    - echo '[WebApp Database]' >> etc/foegcl-membership.conf
-    - echo 'host = 127.0.0.1'  >> etc/foegcl-membership.conf
-    - echo 'port = 5432'       >> etc/foegcl-membership.conf
-    - echo 'database = foegcl' >> etc/foegcl-membership.conf
-    - echo 'username = foegcl' >> etc/foegcl-membership.conf
-    - echo 'password = foegcl' >> etc/foegcl-membership.conf
+    - echo '[WebApp Database]'    >> etc/foegcl-membership.conf
+    - echo 'host = 127.0.0.1'     >> etc/foegcl-membership.conf
+    - echo 'port = 5432'          >> etc/foegcl-membership.conf
+    - echo 'database = foegcl'    >> etc/foegcl-membership.conf
+    - echo 'username = foegcl'    >> etc/foegcl-membership.conf
+    - echo 'password = foegcl'    >> etc/foegcl-membership.conf
+    - echo '[WebApp]'             >> etc/foegcl-membership.conf
+    - echo 'session_key = foegcl' >> etc/foegcl-membership.conf
     - cat etc/foegcl-membership.conf
     # Install module that seems to be required "for Fatalised/autodying system()"
     - cpanm --notest IPC::System::Simple

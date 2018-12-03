@@ -723,11 +723,9 @@ CREATE TABLE voter_registration (
 CREATE INDEX voter_registration__person_id ON voter_registration (person_id);
 
 CREATE TABLE app_user (
-    user_id SERIAL PRIMARY KEY,
-    username VARCHAR(32) NOT NULL
-        CONSTRAINT username_is_unique UNIQUE
+    username VARCHAR(128) NOT NULL PRIMARY KEY
         CONSTRAINT username_is_trimmed_and_not_empty CHECK (username <> '' AND username = trim(both from username)),
-    password_hash bytea NOT NULL CHECK(length(password_hash) = 64),
+    password_hash VARCHAR(137) NOT NULL,
     first_name VARCHAR(32) NOT NULL
         CONSTRAINT first_name_is_trimmed_and_not_empty CHECK (first_name <> '' AND first_name = trim(both from first_name)),
     last_name VARCHAR(32) NOT NULL
@@ -747,11 +745,11 @@ CREATE TABLE app_role (
 );
 
 CREATE TABLE app_user_has_role (
-    user_id INTEGER NOT NULL REFERENCES app_user (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    username VARCHAR(128) NOT NULL REFERENCES app_user (username) ON DELETE CASCADE ON UPDATE CASCADE,
     role_id INTEGER NOT NULL REFERENCES app_role (role_id) ON DELETE CASCADE ON UPDATE CASCADE,
     created_at timestamp with time zone DEFAULT NOW(),
     updated_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (user_id, role_id)
+    PRIMARY KEY (username, role_id)
 );
 
 CREATE INDEX app_user_has_role__role_id ON app_user_has_role (role_id);

@@ -25,6 +25,7 @@ use FOEGCL::Membership::Storage::WebAppDatabaseConnection      ();
 use FOEGCL::Membership::Storage::WebAppDatabaseConnectionCache ();
 use FOEGCL::Membership::Storage::WebAppSchemaMigrator          ();
 use FOEGCL::Membership::Types qw(ArrayRef Bool HashRef);
+use List::MoreUtils 'part';
 use List::Util qw(any shuffle);
 use Module::Runtime 'require_module';
 use Test::Class::Moose::Runner ();
@@ -114,9 +115,25 @@ sub _build_selected_classes ( $self, @ ) {
         ),
     )->test_class_packages;
 
+    # Always run TestForDB::DBICClassesMatchSchema last if it's going to be
+    # run. It calls make_schema_at from DBIx::Class::Schema::Loader which
+    # generates the schema, but also modifies %INC with the "new" schema
+    # location, which is promptly deleted before the next test can be run,
+    # leaving the %INC entries for the DBIC classes high and dry.
+    # Interestingly, they still worked to an extent, but resultset classes
+    # came back as being references to DBIx::Class::Schema and not
+    # FOEGCL::Membership::Schema::WebApp::ResultSet.
+    my @part = part {
+        $_ ne 'TestForDB::DBICClassesMatchSchema' ? 0 : 1
+    }
+    @$selected_classes;
+
+    my @any_time    = $part[0] ? $part[0]->@* : ();
+    my @only_at_end = $part[1] ? $part[1]->@* : ();
+
     return $self->randomize_classes
-        ? [ shuffle $selected_classes->@* ]
-        : $selected_classes;
+        ? [ shuffle(@any_time), @only_at_end ]
+        : [ @any_time, @only_at_end ];
 }
 
 sub run ($self) {

@@ -248,7 +248,7 @@ sub _test_membership_num_people ( $self, $legacy_friend, %annual_max_people )
         $_ => min(
             $legacy_friend->num_people,
             exists $annual_max_people{$_} ? $annual_max_people{$_} : 2
-            )
+        )
     } keys %annual_max_people;
 
     eq_or_diff(
