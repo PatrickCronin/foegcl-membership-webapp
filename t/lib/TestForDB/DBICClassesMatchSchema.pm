@@ -7,9 +7,9 @@ use File::Copy::Recursive 'dircopy';
 use FOEGCL::Membership::Storage::WebAppSchemaDumper ();
 use List::Compare                                   ();
 use List::Util                                      ();
-use Path::Iterator::Rule                            ();
-use Path::Tiny qw(tempdir path);
 use Module::Runtime 'module_notional_filename';
+use Path::Iterator::Rule ();
+use Path::Tiny qw(tempdir path);
 
 with qw(
     FOEGCL::Membership::Role::HasConfig
