@@ -4,7 +4,7 @@ package FOEGCL::Membership::Report::ContributingFriends;
 
 use FOEGCL::Membership::Moose;
 
-use FOEGCL::Membership::Report::PDFReportCreator;
+use FOEGCL::Membership::Report::PDFReportCreator ();
 use POSIX 'strftime';
 
 has _pdf_report_creator => (
