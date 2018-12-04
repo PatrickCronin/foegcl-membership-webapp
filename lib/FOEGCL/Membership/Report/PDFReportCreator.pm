@@ -96,7 +96,9 @@ sub _build_data_field_settings_with_defaults ( $self, @ ) {
         background_func => \&_alternate_data_row_bgcolor,
     );
 
-    [ %defaults, map { $_->%* } $self->data_field_settings->@* ];
+    [
+        map { +{ %defaults, $_->%* } } $self->data_field_settings->@*,
+    ];
 }
 
 sub _build_pdf_report_writer ( $self, @ ) {
