@@ -29,6 +29,16 @@ sub startup {
 
     my $logged_in = $r->under('/')->to('login#logged_in');
     $logged_in->get('/dashboard')->to('dashboard#dashboard');
+
+    _set_up_report_routes($logged_in);
+}
+
+sub _set_up_report_routes($logged_in) {
+    my $report = $logged_in->under('/report');
+    $report->get('contributing-friends')->to('report#contributing_friends')
+        ->name('contributing_friends_report');
+    $report->get('current-membership')->to('report#current_membership')
+        ->name('current_membership_report');
 }
 
 1;
