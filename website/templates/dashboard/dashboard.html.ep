@@ -2,8 +2,26 @@
 
 <div class="container">
     <div class="row">
-        <div class="col">
-            Here we are.
-        </div>
+        <section class="col-6">
+            <h3>Main</h3>
+            <ul>
+                <li>Search</li>
+                <li>New person</li>
+                <li>New affiliation/membership</li>
+            </ul>
+        </section>
+        <section class="col-6">
+            <h3>Reports</h3>
+            <ul>
+                <li><%= link_to 'Current Membership' => 'current_membership_report' %></li>
+                <li><%= link_to 'Contributing Friends' => 'contributing_friends_report' %></li>
+                <li>Blast Email List</li>
+                <li>Primary Membership Mailing List</li>
+                <li>Reminder Membership Mailing List</li>
+                <li>Year End Donation Appeal Mailing List</li>
+                <li>GOTV Callers List</li>
+                <li>GOTV Registered Voters Calling List</li>
+            </ul>
+        </section>
     </div>
 </div>

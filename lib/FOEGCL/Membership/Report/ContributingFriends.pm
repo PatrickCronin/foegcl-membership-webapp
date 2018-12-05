@@ -4,7 +4,7 @@ package FOEGCL::Membership::Report::ContributingFriends;
 
 use FOEGCL::Membership::Moose;
 
-use FOEGCL::Membership::Report::PDFReportCreator;
+use FOEGCL::Membership::Report::PDFReportCreator ();
 use POSIX 'strftime';
 
 has _pdf_report_creator => (
@@ -12,8 +12,9 @@ has _pdf_report_creator => (
     isa     => 'FOEGCL::Membership::Report::PDFReportCreator',
     lazy    => 1,
     builder => '_build_pdf_report_creator',
-    handles => [qw( save saveas stringify )],
+    handles => [qw( basename save saveas stringify )],
 );
+
 with 'FOEGCL::Membership::Role::UsesWebAppDatabase';
 
 sub _build_pdf_report_creator ( $self, @ ) {

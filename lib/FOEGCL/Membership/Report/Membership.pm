@@ -4,15 +4,15 @@ package FOEGCL::Membership::Report::Membership;
 
 use FOEGCL::Membership::Moose;
 
+use FOEGCL::Membership::Report::PDFReportCreator ();
 use POSIX 'strftime';
-use FOEGCL::Membership::Report::PDFReportCreator;
 
 has _pdf_report_creator => (
     is      => 'ro',
     isa     => 'FOEGCL::Membership::Report::PDFReportCreator',
     lazy    => 1,
     builder => '_build_pdf_report_creator',
-    handles => [qw( save saveas stringify )],
+    handles => [qw( basename save saveas stringify )],
 );
 
 with 'FOEGCL::Membership::Role::UsesWebAppDatabase';
