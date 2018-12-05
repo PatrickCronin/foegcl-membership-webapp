@@ -17,6 +17,13 @@ has name => (
     required => 1,
 );
 
+has basename => (
+    is      => 'ro',
+    isa     => NonEmptySimpleStr,
+    lazy    => 1,
+    builder => '_build_basename',
+);
+
 {
     use Moose::Util::TypeConstraints 'enum';
 
@@ -88,6 +95,14 @@ has _pdf_report_writer => (
     handles => [qw( save saveas stringify )],
 );
 
+sub _build_basename ( $self, @ ) {
+    sprintf(
+        '%s %s',
+        $self->name,
+        DateTime->now->strftime('%Y%m%d %H%M%S.pdf')
+    );
+}
+
 sub _build_data_field_settings_with_defaults ( $self, @ ) {
     my %defaults = (
         align           => 'left',
@@ -105,7 +120,7 @@ sub _build_pdf_report_writer ( $self, @ ) {
     my $pdf_report_writer = PDF::ReportWriter->new(
         {
             destination =>
-                Path::Tiny->cwd->child( $self->_report_basename )->stringify,
+                Path::Tiny->cwd->child( $self->basename )->stringify,
             paper             => 'Letter',
             orientation       => $self->orientation,
             font_list         => [qw( Times )],
@@ -138,10 +153,6 @@ sub _build_pdf_report_writer ( $self, @ ) {
     );
 
     return $pdf_report_writer;
-}
-
-sub _report_basename ( $self ) {
-    return $self->name . q{ } . DateTime->now->strftime('%Y%m%d %H%M%S.pdf');
 }
 
 sub _alternate_data_row_bgcolor ( $value, $row, $options ) {
