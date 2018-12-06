@@ -5,14 +5,18 @@ package FOEGCL::Membership::Storage::LegacyDatabaseConnection;
 use FOEGCL::Membership::Moose;
 
 use Const::Fast 'const';
+use FOEGCL::Membership::Storage::LegacyDatabaseConnectionConfig ();
 use FOEGCL::Membership::Types
     qw( HashRef Maybe NonEmptySimpleStr PortNumber );
 use Module::Runtime 'require_module';
 
 has db_config => (
-    is       => 'ro',
-    does     => 'ConfiguresDatabaseConnection',
-    required => 1,
+    is      => 'ro',
+    does    => 'FOEGCL::Membership::Role::ConfiguresDatabaseConnection',
+    lazy    => 1,
+    default => sub {
+        FOEGCL::Membership::Storage::LegacyDatabaseConnectionConfig->new;
+    },
 );
 
 has schema => (

@@ -27,7 +27,7 @@ sub _build_legacy_schema ( $self, @ ) {
         if $OSNAME !~ m/MSWin32/;
 
     return FOEGCL::Membership::Schema::Legacy->connect(
-        FOEGCL::Membership::Storage::LegacyDatabaseConnection->instance
+        FOEGCL::Membership::Storage::LegacyDatabaseConnection->new->db_config
             ->connect_info->@* );
 }
 
