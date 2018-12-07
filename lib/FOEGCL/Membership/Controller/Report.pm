@@ -7,8 +7,17 @@ use FOEGCL::Membership::Report::ContributingFriends ();
 use FOEGCL::Membership::Report::Membership          ();
 use Mojo::Asset::Memory                             ();
 
-sub current_membership ($self) {
-    my $report = FOEGCL::Membership::Report::Membership->new;
+with 'FOEGCL::Membership::Role::UsesWebAppDatabase';
+
+sub blast_email_list ($self) {
+    my @emails = map { $_->{email_address} }
+        $self->_schema->resultset('ReportBlastEmailList')->hri->all;
+
+    $self->render( text => join ', ', @emails );
+}
+
+sub contributing_friends ($self) {
+    my $report = FOEGCL::Membership::Report::ContributingFriends->new;
 
     $self->_render_pdf_asset(
         $report->basename,
@@ -16,8 +25,8 @@ sub current_membership ($self) {
     );
 }
 
-sub contributing_friends ($self) {
-    my $report = FOEGCL::Membership::Report::ContributingFriends->new;
+sub current_membership ($self) {
+    my $report = FOEGCL::Membership::Report::Membership->new;
 
     $self->_render_pdf_asset(
         $report->basename,
