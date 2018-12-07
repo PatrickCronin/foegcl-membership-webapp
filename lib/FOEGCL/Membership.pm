@@ -35,6 +35,8 @@ sub startup {
 
 sub _set_up_report_routes($logged_in) {
     my $report = $logged_in->under('/report');
+    $report->get('blast-email-list')->to('report#blast_email_list')
+        ->name('blast_email_list');
     $report->get('contributing-friends')->to('report#contributing_friends')
         ->name('contributing_friends_report');
     $report->get('current-membership')->to('report#current_membership')

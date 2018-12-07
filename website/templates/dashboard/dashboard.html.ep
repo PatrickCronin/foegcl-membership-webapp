@@ -15,7 +15,7 @@
             <ul>
                 <li><%= link_to 'Current Membership' => 'current_membership_report' %></li>
                 <li><%= link_to 'Contributing Friends' => 'contributing_friends_report' %></li>
-                <li>Blast Email List</li>
+                <li><%= link_to 'Blast Email List' => 'blast_email_list' %></li>
                 <li>Primary Membership Mailing List</li>
                 <li>Reminder Membership Mailing List</li>
                 <li>Year End Donation Appeal Mailing List</li>
