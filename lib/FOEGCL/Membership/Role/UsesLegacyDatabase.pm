@@ -1,38 +1,27 @@
 package FOEGCL::Membership::Role::UsesLegacyDatabase;
 
-# ABSTRACT: Facilitates Legacy database access
+# ABSTRACT: Provides the Legacy database connection
 
 use FOEGCL::Membership::Moose::Role;
 
-use English qw(-no_match_vars);
-use FOEGCL::Membership::Schema::Legacy                    ();
 use FOEGCL::Membership::Storage::LegacyDatabaseConnection ();
 
-has _legacy_schema => (
+sub _legacy_cxn;
+sub _legacy_db_config;
+sub _legacy_dbh;
+sub _legacy_schema;
+has _legacy_cxn => (
     is      => 'ro',
-    isa     => 'FOEGCL::Membership::Schema::Legacy',
+    isa     => 'FOEGCL::Membership::Storage::LegacyDatabaseConnection',
     lazy    => 1,
-    builder => '_build_legacy_schema',
+    default => sub {
+        FOEGCL::Membership::Storage::LegacyDatabaseConnection->instance;
+    },
+    handles => {
+        _legach_db_config => 'db_config',
+        _legacy_dbh       => 'dbh',
+        _legacy_schema    => 'schema',
+    },
 );
-
-has _legacy_dbh => (
-    is      => 'ro',
-    isa     => 'DBI::db',
-    lazy    => 1,
-    builder => '_build_legacy_dbh',
-);
-
-sub _build_legacy_schema ( $self, @ ) {
-    die q{Can't access Legacy schema unless on Windows}
-        if $OSNAME !~ m/MSWin32/;
-
-    return FOEGCL::Membership::Schema::Legacy->connect(
-        FOEGCL::Membership::Storage::LegacyDatabaseConnection->new->db_config
-            ->connect_info->@* );
-}
-
-sub _build_legacy_dbh ( $self, @ ) {
-    return $self->_legacy_schema->storage->dbh;
-}
 
 1;

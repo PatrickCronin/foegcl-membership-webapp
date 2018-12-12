@@ -37,6 +37,8 @@ has dbh => (
     clearer  => '_clear_dbh',
 );
 
+with 'FOEGCL::Membership::Role::Singleton';
+
 sub _build_schema ( $self, @ ) {
     my $class = $self->db_config->schema_class_name;
     require_module $class;
@@ -48,6 +50,6 @@ sub _build_dbh ( $self, @ ) {
     return $self->schema->storage->dbh;
 }
 
-__PACKAGE__->meta->make_immutable;
+__PACKAGE__->meta->make_immutable( inline_constructor => 0 );
 
 1;
