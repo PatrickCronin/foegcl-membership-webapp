@@ -1,4 +1,4 @@
-package TestForETL::Report::Membership;
+package TestForETL::Report::CurrentMembershipList;
 
 use FOEGCL::Membership::Test::Class::Moose;
 

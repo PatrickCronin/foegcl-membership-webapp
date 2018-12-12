@@ -1,4 +1,4 @@
-package TestFor::FOEGCL::Membership::Report::Membership;
+package TestFor::FOEGCL::Membership::Report::CurrentMembershipList;
 
 use FOEGCL::Membership::Test::Class::Moose;
 

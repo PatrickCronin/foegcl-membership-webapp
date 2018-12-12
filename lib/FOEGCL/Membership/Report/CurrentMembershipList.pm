@@ -1,4 +1,4 @@
-package FOEGCL::Membership::Report::Membership;
+package FOEGCL::Membership::Report::CurrentMembershipList;
 
 # ABSTRACT: The Current Membership report
 

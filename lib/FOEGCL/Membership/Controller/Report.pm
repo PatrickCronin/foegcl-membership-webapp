@@ -3,9 +3,9 @@ package FOEGCL::Membership::Controller::Report;
 use FOEGCL::Membership::Moose::Mojo;
 extends 'Mojolicious::Controller';
 
-use FOEGCL::Membership::Report::ContributingFriends ();
-use FOEGCL::Membership::Report::Membership          ();
-use Mojo::Asset::Memory                             ();
+use FOEGCL::Membership::Report::ContributingFriends   ();
+use FOEGCL::Membership::Report::CurrentMembershipList ();
+use Mojo::Asset::Memory                               ();
 use POSIX 'strftime';
 
 with 'FOEGCL::Membership::Role::UsesWebAppDatabase';
@@ -36,7 +36,7 @@ sub contributing_friends ($self) {
 }
 
 sub current_membership ($self) {
-    my $report = FOEGCL::Membership::Report::Membership->new;
+    my $report = FOEGCL::Membership::Report::CurrentMembershipList->new;
 
     $self->_render_file_from_asset(
         $report->basename,
