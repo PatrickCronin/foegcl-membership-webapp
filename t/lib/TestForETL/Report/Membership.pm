@@ -21,7 +21,7 @@ const my $CURRENT_YEAR => (localtime)[5] + 1900;
 sub test_members ( $self, @ ) {
     my @actual_members
         = map { [ $_->@{qw( friend_id first_name last_name )} ] }
-        $self->_schema->resultset('ReportCurrentMembershipList')->search_rs(
+        $self->_schema->resultset('CurrentMembershipList')->search_rs(
         undef,
         {
             columns  => [qw( friend_id first_name last_name )],

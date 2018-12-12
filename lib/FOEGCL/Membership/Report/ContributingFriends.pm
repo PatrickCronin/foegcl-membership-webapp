@@ -80,13 +80,13 @@ sub _data_field_settings {
 }
 
 sub _data ($self) {
-    my $rs = $self->_schema->resultset('ReportContributingFriend')->hri;
+    my $rs = $self->_schema->resultset('ContributingFriendsReport')->hri;
 
     my @data;
     while ( my $person = $rs->next ) {
         push @data,
             [
-            map { $person->{$_} // q{} }
+            map     { $person->{$_} // q{} }
                 map { $_->{name} =~ s/\n/ /gr }
                 $self->_data_field_settings->@*
             ];

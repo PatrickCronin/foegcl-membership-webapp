@@ -12,7 +12,7 @@ with 'FOEGCL::Membership::Role::UsesWebAppDatabase';
 
 sub blast_email_list ($self) {
     my @emails = map { $_->{email_address} }
-        $self->_schema->resultset('ReportBlastEmailList')->hri->all;
+        $self->_schema->resultset('BlastEmailList')->hri->all;
 
     $self->_render_file_from_asset(
         sprintf(

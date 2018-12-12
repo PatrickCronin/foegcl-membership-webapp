@@ -55,10 +55,7 @@ sub test_person_inclusion_and_details ( $self, @ ) {
     );
 
     eq_or_diff(
-        [
-            $self->_schema->resultset('ReportCurrentMembershipList')
-                ->hri->all
-        ],
+        [ $self->_schema->resultset('CurrentMembershipList')->hri->all ],
         [
             {
                 friend_id      => $membership->friend_id,

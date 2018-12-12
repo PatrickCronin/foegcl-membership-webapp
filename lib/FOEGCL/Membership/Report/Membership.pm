@@ -79,16 +79,16 @@ sub _data_field_settings {
 }
 
 sub _data ($self) {
-    my $rs = $self->_schema->resultset('ReportCurrentMembershipList')->hri;
+    my $rs = $self->_schema->resultset('CurrentMembershipList')->hri;
 
     my @data;
     while ( my $person = $rs->next ) {
         push @data, [
             $person->{name},
             $person->{street_lines} // q{},
-            $person->{csz}          // q{},
-            $person->{emails}       // q{},
-            $person->{phones}       // q{},
+            $person->{csz} // q{},
+            $person->{emails} // q{},
+            $person->{phones} // q{},
         ];
     }
 

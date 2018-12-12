@@ -19,13 +19,13 @@ sub _build_loader_options ( $self, @ ) {
         exclude => qr/
             \A
             (?:
-                report_blast_email_list_by_contribution
-                | report_blast_email_list_by_interest
-                | report_blast_email_list_by_participation
-                | report_contributing_friends_annual_friend_contribution_agg
-                | report_contributing_friends_earliest_friend_contributions
-                | report_contributing_friends_renewees
-                | report_contributing_friends_refreshees
+                blast_email_list_by_contribution
+                | blast_email_list_by_interest
+                | blast_email_list_by_participation
+                | contributing_friends_report_annual_friend_contribution_agg
+                | contributing_friends_report_earliest_friend_contributions
+                | contributing_friends_report_renewees
+                | contributing_friends_report_refreshees
             )
             \z
         /x,

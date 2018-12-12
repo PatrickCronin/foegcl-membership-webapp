@@ -775,7 +775,7 @@ CREATE INDEX app_role_has_privilege__privilege_id ON app_role_has_privilege (pri
 
 -- Anyone who was connected with a contributing affiliation within the
 -- last two calendar years. Separated to enable testing.
-CREATE VIEW report_blast_email_list_by_contribution AS
+CREATE VIEW blast_email_list_by_contribution AS
 SELECT DISTINCT email_address
 FROM contribution
 INNER JOIN affiliation USING (affiliation_id)
@@ -789,7 +789,7 @@ WHERE year IN (
 AND opted_out = false;
 
 -- Anyone who has an active interest. Separated to enable testing.
-CREATE VIEW report_blast_email_list_by_interest AS
+CREATE VIEW blast_email_list_by_interest AS
 SELECT DISTINCT email_address
 FROM participation_interest
 INNER JOIN person USING (person_id)
@@ -798,7 +798,7 @@ WHERE opted_out = false;
 
 -- Anyone who participated in something within the last two calendar years.
 -- Separated to enable testing.
-CREATE VIEW report_blast_email_list_by_participation AS
+CREATE VIEW blast_email_list_by_participation AS
 SELECT DISTINCT email_address
 FROM participation_record
 INNER JOIN person USING (person_id)
@@ -809,12 +809,12 @@ WHERE year IN (
 )
 AND opted_out = false;
 
-CREATE VIEW report_blast_email_list AS
-SELECT email_address FROM report_blast_email_list_by_contribution
+CREATE VIEW blast_email_list AS
+SELECT email_address FROM blast_email_list_by_contribution
 UNION
-SELECT email_address FROM report_blast_email_list_by_interest
+SELECT email_address FROM blast_email_list_by_interest
 UNION
-SELECT email_address FROM report_blast_email_list_by_participation
+SELECT email_address FROM blast_email_list_by_participation
 ORDER BY email_address;
 
 CREATE FUNCTION format_phone_number (phone_number VARCHAR(32))
@@ -834,7 +834,7 @@ BEGIN
 END;
 $$;
 
-CREATE VIEW report_current_membership_list AS
+CREATE VIEW current_membership_list AS
 SELECT
     friend_id,
     first_name as first_name,
@@ -862,7 +862,7 @@ LEFT JOIN (
 WHERE year = date_part('year', CURRENT_DATE)
 ORDER BY last_name, first_name;
 
-CREATE VIEW report_contributing_friends_annual_friend_contribution_agg AS
+CREATE VIEW contributing_friends_report_annual_friend_contribution_agg AS
 SELECT
     year,
     friend_id,
@@ -875,35 +875,35 @@ INNER JOIN affiliation USING (affiliation_id)
 LEFT JOIN membership_type_parameters USING (year, membership_type)
 GROUP BY year, friend_id, membership_amount;
 
-CREATE VIEW report_contributing_friends_earliest_friend_contributions AS
+CREATE VIEW contributing_friends_report_earliest_friend_contributions AS
 SELECT friend_id, min(year) AS first_contribution_year
 FROM affiliation
 INNER JOIN contribution USING (affiliation_id)
 GROUP BY friend_id;
 
-CREATE VIEW report_contributing_friends_renewees AS
+CREATE VIEW contributing_friends_report_renewees AS
 SELECT
     base_year.year AS year,
     base_year.friend_id AS renewee_friend_id
-FROM report_contributing_friends_annual_friend_contribution_agg AS base_year
-INNER JOIN report_contributing_friends_annual_friend_contribution_agg AS last_year
+FROM contributing_friends_report_annual_friend_contribution_agg AS base_year
+INNER JOIN contributing_friends_report_annual_friend_contribution_agg AS last_year
 ON base_year.friend_id = last_year.friend_id
 AND base_year.year - 1 = last_year.year;
 
-CREATE VIEW report_contributing_friends_refreshees AS
+CREATE VIEW contributing_friends_report_refreshees AS
 SELECT
     base_year.year AS year,
     base_year.friend_id refreshee_friend_id
-FROM report_contributing_friends_annual_friend_contribution_agg AS base_year
-INNER JOIN report_contributing_friends_earliest_friend_contributions
-    ON base_year.friend_id = report_contributing_friends_earliest_friend_contributions.friend_id
+FROM contributing_friends_report_annual_friend_contribution_agg AS base_year
+INNER JOIN contributing_friends_report_earliest_friend_contributions
+    ON base_year.friend_id = contributing_friends_report_earliest_friend_contributions.friend_id
     AND base_year.year > first_contribution_year
-LEFT JOIN report_contributing_friends_annual_friend_contribution_agg AS last_year
+LEFT JOIN contributing_friends_report_annual_friend_contribution_agg AS last_year
 ON base_year.friend_id = last_year.friend_id
 AND base_year.year - 1 = last_year.year
 WHERE last_year.year IS NULL;
 
-CREATE VIEW report_contributing_friends AS
+CREATE VIEW contributing_friends_report AS
 SELECT
     year AS "Year",
     number_of_contributing_friends AS "Contributing Friends",
@@ -923,24 +923,24 @@ LEFT JOIN (
         COALESCE(SUM(membership_portion_of_contributions), 0) AS membership_portion,
         COALESCE(SUM(donation_portion_of_contributions), 0) AS donation_portion,
         COALESCE(SUM(number_of_contributions), 0) AS number_of_contributions
-    FROM report_contributing_friends_annual_friend_contribution_agg
+    FROM contributing_friends_report_annual_friend_contribution_agg
     GROUP BY year
 ) annual_all_friend_contribution_agg USING (year)
 LEFT JOIN (
     SELECT year, COUNT(renewee_friend_id) AS number_of_renewees
-    FROM report_contributing_friends_renewees
+    FROM contributing_friends_report_renewees
     GROUP BY year
 ) annual_renewals_agg USING (year)
 LEFT JOIN (
     SELECT year, COUNT(refreshee_friend_id) AS number_of_refreshees
-    FROM report_contributing_friends_refreshees
+    FROM contributing_friends_report_refreshees
     GROUP BY year
 ) annual_refreshees_agg USING (year)
 LEFT JOIN (
     SELECT
         first_contribution_year AS year,
         COUNT(friend_id) AS number_of_first_timers
-    FROM report_contributing_friends_earliest_friend_contributions
+    FROM contributing_friends_report_earliest_friend_contributions
     GROUP BY first_contribution_year
 ) first_timers_agg USING (year)
 WHERE year <= date_part('year', CURRENT_DATE)

@@ -13,7 +13,7 @@ sub test_blast_email_list ( $self, @ ) {
     my @migrated_blast_emails
         = sort $self->_dbh->selectcol_arrayref(<<'SQL')->@*;
             SELECT email_address
-            FROM report_blast_email_list_by_contribution
+            FROM blast_email_list_by_contribution
 SQL
 
     my @legacy_blast_emails

@@ -12,7 +12,7 @@ with(
 sub test_contributing_friends ( $self, @ ) {
     my $got = $self->_dbh->selectall_arrayref(<<'SQL');
         SELECT year, friend_id
-        FROM report_contributing_friends_annual_friend_contribution_agg
+        FROM contributing_friends_report_annual_friend_contribution_agg
         ORDER BY year, friend_id
 SQL
 
@@ -29,7 +29,7 @@ SQL
 sub test_renewees ( $self, @ ) {
     my $got = $self->_dbh->selectall_arrayref(<<'SQL');
         SELECT year, renewee_friend_id
-        FROM report_contributing_friends_renewees
+        FROM contributing_friends_report_renewees
         ORDER BY year, renewee_friend_id
 SQL
 
@@ -45,7 +45,7 @@ SQL
 sub test_refreshees ( $self, @ ) {
     my $got = $self->_dbh->selectall_arrayref(<<'SQL');
         SELECT year, refreshee_friend_id
-        FROM report_contributing_friends_refreshees
+        FROM contributing_friends_report_refreshees
         ORDER BY year, refreshee_friend_id
 SQL
 
@@ -61,7 +61,7 @@ SQL
 sub test_first_timers ( $self, @ ) {
     my $got = $self->_dbh->selectall_arrayref(<<'SQL');
         SELECT first_contribution_year, friend_id
-        FROM report_contributing_friends_earliest_friend_contributions
+        FROM contributing_friends_report_earliest_friend_contributions
         ORDER BY first_contribution_year, friend_id
 SQL
 
