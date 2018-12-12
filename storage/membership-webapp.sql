@@ -946,6 +946,141 @@ LEFT JOIN (
 WHERE year <= date_part('year', CURRENT_DATE)
 ORDER BY year;
 
+CREATE FUNCTION format_list (items TEXT[], delimiter TEXT DEFAULT ', ', conjunction TEXT DEFAULT ' and ')
+RETURNS TEXT
+AS $$
+DECLARE
+    v_num_items INTEGER;
+BEGIN
+    v_num_items = array_length(items, 1);
+
+    IF v_num_items = 0 THEN
+        RETURN '';
+    ELSIF v_num_items = 1 THEN
+        RETURN items[1];
+    ELSIF v_num_items > 1 THEN
+        RETURN array_to_string(items[1:v_num_items-1], delimiter)
+            || conjunction || items[v_num_items];
+    END IF;
+
+    RAISE EXCEPTION 'Unknown number of names';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION format_names_by_family (person_ids INTEGER[])
+RETURNS TEXT
+AS $$
+BEGIN
+    IF array_length(person_ids, 1) = 0 THEN
+        RETURN NULL;
+    END IF;
+
+    RETURN (
+        SELECT format_list(array_agg(family)) AS families
+        FROM (
+            SELECT format_list(array_agg(first_name::TEXT)) || ' ' || last_name AS family
+            FROM person
+            WHERE person_id = ANY(person_ids)
+            GROUP BY last_name
+        ) AS people_by_family
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE VIEW person_address_for_mailing AS
+SELECT
+    person_id,
+    street_line_1,
+    street_line_2,
+    city,
+    state_abbr,
+    zip,
+    plus_four
+FROM mailing_address
+INNER JOIN city_state_zip USING (csz_id)
+UNION ALL
+SELECT
+    p.person_id,
+    p.street_line_1,
+    p.street_line_2,
+    city,
+    state_abbr,
+    zip,
+    p.plus_four
+FROM physical_address p
+INNER JOIN city_state_zip USING (csz_id)
+LEFT JOIN mailing_address USING (person_id)
+WHERE mailing_address.street_line_1 IS NULL;
+
+COMMENT ON VIEW person_address_for_mailing IS 'A person with no mailing address can be mailed at their physical address';
+
+CREATE VIEW membership_renewal_mailing_list_by_contribution AS
+SELECT
+    format_names_by_family(array_agg(person_id)) AS names,
+    street_line_1,
+    street_line_2,
+    city,
+    state_abbr,
+    zip,
+    plus_four
+FROM person_address_for_mailing
+INNER JOIN person USING (person_id)
+INNER JOIN affiliation_person USING (person_id)
+INNER JOIN affiliation USING (affiliation_id)
+INNER JOIN contribution USING (affiliation_id)
+WHERE year >= EXTRACT (YEAR FROM CURRENT_DATE) - 2
+GROUP BY street_line_1, street_line_2, city, state_abbr, zip, plus_four;
+
+COMMENT ON VIEW membership_renewal_mailing_list_by_contribution IS 'This is just for ETL testing.';
+
+CREATE VIEW recently_relevant_person AS
+SELECT person_id
+FROM person
+INNER JOIN affiliation_person USING (person_id)
+INNER JOIN affiliation USING (affiliation_id)
+INNER JOIN contribution USING (affiliation_id)
+WHERE year >= EXTRACT (YEAR FROM CURRENT_DATE) - 2
+UNION
+SELECT person_id
+FROM participation_interest
+UNION
+SELECT person_id
+FROM participation_record
+WHERE year >= EXTRACT (YEAR FROM CURRENT_DATE) - 2;
+
+CREATE VIEW membership_renewal_mailing_list AS
+SELECT
+    format_names_by_family(array_agg(person_id)) AS names,
+    street_line_1,
+    street_line_2,
+    city,
+    state_abbr,
+    zip,
+    plus_four
+FROM recently_relevant_person
+INNER JOIN person USING (person_id)
+INNER JOIN person_address_for_mailing USING (person_id)
+LEFT JOIN affiliation_person ap USING (person_id)
+LEFT JOIN membership m ON ap.affiliation_id = m.affiliation_id AND year = EXTRACT(YEAR FROM CURRENT_DATE)
+WHERE opted_out = false
+AND m.affiliation_id IS NULL -- does not already have a current membership
+GROUP BY street_line_1, street_line_2, city, state_abbr, zip, plus_four;
+
+CREATE VIEW end_of_year_donation_mailing_list AS
+SELECT
+    format_names_by_family(array_agg(person_id)) AS names,
+    street_line_1,
+    street_line_2,
+    city,
+    state_abbr,
+    zip,
+    plus_four
+FROM recently_relevant_person
+INNER JOIN person USING (person_id)
+INNER JOIN person_address_for_mailing USING (person_id)
+WHERE opted_out = false
+GROUP BY street_line_1, street_line_2, city, state_abbr, zip, plus_four;
+
 -- CREATE VIEW person_finder AS
 -- SELECT
     -- person_id,
