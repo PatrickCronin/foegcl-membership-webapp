@@ -270,7 +270,7 @@ CREATE UNIQUE INDEX affiliation__year__friend_id ON affiliation (year, friend_id
 CREATE INDEX affiliation__membership_type ON affiliation (membership_type);
 CREATE INDEX affiliation__friend_id ON affiliation (friend_id);
 
-CREATE OR REPLACE FUNCTION next_friend_id()
+CREATE FUNCTION next_friend_id()
     RETURNS TRIGGER AS
 $$
 BEGIN
