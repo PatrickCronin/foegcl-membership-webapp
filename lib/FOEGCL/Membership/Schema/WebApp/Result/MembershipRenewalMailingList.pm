@@ -54,11 +54,11 @@ __PACKAGE__->table_class("DBIx::Class::ResultSource::View");
 =cut
 
 __PACKAGE__->table("membership_renewal_mailing_list");
-__PACKAGE__->result_source_instance->view_definition(" SELECT format_names_by_family(array_agg(recently_relevant_person.person_id)) AS names,\n    person_address_for_mailing.street_line_1,\n    person_address_for_mailing.street_line_2,\n    person_address_for_mailing.city,\n    person_address_for_mailing.state_abbr,\n    person_address_for_mailing.zip,\n    person_address_for_mailing.plus_four\n   FROM ((((recently_relevant_person\n     JOIN person USING (person_id))\n     JOIN person_address_for_mailing USING (person_id))\n     LEFT JOIN affiliation_person ap USING (person_id))\n     LEFT JOIN membership m ON (((ap.affiliation_id = m.affiliation_id) AND ((m.year)::double precision = date_part('year'::text, ('now'::text)::date)))))\n  WHERE ((person.opted_out = false) AND (m.affiliation_id IS NULL))\n  GROUP BY person_address_for_mailing.street_line_1, person_address_for_mailing.street_line_2, person_address_for_mailing.city, person_address_for_mailing.state_abbr, person_address_for_mailing.zip, person_address_for_mailing.plus_four");
+__PACKAGE__->result_source_instance->view_definition(" SELECT format_names_by_family(array_agg(recently_relevant_person.person_id)) AS recipients,\n    person_address_for_mailing.street_line_1,\n    person_address_for_mailing.street_line_2,\n    person_address_for_mailing.city,\n    person_address_for_mailing.state_abbr,\n    person_address_for_mailing.zip,\n    person_address_for_mailing.plus_four\n   FROM (((recently_relevant_person\n     JOIN person USING (person_id))\n     JOIN person_address_for_mailing USING (person_id))\n     LEFT JOIN ( SELECT affiliation_person.person_id,\n            1 AS has_current_membership\n           FROM (affiliation_person\n             JOIN membership USING (affiliation_id))\n          WHERE ((membership.year)::double precision = date_part('year'::text, ('now'::text)::date))) current_memberships USING (person_id))\n  WHERE ((person.opted_out = false) AND (current_memberships.has_current_membership IS NULL))\n  GROUP BY person_address_for_mailing.street_line_1, person_address_for_mailing.street_line_2, person_address_for_mailing.city, person_address_for_mailing.state_abbr, person_address_for_mailing.zip, person_address_for_mailing.plus_four");
 
 =head1 ACCESSORS
 
-=head2 names
+=head2 recipients
 
   data_type: 'text'
   is_nullable: 1
@@ -102,7 +102,7 @@ __PACKAGE__->result_source_instance->view_definition(" SELECT format_names_by_fa
 =cut
 
 __PACKAGE__->add_columns(
-  "names",
+  "recipients",
   { data_type => "text", is_nullable => 1 },
   "street_line_1",
   { data_type => "varchar", is_nullable => 1, size => 128 },
@@ -119,8 +119,8 @@ __PACKAGE__->add_columns(
 );
 #>>>
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2018-12-11 21:19:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rE9mhSr6pvrczIMScVL2CA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2018-12-12 22:05:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4OMVYDJRUD42MignJgjqhA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

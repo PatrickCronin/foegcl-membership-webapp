@@ -1016,19 +1016,30 @@ COMMENT ON VIEW person_address_for_mailing IS 'A person with no mailing address 
 
 CREATE VIEW membership_renewal_mailing_list_by_contribution AS
 SELECT
-    format_names_by_family(array_agg(person_id)) AS names,
+    format_names_by_family(array_agg(person_id)) AS recipients,
     street_line_1,
     street_line_2,
     city,
     state_abbr,
     zip,
     plus_four
-FROM person_address_for_mailing
-INNER JOIN person USING (person_id)
-INNER JOIN affiliation_person USING (person_id)
-INNER JOIN affiliation USING (affiliation_id)
-INNER JOIN contribution USING (affiliation_id)
-WHERE year >= EXTRACT (YEAR FROM CURRENT_DATE) - 2
+FROM person
+INNER JOIN person_address_for_mailing USING (person_id)
+INNER JOIN (
+    SELECT person_id
+    FROM affiliation_person
+    INNER JOIN affiliation USING (affiliation_id)
+    INNER JOIN contribution USING (affiliation_id)
+    WHERE year >= EXTRACT (YEAR FROM CURRENT_DATE) - 2
+) contributors_in_the_recent_past USING (person_id)
+LEFT JOIN (
+    SELECT person_id, 1 has_current_membership
+    FROM affiliation_person
+    INNER JOIN membership USING (affiliation_id)
+    WHERE year = EXTRACT (YEAR FROM CURRENT_DATE)
+) current_memberships USING (person_id)
+WHERE opted_out = false
+AND has_current_membership IS NULL
 GROUP BY street_line_1, street_line_2, city, state_abbr, zip, plus_four;
 
 COMMENT ON VIEW membership_renewal_mailing_list_by_contribution IS 'This is just for ETL testing.';
@@ -1050,7 +1061,7 @@ WHERE year >= EXTRACT (YEAR FROM CURRENT_DATE) - 2;
 
 CREATE VIEW membership_renewal_mailing_list AS
 SELECT
-    format_names_by_family(array_agg(person_id)) AS names,
+    format_names_by_family(array_agg(person_id)) AS recipients,
     street_line_1,
     street_line_2,
     city,
@@ -1060,10 +1071,14 @@ SELECT
 FROM recently_relevant_person
 INNER JOIN person USING (person_id)
 INNER JOIN person_address_for_mailing USING (person_id)
-LEFT JOIN affiliation_person ap USING (person_id)
-LEFT JOIN membership m ON ap.affiliation_id = m.affiliation_id AND year = EXTRACT(YEAR FROM CURRENT_DATE)
+LEFT JOIN (
+    SELECT person_id, 1 has_current_membership
+    FROM affiliation_person
+    INNER JOIN membership USING (affiliation_id)
+    WHERE year = EXTRACT (YEAR FROM CURRENT_DATE)
+) current_memberships USING (person_id)
 WHERE opted_out = false
-AND m.affiliation_id IS NULL -- does not already have a current membership
+AND has_current_membership IS NULL
 GROUP BY street_line_1, street_line_2, city, state_abbr, zip, plus_four;
 
 CREATE VIEW end_of_year_donation_mailing_list AS

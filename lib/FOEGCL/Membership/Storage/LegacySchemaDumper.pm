@@ -25,6 +25,7 @@ sub _build_loader_options ( $self, @ ) {
         DonatingMembershipAnnualSummaryComplete
         Donations
         Friends
+        MM_RenewalMailing_All_NonRenew2018
         Roles
         RolesTypes
     );
